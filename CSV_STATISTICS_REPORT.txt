@@ -1,0 +1,170 @@
+====================================================================================================
+BÁO CÁO THỐNG KÊ TẤT CẢ FILE CSV
+====================================================================================================
+Thời gian tạo báo cáo: 2025-11-15 17:00:07
+Thư mục dữ liệu: d:\Khóa Luận\Hit_Songs_DA\data
+====================================================================================================
+
+📊 Apple Music Vietnam Top 100 (Đã lọc nghệ sĩ VN)
+   File: apple_music_top100_kworb_vn.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 871 records
+   📋 Số cột: 6 columns
+   💾 Kích thước file: 56.33 KB
+   📝 Các cột: Date, Rank, Title, Artist, Featured_artists, Source
+   📅 Khoảng thời gian: 2025-11-05 → 2025-11-14
+   📆 Số ngày: 10 ngày
+   📊 Phân bổ theo ngày:
+      • 2025-11-05: 89 records
+      • 2025-11-06: 89 records
+      • 2025-11-07: 88 records
+      • 2025-11-08: 88 records
+      • 2025-11-09: 85 records
+      • 2025-11-10: 84 records
+      • 2025-11-11: 85 records
+      • 2025-11-12: 87 records
+      • 2025-11-13: 87 records
+      • 2025-11-14: 89 records
+   🎵 Số bài hát unique: 101
+   🎤 Số nghệ sĩ unique: 44
+   🌐 Phân bổ theo nguồn:
+      • APPLE_MUSIC: 871 records
+   🏆 Top 5 bài hát (ngày 2025-11-14):
+       1. chẳng phải tình đầu sao đau đến thế                - MIN
+       2. SỚM MUỘN THÌ                                       - ANH TRAI SAY HI
+       3. Em                                                 - Binz
+       4. In Love                                            - Low G
+       5. Không Buông                                        - Hngle
+
+📊 Spotify Vietnam Top 100 (Đã lọc nghệ sĩ VN)
+   File: spotify_top100_kworb_vn.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 1,209 records
+   📋 Số cột: 14 columns
+   💾 Kích thước file: 113.55 KB
+   📝 Các cột: Date, Rank, Title, Artist, Featured_Artists, Days_On_Chart, Peak_Position, Peak_Count, Daily_Streams, Streams_Change, Seven_Day_Streams, Seven_Day_Change, Total_Streams, Source
+   📅 Khoảng thời gian: 2025-10-31 → 2025-11-13
+   📆 Số ngày: 13 ngày
+   📊 Phân bổ theo ngày:
+      • 2025-10-31: 83 records
+      • 2025-11-01: 86 records
+      • 2025-11-03: 86 records
+      • 2025-11-04: 95 records
+      • 2025-11-05: 95 records
+      ... (và 3 ngày khác) ...
+      • 2025-11-09: 96 records
+      • 2025-11-10: 95 records
+      • 2025-11-11: 95 records
+      • 2025-11-12: 96 records
+      • 2025-11-13: 96 records
+   🎵 Số bài hát unique: 130
+   🎤 Số nghệ sĩ unique: 72
+   🌐 Phân bổ theo nguồn:
+      • SPOTIFY: 350 records
+   🏆 Top 5 bài hát (ngày 2025-11-13):
+       2. chẳng phải tình đầu sao đau đến thế                - MIN
+       3. Người Đầu Tiên                                     - Juky San
+       4. Không Buông                                        - Hngle
+       5. SỚM MUỘN THÌ                                       - ANH TRAI SAY HI
+       6. In Love                                            - Low G
+
+📊 NhacCuaTui Top 50
+   File: nct_top50.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 441 records
+   📋 Số cột: 9 columns
+   💾 Kích thước file: 53.49 KB
+   📝 Các cột: Date, Rank, Title, Artist, Featured_Artists, Source, Duration, Total_Likes, URL
+   📅 Khoảng thời gian: 2025-10-31 → 2025-11-14
+   📆 Số ngày: 9 ngày
+   📊 Phân bổ theo ngày:
+      • 2025-10-31: 49 records
+      • 2025-11-03: 49 records
+      • 2025-11-04: 49 records
+      • 2025-11-05: 49 records
+      • 2025-11-07: 49 records
+      • 2025-11-11: 49 records
+      • 2025-11-12: 49 records
+      • 2025-11-13: 49 records
+      • 2025-11-14: 49 records
+   🎵 Số bài hát unique: 56
+   🎤 Số nghệ sĩ unique: 35
+   🌐 Phân bổ theo nguồn:
+      • NCT: 441 records
+   🏆 Top 5 bài hát (ngày 2025-11-14):
+       1. chẳng phải tình đầu sao đau đến thế                - MIN
+       2. SỚM MUỘN THÌ                                       - ANH TRAI SAY HI
+       3. Không Buông                                        - Hngle
+       4. Anh Đã Không Biết Cách Yêu Em                      - Quang Đăng Trần
+       5. Kho Báu                                            - STRONG
+
+📊 Zing MP3 Top 100
+   File: zingmp3_top100.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 1,480 records
+   📋 Số cột: 10 columns
+   💾 Kích thước file: 250.43 KB
+   📝 Các cột: Date, Rank, Title, Artist, Featured_Artists, Source, Duration, URL, Total_Likes, Total_Plays
+   📅 Khoảng thời gian: 2025-10-31 → 2025-11-15
+   📆 Số ngày: 16 ngày
+   📊 Phân bổ theo ngày:
+      • 2025-10-31: 93 records
+      • 2025-11-01: 94 records
+      • 2025-11-02: 93 records
+      • 2025-11-03: 93 records
+      • 2025-11-04: 93 records
+      ... (và 6 ngày khác) ...
+      • 2025-11-11: 90 records
+      • 2025-11-12: 92 records
+      • 2025-11-13: 92 records
+      • 2025-11-14: 93 records
+      • 2025-11-15: 92 records
+   🎵 Số bài hát unique: 165
+   🎤 Số nghệ sĩ unique: 100
+   🌐 Phân bổ theo nguồn:
+      • ZINGMP3: 1,480 records
+   🏆 Top 5 bài hát (ngày 2025-11-15):
+       1. Em Thua Cô Ta                                      - Min Quỳnh Anh
+       2. Họa Sĩ Tồi                                         - Thái Học
+       3. Thiệp Hồng Sai Tên                                 - Nguyễn Thành Đạt
+       4. Anh Đã Không Biết Cách Yêu Em                      - Quang Đăng Trần
+       5. Mình Là Người Yêu Cũ                               - Khả Hiệp
+
+📊 Danh sách bài hát gốc & Data Spotify 
+   File: song_list_info.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 309 records
+   📋 Số cột: 10 columns
+   💾 Kích thước file: 61.76 KB
+   📝 Các cột: title, artists, featured_artists, source, spotify_popularity, spotify_release_date, spotify_genres, spotify_track_id, match_key, __key__
+
+📊 Các bài hát VPOP mới phát hành
+   File: new_releases_VPOP_only.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 7 records
+   📋 Số cột: 6 columns
+   💾 Kích thước file: 0.81 KB
+   📝 Các cột: release_name, artist_name, release_date, release_type, track_id_or_album_id, artist_genres
+
+📊 Các bài hát Non-hits & B-sides
+   File: non_hits_bsides.csv
+----------------------------------------------------------------------------------------------------
+   📈 Tổng số bản ghi: 1,190 records
+   📋 Số cột: 7 columns
+   💾 Kích thước file: 122.02 KB
+   📝 Các cột: track_id, track_name, artist_name, artist_id, release_date, popularity, duration_ms
+
+==============================
+TỔNG KẾT
+==============================
+📁 Tổng số file đã phân tích: 7 files
+📊 Tổng số bản ghi (tất cả file): 5,507 records
+📊 THỐNG KÊ CHI TIẾT:
+   🔴 Dữ liệu charts (4 nguồn): 4,001 records
+   🟡 Master Song Lists: 0 records
+   🟢 New Releases: 7 records
+   ⚪ Non-Hits / B-sides: 1,190 records
+
+==============================
+✅ BÁO CÁO HOÀN TẤT
+==============================
