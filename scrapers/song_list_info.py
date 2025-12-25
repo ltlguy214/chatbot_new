@@ -22,7 +22,7 @@ except ImportError:
 # =============================================================================
 # (Điền ID/Secret của bạn vào đây)
 YOUR_CLIENT_ID = "f531846ca30d4dbe8f67c5d2b07f2eca" 
-YOUR_CLIENT_SECRET = "a0d355d3c2344b45ac62c106a0382927" 
+YOUR_CLIENT_SECRET = "806be57341b240369ff885eadf54367b" 
 
 # (QUAN TRỌNG) Đây là file "Database" DUY NHẤT
 # Nó sẽ được TẢI (LOAD) và LƯU (SAVE)
