@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+
+# Local secrets
+.env
+.env.*
+
+# Local caches / tokens
+.cache
+
+# Audio assets (avoid committing copyrighted/large files)
+*.mp3
+*.wav
+*.flac
+
+# Streamlit
+.streamlit/
+
+# OS
+.DS_Store
+Thumbs.db
