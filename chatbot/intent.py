@@ -103,43 +103,6 @@ def normalize(text):
     return text
 
 def parse_intent_llm(user_input, has_file=False):
-#     text = user_input.lower()
-#     if "phân tích" in text and not has_file:
-#         return {
-#             "action": "MISSING_FILE",
-#             "params": {
-#                 "song_title": "",
-#                 "artist": "",
-#                 "mood": "",
-#                 "genre": "",
-#                 "lyric_snippet": ""
-#             },
-#             "thought": "Chưa có file"
-#         }
-
-#     if "chill" in user_input:
-#         return {
-#             "action": "RECOMMEND_MOOD",
-#             "params": {
-#                 "mood": "chill",
-#                 "song_title": "",
-#                 "artist": "",
-#                 "genre": "",
-#                 "lyric_snippet": ""
-#             },
-#             "thought": "test local"
-#         }
-#     return {
-#     "action": "CLARIFY",
-#     "params": {
-#         "song_title": "",
-#         "artist": "",
-#         "mood": "",
-#         "genre": "",
-#         "lyric_snippet": ""
-#     },
-#     "thought": "Không hiểu rõ yêu cầu"
-# }
     """
     Phân tích ý định người dùng thành 11 Action chuẩn.
     """
