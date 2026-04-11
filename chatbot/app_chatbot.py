@@ -1634,7 +1634,8 @@ def _render_sidebar_controls_for_mode(app_mode: str | None):
             st.session_state.gemini_model_override = ''
 
         label_to_model = {
-            'Flash': 'models/gemini-2.0-flash',
+            # Newer default; the runtime caller will fall back if unavailable.
+            'Flash': 'models/gemini-2.5-flash',
         }
         current = str(st.session_state.get('gemini_model_override') or '').strip()
         default_label = 'Flash'
@@ -2087,6 +2088,15 @@ def call_gemini_engine(prompt, *, module: str | None = None):
             or 'rate-limit' in msg
         )
 
+    def _looks_like_model_not_found_error(err: Exception) -> bool:
+        msg = str(err).lower()
+        return (
+            '404' in msg
+            or 'not_found' in msg
+            or 'no longer available' in msg
+            or ('this model' in msg and 'available' in msg)
+        )
+
     def _normalize_model_name(name: str) -> str:
         name = str(name or '').strip()
         if name.startswith('models/'):
@@ -2094,9 +2104,9 @@ def call_gemini_engine(prompt, *, module: str | None = None):
         return name
 
     api_keys = _parse_gemini_api_keys()
-    # Ưu tiên model override từ UI (nhưng UI hiện chỉ có Flash 2.0).
+    # Ưu tiên model override từ UI.
     override_model = _normalize_model_name(str(st.session_state.get('gemini_model_override') or '').strip())
-    model_name = 'gemini-2.0-flash'
+    model_name = 'gemini-2.5-flash'
 
     if not api_keys:
         st.session_state['gemini_last_error'] = 'GEMINI_API_KEY / GEMINI_API_KEYS is empty'
@@ -2136,8 +2146,94 @@ def call_gemini_engine(prompt, *, module: str | None = None):
         st.session_state['gemini_last_error'] = f'quota-cooldown:{int(min_remaining or 0)}s'
         return None
 
-    # Enforce a single model version as requested.
-    model_candidates = [_normalize_model_name(override_model or model_name)]
+    # Model candidates: allow overrides, but remain robust to deprecations (404).
+    env_model = _normalize_model_name(str(os.getenv('GEMINI_MODEL') or '').strip())
+    model_candidates: list[str] = []
+    for m in [
+        override_model,
+        env_model,
+        model_name,
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+    ]:
+        m = _normalize_model_name(m)
+        if m and m not in model_candidates:
+            model_candidates.append(m)
+
+    def _iter_model_names(list_result: object) -> list[str]:
+        names: list[str] = []
+        try:
+            items = list_result
+            if isinstance(items, dict):
+                items = items.get('models') or items.get('data') or []
+            for item in items or []:
+                name = None
+                if isinstance(item, dict):
+                    name = item.get('name') or item.get('model')
+                else:
+                    name = getattr(item, 'name', None) or getattr(item, 'model', None)
+                if name:
+                    n = _normalize_model_name(str(name))
+                    if n and n not in names:
+                        names.append(n)
+        except Exception:
+            return names
+        return names
+
+    def _rank_model_name(name: str) -> tuple[int, int, str]:
+        n = str(name or '').lower()
+        tier = 2
+        if 'flash' in n:
+            tier = 0
+        elif 'pro' in n:
+            tier = 1
+        ver = 99
+        if '2.5' in n:
+            ver = 0
+        elif '2.0' in n:
+            ver = 1
+        elif '1.5' in n:
+            ver = 2
+        return tier, ver, n
+
+    def _discover_models(client: object, fp: str) -> list[str]:
+        # Cache in session_state for 30 minutes to avoid repeated API calls.
+        try:
+            cache = st.session_state.get('gemini_model_candidate_cache')
+            if not isinstance(cache, dict):
+                cache = {}
+        except Exception:
+            cache = {}
+
+        try:
+            now2 = float(time.time())
+        except Exception:
+            now2 = 0.0
+
+        cached = cache.get(fp)
+        if isinstance(cached, dict):
+            ts = float(cached.get('ts') or 0.0)
+            models = cached.get('models')
+            if now2 and ts and now2 - ts < 30 * 60 and isinstance(models, list) and models:
+                return [str(m) for m in models if str(m).strip()]
+
+        try:
+            models_api = getattr(client, 'models', None)
+            if models_api is None or not hasattr(models_api, 'list'):
+                return []
+            list_result = models_api.list()
+            names = _iter_model_names(list_result)
+            names = [n for n in names if 'gemini' in n.lower() and 'embedding' not in n.lower()]
+            names = sorted(names, key=_rank_model_name)
+            picked = names[:8]
+            cache[fp] = {'ts': now2, 'models': picked}
+            st.session_state['gemini_model_candidate_cache'] = cache
+            return picked
+        except Exception:
+            st.session_state['gemini_model_candidate_cache'] = cache
+            return []
 
     # Add lightweight conversational context (optional) so responses stay consistent.
     prompt_text = str(prompt or '')
@@ -2163,6 +2259,8 @@ def call_gemini_engine(prompt, *, module: str | None = None):
                 last_error = str(ex)
                 continue
 
+            saw_model_not_found = False
+            saw_quota = False
             for candidate in model_candidates:
                 try:
                     response = client.models.generate_content(
@@ -2178,12 +2276,45 @@ def call_gemini_engine(prompt, *, module: str | None = None):
                 except Exception as ex:
                     last_error = f"{candidate}: {ex}"
                     if _looks_like_quota_error(ex):
+                        saw_quota = True
                         try:
                             cooldowns[_fp(api_key)] = time.time() + 10 * 60
                             st.session_state['gemini_key_cooldown_until'] = cooldowns
                         except Exception:
                             pass
                         break
+                    if _looks_like_model_not_found_error(ex):
+                        # Try the next model candidate for the same key.
+                        saw_model_not_found = True
+                        continue
+
+            # If configured models are deprecated (404), discover available models and retry once.
+            if saw_model_not_found and not saw_quota:
+                fp = _fp(api_key)
+                discovered = _discover_models(client, fp)
+                for candidate in discovered:
+                    try:
+                        response = client.models.generate_content(
+                            model=candidate,
+                            contents=prompt_text,
+                        )
+                        text = getattr(response, 'text', None)
+                        text = str(text or '').strip()
+                        if text:
+                            st.session_state['gemini_model_used'] = candidate
+                            st.session_state['gemini_last_error'] = None
+                            return text
+                    except Exception as ex:
+                        last_error = f"{candidate}: {ex}"
+                        if _looks_like_quota_error(ex):
+                            try:
+                                cooldowns[_fp(api_key)] = time.time() + 10 * 60
+                                st.session_state['gemini_key_cooldown_until'] = cooldowns
+                            except Exception:
+                                pass
+                            break
+                        if _looks_like_model_not_found_error(ex):
+                            continue
     except Exception as ex:
         last_error = str(ex)
 
@@ -3017,9 +3148,8 @@ with st.sidebar:
         st.session_state.global_audio_bytes = None
         st.session_state.global_audio_name = None
 
-    st.divider()
-    st.markdown('### ⚙️ Debug')
-    st.checkbox('Hiện AI Action/Thought', value=False, key='debug_show_action')
+    # Debug UI is locked by default to avoid confusing end users.
+    # Enable via env: CHATBOT_SHOW_ACTION_DEBUG=1
 
 has_file = st.session_state.get('global_audio_bytes') is not None
 
@@ -3169,7 +3299,7 @@ if prompt := st.chat_input("Nhập yêu cầu (VD: 'Tìm nhạc suy' hoặc 'Ph�
 
     with _aligned_chat_col("assistant"):
         with st.chat_message("assistant"):
-            if bool(st.session_state.get('debug_show_action', False)):
+            if _is_truthy_env('CHATBOT_SHOW_ACTION_DEBUG', default='0'):
                 st.caption(f"*(AI Action: **{action}** - Chi tiết: {intent_data.get('thought', 'Không có')} )*")
 
             # --- LUỒNG 1: TÌM NHẠC ---

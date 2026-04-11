@@ -5,9 +5,10 @@ Repo: local workspace `Hit_songs_DA` (đẩy code sang `ltlguy214/chatbot_new.gi
 
 ## 1) Tóm tắt nhanh
 - Intent (Gemini) có thể bị **quota/429** ⇒ hệ thống đã có **fallback heuristic**.
+- Gemini có thể gặp **404 / model deprecated** (VD: `gemini-2.0-flash` không available cho key mới) ⇒ hệ thống **tự discover model hợp lệ** bằng `client.models.list()` và retry.
 - Đã fix để **tự xoay API key** khi quota (cooldown theo từng key, không khóa toàn cục).
 - Đã fix intent cho câu kiểu: **“tìm cho tôi nhạc của Phùng Khánh Linh” → `RECOMMEND_ARTIST`** (kèm `params.artist`).
-- UI: ẩn dòng debug “AI Action/Thought” mặc định + render markdown **giữ xuống dòng** trong lịch sử chat.
+- UI: ẩn dòng debug “AI Action/Thought” mặc định (chỉ bật khi `CHATBOT_SHOW_ACTION_DEBUG=1`) + render markdown **giữ xuống dòng** trong lịch sử chat.
 
 ## 2) Môi trường chạy local
 - Python: `.venv312` (Python 3.12)
@@ -75,11 +76,13 @@ Chạy headless: `python -m streamlit run chatbot/app_chatbot.py --server.headle
 
 ## 6) Vấn đề còn lại / rủi ro
 - Gemini quota: không thể “fix quota” bằng code; chỉ có thể **xoay key** + fallback.
+- Gemini model availability: hệ thống đã tự fallback khi **model bị 404/deprecated**, nhưng vẫn phụ thuộc **quyền truy cập model** của từng API key.
 - Spotify preview: phụ thuộc token/credential; khi thiếu có thể chỉ hiện link search.
 - `SEARCH_AUDIO` chưa có pipeline so sánh audio.
 - Một số đoạn UI/markdown phụ thuộc theme Streamlit; đã cố định xuống dòng trong history.
 
 ## 7) Khuyến nghị next steps
 - Nếu cần ổn định Gemini: thêm nhiều key vào `GEMINI_API_KEYS` để xoay vòng.
+- Nếu cần bật debug action trên web: set `CHATBOT_SHOW_ACTION_DEBUG=1` (mặc định OFF để tránh lộ lỗi nội bộ cho end user).
 - Nếu cần hoàn thiện `SEARCH_AUDIO`: cần định nghĩa rõ embedding/audio-feature + Supabase schema (hoặc local index) rồi nối vào `handle_action`.
 - Nếu muốn giảm “debug noise”: giữ `Debug: Hiện AI Action/Thought` mặc định OFF (đã làm).

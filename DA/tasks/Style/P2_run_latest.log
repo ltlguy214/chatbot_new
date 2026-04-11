@@ -1,0 +1,143 @@
+📝 Log file: DA\tasks\Style\P2_run_latest.log
+🕒 Started: 2026-04-08T23:45:18 | Script: analysis_Style_Classification.py
+
+================================================================================
+BƯỚC 1: TẢI & PREPROCESS
+================================================================================
+🚀 BẮT ĐẦU TIỀN XỬ LÝ DỮ LIỆU...
+
+   ✅ Sentiment OHE included: ['sentiment_negative', 'sentiment_neutral', 'sentiment_positive']
+   📊 Input Features: 115 biến
+   🔎 Binary (no-scale) cols: 31 | Continuous cols: 84
+   ⚖️  Feature Weights: Optuna enabled → defer weighting to optimizer
+
+================================================================================
+BƯỚC 1B: OPTUNA FEATURE WEIGHTS
+================================================================================
+
+================================================================================
+OPTUNA REUSE (skip trials): Feature Weights
+================================================================================
+   ✅ Loaded: DA\tasks\Style\optuna_history_json\p2_feature_weights_best_params.json
+   ✅ Params: {'tempo': 0.6929337794691192, 'energy': 1.9858818332398962, 'sentiment': 1.561784018789134, 'beat': 1.7329161244736726, 'onset': 0.6329351908732839, 'flatness': 2.151855763459191}
+================================================================================
+
+
+================================================================================
+BƯỚC 2: PCA (Dynamic 60% Variance)
+================================================================================
+   📉 PCA ANALYTICS + PCA(n_components=0.6) ...
+   📊 n_60 (>=60%): 15
+   Tổng phương sai giải thích 60.3% với 15 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+
+================================================================================
+BƯỚC 3: AUTO-ELBOW (kneed)
+================================================================================
+
+================================================================================
+AUTO-K MODULE: k=2..10 (KneeLocator / Elbow on inertia)
+================================================================================
+   k= 2 | inertia=338692.74 | silhouette=0.2066
+   k= 3 | inertia=306614.82 | silhouette=0.1763
+   k= 4 | inertia=288673.28 | silhouette=0.1392
+   k= 5 | inertia=274728.49 | silhouette=0.1025
+   k= 6 | inertia=263287.71 | silhouette=0.1029
+   k= 7 | inertia=255067.15 | silhouette=0.0944
+   k= 8 | inertia=248273.25 | silhouette=0.0874
+   k= 9 | inertia=242719.43 | silhouette=0.0865
+   k=10 | inertia=237852.02 | silhouette=0.0768
+
+   ✅ Auto-Elbow (KneeLocator): k=5
+✅ Đã lưu Auto-Elbow plot tại: DA\tasks\Style\k_selection_auto.png
+✅ Kết quả Auto-Kneed chuẩn: k = 5
+
+================================================================================
+BƯỚC 4: CHẠY BASELINE - SO SÁNH BAN ĐẦU + OPTUNA
+================================================================================
+
+================================================================================
+BENCHMARK 9 THUẬT TOÁN (k=5)
+================================================================================
+
+MODEL                          | SIL      | DB       | CH           | N_CLUST
+--------------------------------------------------------------------------------
+K-Means                        |   0.1025 |   2.1234 |      1127.86 |       5
+K-Means (Random)               |   0.1025 |   2.1234 |      1127.86 |       5
+MiniBatch KMeans               |   0.1169 |   2.2459 |      1047.30 |       5
+Bisecting KMeans               |   0.0815 |   2.4988 |      1026.85 |       5
+Agglomerative (Ward)           |   0.0992 |   1.9480 |       853.50 |       5
+Birch                          |   0.0929 |   1.8492 |       846.13 |       5
+Spectral (KNN)                 |   0.0880 |   2.3391 |      1017.77 |       5
+
+================================================================================
+
+
+================================================================================
+📊 BASELINE - 9 THUẬT TOÁN (k=5)
+================================================================================
+                      Silhouette  Davies-Bouldin  Calinski-Harabasz
+MiniBatch KMeans          0.1169          2.2459          1047.3043
+K-Means (Random)          0.1025          2.1234          1127.8623
+K-Means                   0.1025          2.1234          1127.8621
+Agglomerative (Ward)      0.0992          1.9480           853.5011
+Birch                     0.0929          1.8492           846.1271
+Spectral (KNN)            0.0880          2.3391          1017.7700
+Bisecting KMeans          0.0815          2.4988          1026.8470
+   🏆 Best fixed-k model (đủ điều kiện map 5 vibes): MiniBatch KMeans (Silhouette: 0.1169 | CH: 1047.30)
+================================================================================
+   🔥 BƯỚC 2: Bắt đầu tối ưu hóa Optuna (20 lượt) cho MiniBatch KMeans...
+
+================================================================================
+OPTUNA REUSE (skip trials): kmeans
+================================================================================
+   ✅ Loaded best params: DA\tasks\Style\optuna_history_json\p2_kmeans_best_params.json
+   ✅ Cached SIL (re-eval): 0.1025
+================================================================================
+
+   ⚠️  Optuna không cải thiện (baseline_SIL=0.1169 > optuna_SIL=0.1025) → GIỮ BASELINE params
+   ✅ Đã xuất ảnh lịch sử Optuna tại: DA\tasks\Style\optuna_history_image\p2_kmeans_optimization.png
+
+================================================================================
+📊 BƯỚC 3: LƯU KẾT QUẢ BEST MODEL
+================================================================================
+✅ Đã lưu best-model CSV tại: DA\final_data\p2_best_model_results.csv
+
+================================================================================
+BƯỚC 4B: CONSENSUS CLUSTERING (Ensemble)
+================================================================================
+✅ Consensus built from: ['MiniBatch KMeans', 'K-Means', 'K-Means (Random)']
+
+================================================================================
+BƯỚC 4C: BOOTSTRAP STABILITY VALIDATION
+================================================================================
+✅ Bootstrap stability: mean agreement = 0.9712
+
+================================================================================
+BƯỚC 5: DIRECT MAPPING 5 VIBES
+================================================================================
+
+================================================================================
+BƯỚC 5B: OPTUNA IDEAL VECTORS (Vibe Mapping)
+================================================================================
+
+================================================================================
+OPTUNA REUSE (skip trials): Ideal Vectors
+================================================================================
+   ✅ Loaded: DA\tasks\Style\optuna_history_json\p2_ideal_vibes_best_params.json
+================================================================================
+
+📌 METRICS (FINAL 5 VIBES)
+Silhouette:      0.1024
+Davies-Bouldin:  2.1232
+Calinski-Harabasz: 1127.89
+✅ Đã lưu radar chart tại: DA\tasks\Style\5vibes_radar.png
+✅ Đã xuất CSV tại: DA\final_data\VPop_5_Vibes_Final.csv
+✅ Đã lưu feature names tại: DA\models\feature_names_p2.json
+
+💾 FILES ĐÃ LƯU:
+✅ Đã lưu best model (PKL) tại: DA\models\best_model_p2.pkl
+   • Best model:        DA\models\best_model_p2.pkl
+   • Feature names:     DA\models\feature_names_p2.json
+   • Final CSV:         DA\final_data\VPop_5_Vibes_Final.csv
+

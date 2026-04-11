@@ -1,0 +1,2 @@
+﻿Model,AlgoKey,k,UsedOptunaParams,Baseline_CH,Baseline_Silhouette,Final_CH,Final_Silhouette,Final_DaviesBouldin,BestParams
+MiniBatch KMeans,kmeans,5,0,1047.304346385592,0.11692055247178716,1047.304346385592,0.11692055247178716,2.245941161591495,{}

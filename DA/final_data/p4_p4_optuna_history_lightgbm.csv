@@ -1,0 +1,2 @@
+﻿number,value,datetime_start,datetime_complete,duration,params_colsample_bytree,params_learning_rate,params_max_depth,params_n_estimators,params_num_leaves,params_subsample,state,best_value_so_far
+0,0.8057154820423282,2026-04-06 21:02:40.821781,2026-04-06 21:02:58.232713,0 days 00:00:17.410932,0.9132755327863835,0.129875997325087,4,800,115,0.9420063719774922,COMPLETE,0.8057154820423282

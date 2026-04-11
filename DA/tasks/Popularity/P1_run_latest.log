@@ -1,0 +1,157 @@
+📝 Log file: DA\tasks\Popularity\P1_run_latest.log
+🕒 Started: 2026-04-08T21:11:50 | Script: analysis_Popularity_Prediction_hitstyle.py
+
+================================================================================
+🚀 P1 - Popularity Prediction (Regression) — Time-based holdout 80/20
+================================================================================
+   • Data: final_data\data_prepared_for_ML.csv
+   • Split: Time-based 80/20 (spotify_release_date)
+   • CV_N_JOBS: 1 (env CV_N_JOBS=-1 để dùng đa lõi)
+⏳ Đang tải dữ liệu từ final_data\data_prepared_for_ML.csv...
+✅ Đã tải thành công: 7665 dòng dữ liệu.
+🎯 Target: spotify_popularity (min=4.0, max=72.0, mean=27.6)
+
+============================================================
+🔍 KIỂM TRA CHI TIẾT CÁC BIẾN ĐẦU VÀO (TASK P1 - POPULARITY)
+============================================================
+1️⃣ Số lượng biến số (Continuous - sẽ Scale): 75
+['duration_sec' 'tempo_bpm' 'rms_energy' 'spectral_centroid_mean'
+ 'mfcc10_mean' 'mfcc10_std' 'mfcc11_mean' 'mfcc11_std' 'mfcc12_mean'
+ 'mfcc12_std' 'mfcc13_mean' 'mfcc13_std' 'mfcc1_mean' 'mfcc1_std'
+ 'mfcc2_std' 'mfcc3_mean' 'mfcc3_std' 'mfcc4_mean' 'mfcc4_std'
+ 'mfcc5_mean' 'mfcc5_std' 'mfcc6_mean' 'mfcc6_std' 'mfcc7_mean'
+ 'mfcc7_std' 'mfcc8_mean' 'mfcc8_std' 'mfcc9_mean' 'mfcc9_std'
+ 'zero_crossing_rate' 'spectral_contrast_band1_mean'
+ 'spectral_contrast_band2_mean' 'spectral_contrast_band6_mean'
+ 'spectral_contrast_band7_mean' 'spectral_flatness_mean'
+ 'beat_strength_mean' 'onset_rate' 'chroma1_mean' 'chroma2_mean'
+ 'chroma3_mean' 'chroma4_mean' 'chroma5_mean' 'chroma6_mean'
+ 'chroma7_mean' 'chroma8_mean' 'chroma9_mean' 'chroma10_mean'
+ 'chroma11_mean' 'chroma12_mean' 'tonnetz1_mean' 'tonnetz2_mean'
+ 'tonnetz3_mean' 'tonnetz4_mean' 'tonnetz5_mean' 'tonnetz6_mean'
+ 'harmonic_percussive_ratio' 'lyric_total_words' 'lexical_diversity'
+ 'adj_count' 'lyrical_density' 'topic_prob_0' 'topic_prob_1'
+ 'topic_prob_2' 'topic_prob_3' 'topic_prob_4' 'topic_prob_5'
+ 'topic_prob_6' 'topic_prob_7' 'topic_prob_8' 'topic_prob_9'
+ 'topic_prob_10' 'topic_prob_11' 'topic_prob_12' 'topic_prob_13'
+ 'topic_prob_14']
+------------------------------------------------------------
+1️⃣b Số lượng biến nhị phân (0/1 - KHÔNG Scale): 28
+['key_A#:maj' 'key_A#:min' 'key_A:maj' 'key_A:min' 'key_B:maj' 'key_B:min'
+ 'key_C#:maj' 'key_C#:min' 'key_C:maj' 'key_C:min' 'key_D#:maj'
+ 'key_D#:min' 'key_D:maj' 'key_D:min' 'key_E:maj' 'key_E:min' 'key_F#:maj'
+ 'key_F#:min' 'key_F:maj' 'key_F:min' 'key_G#:maj' 'key_G#:min'
+ 'key_G:maj' 'key_G:min' 'genre_Ballad' 'genre_Indie' 'genre_Pop'
+ 'genre_Rap/Hip-hop']
+------------------------------------------------------------
+1️⃣c Tổng số biến số dùng cho model: 103
+------------------------------------------------------------
+2️⃣ Số lượng biến phân loại (Sentiment OHE): 3
+   Các nhãn tìm thấy: ['neutral' 'negative' 'positive']
+------------------------------------------------------------
+✅ TỔNG CỘNG SỐ BIẾN ĐƯA VÀO MODEL: 106
+============================================================
+
+📌 Holdout 80/20 (time-based) → Train=6132 | Test=1533
+------------------------------------------------------------
+📅 Tập Train: từ 2010-01-01 đến 2025-02-25 (6132 bài)
+📅 Tập Test : từ 2025-02-25 đến 2026-03-18 (1533 bài)
+------------------------------------------------------------
+🧩 Feature selection: tree | selector=tree(threshold=median, max_features=None) | outlier_filter=isoforest(contam=0.02, min_keep=0.8) | target_transform=log1p
+
+================================================================================
+📊 BƯỚC 1: CHẠY BASELINE - SO SÁNH BAN ĐẦU
+================================================================================
+
+MODEL                                    | CV_MAE     | TEST_MAE   | TEST_RMSE 
+-------------------------------------------------------------------------------------
+Ridge Regression                         | 15.57      | 12.35      | 15.51     
+Lasso Regression                         | 12.09      | 12.93      | 16.11     
+ElasticNet                               | 12.09      | 12.93      | 16.11     
+Bayesian Ridge                           | 27.17      | 12.38      | 15.49     
+Huber Regressor                          | 15.52      | 12.04      | 15.18     
+KNN Regressor                            | 12.44      | 13.06      | 16.16     
+Decision Tree                            | 15.80      | 15.76      | 19.75     
+SVR (RBF Kernel)                         | 11.68      | 11.88      | 14.72     
+Random Forest                            | 11.52      | 12.27      | 15.25     
+XGBoost                                  | 11.60      | 12.13      | 15.00     
+LightGBM                                 | 11.67      | 12.22      | 15.09     
+Voting (RF+XGB+LGBM)                     | 11.51      | 12.14      | 15.03     
+
+================================================================================
+🏆 XÁC ĐỊNH BEST MODEL TỪ BASELINE
+================================================================================
+
+✨ BEST BASELINE MODEL (by CV MAE): Voting (RF+XGB+LGBM) (CV MAE: 11.51 | Test MAE: 12.14 | RMSE: 15.03)
+✅ Đã lưu kết quả so sánh tại: DA\final_data\p1_model_comparison_results.csv
+✅ Đã lưu kết quả so sánh tại: DA\final_data\model_comparison_results_p1.csv
+✅ Đã lưu biểu đồ MAE tại: DA\tasks\Popularity\p1_model_comparison_mae.png
+
+================================================================================
+🔧 BƯỚC 2: TỐI ƯU CHỈ BEST MODEL BẰNG OPTUNA
+================================================================================
+📋 Ensemble model detected → Sẽ tối ưu 3 base models: Random Forest, XGBoost, LightGBM
+
+======================================================================
+🔧 [1/3] ĐANG TỐI ƯU: Random Forest
+======================================================================
+📦 Optuna sqlite resume: DA\tasks\Popularity\optuna_studies_p1.db | study=P1__random_forest__mae_v1 | complete=4 → run thêm 16 trials
+✅ Best CV MAE: 11.4414
+
+======================================================================
+🔧 [2/3] ĐANG TỐI ƯU: XGBoost
+======================================================================
+📦 Optuna sqlite resume: DA\tasks\Popularity\optuna_studies_p1.db | study=P1__xgboost__mae_v1 | complete=0 → run thêm 20 trials
+✅ Best CV MAE: 11.4670
+
+======================================================================
+🔧 [3/3] ĐANG TỐI ƯU: LightGBM
+======================================================================
+✅ Study đã đủ trials (complete=50 / target=20) → skip optimize
+✅ Best CV MAE: 11.4186
+
+================================================================================
+🎉 HOÀN TẤT TỐI ƯU HÓA
+================================================================================
+
+================================================================================
+🔨 BƯỚC 3: XÂY DỰNG BEST MODEL VỚI THAM SỐ TỐI ƯU
+================================================================================
+
+================================================================================
+⚖️ BƯỚC 3.3: KIỂM TRA VÀ ROLLBACK NẾU CẦN
+================================================================================
+📊 So sánh Performance (mục tiêu: minimize CV MAE on TRAIN; Test chỉ để báo cáo):
+   • Baseline:  Voting (RF+XGB+LGBM) (CV MAE: 11.51 | Test MAE: 12.14 | RMSE: 15.03)
+   • Optimized: Voting (RF+XGB+LGBM) (CV MAE: 11.43 | Test MAE: 12.13 | RMSE: 15.01)
+   • Chênh lệch CV MAE: -0.08 (thấp hơn là tốt hơn)
+
+✅ Optuna cải thiện (CV): 11.51 → 11.43 (-0.08)
+✅ QUYẾT ĐỊNH: Giữ lại Optimized model
+✅ Đã lưu biểu đồ so sánh tại: DA\tasks\Popularity\p1_baseline_vs_optimized.png
+
+================================================================================
+📊 BƯỚC 4: ĐÁNH GIÁ FINAL
+================================================================================
+🏆 BEST FINAL MODEL (by Test MAE): Voting (RF+XGB+LGBM) [OPTIMIZED]
+Test MAE : 12.13
+Test RMSE: 15.01
+✅ Đã lưu biểu đồ Actual vs Predicted tại: DA\tasks\Popularity\p1_actual_vs_predicted.png
+
+================================================================================
+💾 ĐANG LƯU MODELS VÀ KẾT QUẢ
+================================================================================
+✅ Đã lưu feature names tại: DA\tasks\Popularity\feature_names_p1.json
+
+💾 FILES ĐÃ LƯU:
+   • Best model:         DA\models\best_model_p1.pkl
+   • Legacy model:       DA\models\popularity_model.pkl
+   • Feature names:      DA\tasks\Popularity\feature_names_p1.json
+   • Optuna params dir:  DA\tasks\Popularity\optuna_history_json
+   • Model comparison:   DA\final_data\model_comparison_results_p1.csv
+   • Model chart:        DA\tasks\Popularity\p1_model_comparison_mae.png
+   • Actual vs Predicted:DA\tasks\Popularity\p1_actual_vs_predicted.png
+
+================================================================================
+✅ HOÀN TẤT PHÂN TÍCH P1!
+================================================================================

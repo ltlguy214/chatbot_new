@@ -1,36 +1,4 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv/
-venv/
-ENV/
-env/
 .venv312/
-
-# Data files
-*.csv.bak
-*.bak
-
-# Chrome driver
-chromedriver.exe
-*.log
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Temporary
-temp/
-tmp/
-*.tmp
+__pycache__/
+*.exe
+*.txt

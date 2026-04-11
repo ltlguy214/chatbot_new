@@ -13,7 +13,13 @@ except ModuleNotFoundError:
 # Load .env robustly (works across different CWDs).
 load_env()
 
-_INTENT_MODEL = "gemini-2.0-flash"
+_DEFAULT_INTENT_MODEL_CANDIDATES: list[str] = [
+    # Try newer models first; fall back to older ones if needed.
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+]
 
 # 11 ACTIONS:
 ALLOWED_ACTIONS: set[str] = {
@@ -32,6 +38,7 @@ ALLOWED_ACTIONS: set[str] = {
 
 
 _GEMINI_KEY_COOLDOWN_UNTIL: dict[str, float] = {}
+_GEMINI_MODEL_CANDIDATE_CACHE: dict[str, tuple[float, list[str]]] = {}
 
 
 def _key_fingerprint(api_key: str) -> str:
@@ -66,9 +73,115 @@ def _parse_gemini_api_keys() -> list[str]:
     return keys
 
 
-def _intent_model_from_env() -> str:
-    # Enforce a single model version as requested.
-    return _INTENT_MODEL
+def _normalize_model_name(name: str) -> str:
+    name = str(name or '').strip()
+    if name.startswith('models/'):
+        name = name[len('models/') :]
+    return name
+
+
+def _intent_model_candidates_from_env() -> list[str]:
+    """Return model candidates for intent parsing.
+
+    Supports env overrides but remains robust to model deprecations (404).
+    """
+
+    raw = str(os.getenv('GEMINI_INTENT_MODEL') or '').strip()
+    raw2 = str(os.getenv('GEMINI_MODEL') or '').strip()
+    candidates: list[str] = []
+    for v in [raw, raw2]:
+        n = _normalize_model_name(v)
+        if n and n not in candidates:
+            candidates.append(n)
+
+    for m in _DEFAULT_INTENT_MODEL_CANDIDATES:
+        if m and m not in candidates:
+            candidates.append(m)
+
+    return candidates
+
+
+def _iter_model_names(list_result: object) -> list[str]:
+    names: list[str] = []
+    try:
+        items = list_result
+        if isinstance(items, dict):
+            items = items.get('models') or items.get('data') or []
+        for item in items or []:
+            name = None
+            if isinstance(item, dict):
+                name = item.get('name') or item.get('model')
+            else:
+                name = getattr(item, 'name', None) or getattr(item, 'model', None)
+            if name:
+                n = _normalize_model_name(str(name))
+                if n and n not in names:
+                    names.append(n)
+    except Exception:
+        return names
+    return names
+
+
+def _rank_model_name(name: str) -> tuple[int, int, str]:
+    n = str(name or '').lower()
+    tier = 2
+    if 'flash' in n:
+        tier = 0
+    elif 'pro' in n:
+        tier = 1
+
+    ver = 99
+    if '2.5' in n:
+        ver = 0
+    elif '2.0' in n:
+        ver = 1
+    elif '1.5' in n:
+        ver = 2
+
+    return tier, ver, n
+
+
+def _discover_intent_models(client: object, *, cache_key: str) -> list[str]:
+    """Discover available models from the API (best-effort).
+
+    Cached for 30 minutes per key fingerprint.
+    """
+
+    try:
+        now = float(time.time())
+    except Exception:
+        now = 0.0
+
+    cached = _GEMINI_MODEL_CANDIDATE_CACHE.get(cache_key)
+    if cached:
+        ts, models = cached
+        if now and ts and now - ts < 30 * 60 and models:
+            return models
+
+    try:
+        models_api = getattr(client, 'models', None)
+        if models_api is None or not hasattr(models_api, 'list'):
+            return []
+        list_result = models_api.list()
+        names = _iter_model_names(list_result)
+        names = [n for n in names if 'gemini' in n.lower() and 'embedding' not in n.lower()]
+        names = sorted(names, key=_rank_model_name)
+        picked = names[:8]
+        if picked:
+            _GEMINI_MODEL_CANDIDATE_CACHE[cache_key] = (now, picked)
+        return picked
+    except Exception:
+        return []
+
+
+def _looks_like_model_not_found_error(err: Exception) -> bool:
+    msg = str(err).lower()
+    return (
+        '404' in msg
+        or 'not_found' in msg
+        or 'no longer available' in msg
+        or ('this model' in msg and 'available' in msg)
+    )
 
 
 def _looks_like_quota_error(err: Exception) -> bool:
@@ -166,7 +279,7 @@ def parse_intent_llm(user_input, has_file=False):
                 thought="Gemini chưa được cấu hình (GEMINI_API_KEY / GEMINI_API_KEYS), mình dùng phân loại nhanh.",
             )
 
-        model_name = _intent_model_from_env()
+        model_candidates = _intent_model_candidates_from_env()
         last_err: Exception | None = None
         last_quota_err: Exception | None = None
         response_text: str | None = None
@@ -198,11 +311,55 @@ def parse_intent_llm(user_input, has_file=False):
                 from google import genai
 
                 client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                )
-                response_text = getattr(response, "text", None)
+                saw_model_not_found = False
+                for model_name in model_candidates:
+                    try:
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=prompt,
+                        )
+                        response_text = getattr(response, "text", None)
+                        if response_text:
+                            break
+                    except Exception as ex:
+                        last_err = ex
+                        if _looks_like_quota_error(ex):
+                            last_quota_err = ex
+                            fp = _key_fingerprint(api_key)
+                            _GEMINI_KEY_COOLDOWN_UNTIL[fp] = time.time() + 10 * 60
+                            response_text = None
+                            break
+                        if _looks_like_model_not_found_error(ex):
+                            # Try next model candidate with the same key.
+                            saw_model_not_found = True
+                            continue
+                        # Other errors: try next key.
+                        break
+
+                # If configured candidates are deprecated (404), discover models and retry once.
+                if not response_text and saw_model_not_found:
+                    fp = _key_fingerprint(api_key)
+                    discovered = _discover_intent_models(client, cache_key=fp)
+                    for model_name in discovered:
+                        try:
+                            response = client.models.generate_content(
+                                model=model_name,
+                                contents=prompt,
+                            )
+                            response_text = getattr(response, 'text', None)
+                            if response_text:
+                                break
+                        except Exception as ex:
+                            last_err = ex
+                            if _looks_like_quota_error(ex):
+                                last_quota_err = ex
+                                _GEMINI_KEY_COOLDOWN_UNTIL[fp] = time.time() + 10 * 60
+                                response_text = None
+                                break
+                            if _looks_like_model_not_found_error(ex):
+                                continue
+                            break
+
                 if response_text:
                     break
             except Exception as e:
@@ -289,7 +446,7 @@ def _cleanup_entity_text(value: str) -> str:
 
 
 def _extract_artist_from_text(user_input: str) -> str:
-    raw = str(user_input or '').strip()
+    raw = unicodedata.normalize('NFC', str(user_input or '')).strip()
     if not raw:
         return ''
 
@@ -338,7 +495,7 @@ def _extract_artist_from_text(user_input: str) -> str:
 
 
 def _extract_lyric_snippet_from_text(user_input: str) -> str:
-    raw = str(user_input or '').strip()
+    raw = unicodedata.normalize('NFC', str(user_input or '')).strip()
     if not raw:
         return ''
 
@@ -358,7 +515,7 @@ def _extract_lyric_snippet_from_text(user_input: str) -> str:
 def _extract_song_title_from_text(user_input: str) -> tuple[str, str]:
     """Return (song_title, artist) best-effort for SEARCH_NAME."""
 
-    raw = str(user_input or '').strip()
+    raw = unicodedata.normalize('NFC', str(user_input or '')).strip()
     if not raw:
         return '', ''
 
@@ -432,23 +589,6 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             'params': params,
             'thought': thought,
         }
-
-    # SEARCH_NAME best-effort when user explicitly provides a title.
-    # (Avoid stealing mood queries like "tìm nhạc vui".)
-    mood_tokens = ["buồn", "sad", "suy", "vui", "happy", "chill", "thư giãn", "thu gian", "quẩy", "quay", "dance"]
-    genre_tokens = ["rap", "hiphop", "hip-hop", "ballad", "pop", "rock"]
-    if not any(tok in text for tok in (mood_tokens + genre_tokens)):
-        title, artist2 = _extract_song_title_from_text(str(user_input or ''))
-        if title:
-            params = _empty_params()
-            params['song_title'] = title
-            if artist2:
-                params['artist'] = artist2
-            return {
-                'action': 'SEARCH_NAME',
-                'params': params,
-                'thought': thought,
-            }
 
     if any(k in text for k in ["phân tích", "phan tich", "dự đoán", "du doan", "hit"]):
         return {
@@ -525,6 +665,23 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "params": params,
             "thought": thought,
         }
+
+    # SEARCH_NAME best-effort when user explicitly provides a title.
+    # (Avoid stealing mood/genre queries like "tìm nhạc vui".)
+    mood_tokens = ["buồn", "sad", "suy", "vui", "happy", "chill", "thư giãn", "thu gian", "quẩy", "quay", "dance"]
+    genre_tokens = ["rap", "hiphop", "hip-hop", "ballad", "pop", "rock"]
+    if not any(tok in text for tok in (mood_tokens + genre_tokens)):
+        title, artist2 = _extract_song_title_from_text(str(user_input or ''))
+        if title:
+            params = _empty_params()
+            params['song_title'] = title
+            if artist2:
+                params['artist'] = artist2
+            return {
+                'action': 'SEARCH_NAME',
+                'params': params,
+                'thought': thought,
+            }
 
     if any(k in text for k in ["hợp âm", "hop am", "nhạc lý", "nhac ly", "theory"]):
         return {
