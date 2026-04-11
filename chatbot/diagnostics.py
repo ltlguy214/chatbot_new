@@ -401,8 +401,8 @@ def check_gemini_env() -> CheckResult:
 
 
 def check_gemini_model_env() -> CheckResult:
-    app_model = str(os.getenv("GEMINI_MODEL") or "").strip() or "models/gemini-2.0-flash"
-    intent_model = str(os.getenv("GEMINI_INTENT_MODEL") or "").strip() or "gemini-2.0-flash"
+    app_model = str(os.getenv("GEMINI_MODEL") or "").strip() or "models/gemini-2.5-flash"
+    intent_model = str(os.getenv("GEMINI_INTENT_MODEL") or "").strip() or "gemini-2.5-flash"
 
     def _is_gemini2_flash(name: str) -> bool:
         s = name.lower().strip()
@@ -422,7 +422,7 @@ def check_gemini_model_env() -> CheckResult:
     return CheckResult(
         name="Gemini model env",
         status="WARN",
-        details=f"Expected Gemini 2 Flash. GEMINI_MODEL={app_model}; GEMINI_INTENT_MODEL={intent_model}",
+        details=f"Gemini model is auto-fallback capable. GEMINI_MODEL={app_model}; GEMINI_INTENT_MODEL={intent_model}",
     )
 
 
@@ -434,7 +434,7 @@ def check_gemini_generate(*, network: bool) -> CheckResult:
     if not keys:
         return CheckResult(name="Gemini generate", status="SKIP", details="No Gemini API keys")
 
-    model_name = str(os.getenv("GEMINI_MODEL") or "gemini-2.0-flash").strip() or "gemini-2.0-flash"
+    model_name = str(os.getenv("GEMINI_MODEL") or "gemini-2.5-flash").strip() or "gemini-2.5-flash"
     if model_name.startswith("models/"):
         model_name = model_name[len("models/") :]
 

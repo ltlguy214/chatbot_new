@@ -1,0 +1,161 @@
+📝 Log file: DA\tasks\Genres\P4_run_latest.log
+🕒 Started: 2026-04-09T15:49:40 | Script: analysis_Genre_Classification.py
+
+================================================================================
+🚀 P4 - Genre Classification (Multi-label) — Time-based holdout 80/20 | NO TF-IDF/lyric
+================================================================================
+   • Data: final_data/data_prepared_for_ML.csv
+   • Target: ['genre_Ballad', 'genre_Indie', 'genre_Pop', 'genre_Rap/Hip-hop'] (multi-label)
+
+============================================================
+🔍 KIỂM TRA CHI TIẾT CÁC BIẾN ĐẦU VÀO (TASK 4 - MULTI-LABEL)
+============================================================
+1️⃣ Continuous (Scale): 60
+['duration_sec' 'tempo_bpm' 'rms_energy' 'spectral_centroid_mean'
+ 'mfcc10_mean' 'mfcc10_std' 'mfcc11_mean' 'mfcc11_std' 'mfcc12_mean'
+ 'mfcc12_std' 'mfcc13_mean' 'mfcc13_std' 'mfcc1_mean' 'mfcc1_std'
+ 'mfcc2_std' 'mfcc3_mean' 'mfcc3_std' 'mfcc4_mean' 'mfcc4_std'
+ 'mfcc5_mean' 'mfcc5_std' 'mfcc6_mean' 'mfcc6_std' 'mfcc7_mean'
+ 'mfcc7_std' 'mfcc8_mean' 'mfcc8_std' 'mfcc9_mean' 'mfcc9_std'
+ 'zero_crossing_rate' 'spectral_contrast_band1_mean'
+ 'spectral_contrast_band2_mean' 'spectral_contrast_band6_mean'
+ 'spectral_contrast_band7_mean' 'spectral_flatness_mean'
+ 'beat_strength_mean' 'onset_rate' 'chroma1_mean' 'chroma2_mean'
+ 'chroma3_mean' 'chroma4_mean' 'chroma5_mean' 'chroma6_mean'
+ 'chroma7_mean' 'chroma8_mean' 'chroma9_mean' 'chroma10_mean'
+ 'chroma11_mean' 'chroma12_mean' 'tonnetz1_mean' 'tonnetz2_mean'
+ 'tonnetz3_mean' 'tonnetz4_mean' 'tonnetz5_mean' 'tonnetz6_mean'
+ 'harmonic_percussive_ratio' 'lyric_total_words' 'lexical_diversity'
+ 'adj_count' 'lyrical_density']
+------------------------------------------------------------
+2️⃣ Binary (Passthrough): 24
+['key_A#:maj' 'key_A#:min' 'key_A:maj' 'key_A:min' 'key_B:maj' 'key_B:min'
+ 'key_C#:maj' 'key_C#:min' 'key_C:maj' 'key_C:min' 'key_D#:maj'
+ 'key_D#:min' 'key_D:maj' 'key_D:min' 'key_E:maj' 'key_E:min' 'key_F#:maj'
+ 'key_F#:min' 'key_F:maj' 'key_F:min' 'key_G#:maj' 'key_G#:min'
+ 'key_G:maj' 'key_G:min']
+------------------------------------------------------------
+3️⃣ Topic_prob (Passthrough): 15
+['topic_prob_0' 'topic_prob_1' 'topic_prob_10' 'topic_prob_11'
+ 'topic_prob_12' 'topic_prob_13' 'topic_prob_14' 'topic_prob_2'
+ 'topic_prob_3' 'topic_prob_4' 'topic_prob_5' 'topic_prob_6'
+ 'topic_prob_7' 'topic_prob_8' 'topic_prob_9']
+------------------------------------------------------------
+4️⃣ Categorical (Sentiment): ['final_sentiment'] → OHE = 3 dims
+------------------------------------------------------------
+✅ TỔNG SỐ BIẾN ĐẦU VÀO (EXPECTED=102, gồm 3 sentiment OHE): 102
+✅ PASS: Tổng số biến = 102
+============================================================
+
+
+================================================================================
+🧪 BƯỚC 1: CHIA DỮ LIỆU (Time-based Holdout 80/20)
+================================================================================
+Train: 6132 | Test: 1533
+📅 Train: 2010-01-01 → 2025-02-25
+📅 Test : 2025-02-25 → 2026-03-18
+
+================================================================================
+📊 PHÂN BỐ NHÃN (tỉ lệ genre=1) — dùng để cân nhắc phạt label hiếm
+================================================================================
+   • genre_Ballad: train_pos=0.240 | test_pos=0.245
+   • genre_Indie: train_pos=0.307 | test_pos=0.316
+   • genre_Pop: train_pos=0.858 | test_pos=0.878
+   • genre_Rap/Hip-hop: train_pos=0.513 | test_pos=0.485
+--------------------------------------------------------------------------------
+🧼 Single-label diagnostic (sum(labels) per row): TRAIN single=1729 | hybrid(>1)=4403 | none(0)=0 ; TEST single=426 | hybrid(>1)=1107 | none(0)=0
+
+================================================================================
+⚖️  REBALANCE (TRAIN/CV only, leakage-safe via Pipeline)
+================================================================================
+Enabled: P4_RESAMPLING=tomek_rus_controlled | drop_non_single_label=0 | pop_max_mult=2.0 | ref_labels=['genre_Rap/Hip-hop', 'genre_Indie']
+ℹ️  TomekLinks + controlled RUS runs inside each fit/CV fold (single-label rows only).
+✅ Per-label weights ON: POS_WEIGHT_MULTIPLIER=[1.0, 4.0, 1.0, 1.5] (áp cho label có train_pos ≤ 0.35)
+
+================================================================================
+🏁 BƯỚC 2: BASELINE MODELS (CV on TRAIN only)
+================================================================================
+
+MODEL            | CV_F1MIC  | CV_F1MAC  | TEST_F1MIC | TEST_F1MAC | HAMMING  | JACCARD 
+-------------------------------------------------------------------------------------
+Random Forest    | 0.4373   | 0.4215   | 0.4163     | 0.4181     | 0.3792  | 0.3103
+Extra Trees      | 0.4032   | 0.3661   | 0.3868     | 0.3691     | 0.3868  | 0.2833
+AdaBoost         | 0.6642   | 0.6785   | 0.6598     | 0.6778     | 0.3376  | 0.5234
+HistGradientBoosting | 0.5682   | 0.5957   | 0.5736     | 0.6139     | 0.3263  | 0.4604
+Gradient Boosting | 0.5899   | 0.6161   | 0.5940     | 0.6316     | 0.3291  | 0.4775
+Logistic Regression | 0.6257   | 0.6427   | 0.6296     | 0.6578     | 0.3573  | 0.4878
+MLP (Neural Net) | 0.6052   | 0.6274   | 0.6169     | 0.6497     | 0.3640  | 0.4735
+SVM              | 0.6224   | 0.6391   | 0.6213     | 0.6455     | 0.3232  | 0.5010
+XGBoost          | 0.5590   | 0.5861   | 0.5454     | 0.5886     | 0.3382  | 0.4327
+LightGBM         | 0.5440   | 0.5705   | 0.5332     | 0.5771     | 0.3412  | 0.4218
+
+🏆 Best Baseline (by CV F1-macro): AdaBoost (CV F1-macro=0.6785 | Test F1-macro(report)=0.6778)
+
+================================================================================
+🧠 BƯỚC 3: OPTUNA (maximize CV F1-macro) — AdaBoost
+================================================================================
+So luong trials: 20
+✅ Optuna params đã tồn tại → skip trials và dùng lại: DA\tasks\Genres\optuna_history_json\p4_adaboost_best_params.json
+
+================================================================================
+⚖️ ROLLBACK CHECK (CV on TRAIN; Test chỉ để báo cáo)
+================================================================================
+   • Baseline CV F1-macro : 0.6785
+   • Optimized CV F1-macro: 0.6687
+   • Baseline Test F1-macro(report): 0.6778
+   • Optimized Test F1-macro(report): 0.6563
+
+⚠️ Optimized CV F1-macro (0.6687) < Baseline (0.6785)
+✅ QUYẾT ĐỊNH: ROLLBACK về baseline pipeline
+
+================================================================================
+🎚️  BƯỚC 3.5: TỐI ƯU NGƯỠNG THEO TỪNG THỂ LOẠI (on TRAIN-val only)
+================================================================================
+Default Test F1-macro (threshold=0.5): 0.6778
+Thresholded Test F1-macro:             0.7850
+   • genre_Ballad: threshold=0.570
+   • genre_Indie: threshold=0.630
+   • genre_Pop: threshold=0.310
+   • genre_Rap/Hip-hop: threshold=0.390
+
+================================================================================
+📌 BƯỚC 4: ĐÁNH GIÁ FINAL
+================================================================================
+Model: AdaBoost
+Test F1-micro : 0.8130
+Test F1-macro : 0.7850
+Hamming Loss  : 0.1986
+Jaccard(samples): 0.7107
+
+📋 Classification Report (Test):
+                   precision    recall  f1-score   support
+
+     genre_Ballad       0.88      0.81      0.84       376
+      genre_Indie       0.47      0.82      0.60       484
+        genre_Pop       0.90      0.98      0.94      1346
+genre_Rap/Hip-hop       0.70      0.84      0.76       743
+
+        micro avg       0.74      0.90      0.81      2949
+        macro avg       0.74      0.86      0.78      2949
+     weighted avg       0.77      0.90      0.83      2949
+      samples avg       0.76      0.92      0.80      2949
+
+✅ Đã lưu CM BEFORE/AFTER threshold tại: DA\tasks\Genres/p4_cm_[label]_[before|after]_threshold.png
+
+🔎 Transformed feature count: 102
+✅ PASS: Transformed features = 102
+
+================================================================================
+💾 BƯỚC 5: LƯU ARTIFACTS
+================================================================================
+✅ Đã lưu feature names tại: DA\tasks\Genres\feature_names_p4.json
+✅ Đã lưu biểu đồ tại: DA\tasks\Genres\p4_model_comparison_f1_macro.png
+
+💾 FILES ĐÃ LƯU:
+   • Best model:         DA\models\best_model_p4.pkl
+   • Legacy model alias: DA\models\genre_model.pkl
+   • Feature names:      DA\tasks\Genres\feature_names_p4.json
+   • Model comparison (img): DA\final_data\p4_model_comparison_results.csv
+   • Model comparison (pkl): DA\final_data\model_comparison_results_p4.csv
+   • Optuna params (pkl): DA\tasks\Genres\optuna_history_json/p4_*_best_params.json
+   • Plot:               DA\tasks\Genres/p4_model_comparison_f1_macro.png
