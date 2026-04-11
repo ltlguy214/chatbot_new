@@ -2,3 +2,6 @@
 __pycache__/
 *.exe
 *.txt
+.model_cache/
+DA/models/best_model_p4.pkl
+DA/models/best_model_p1.pkl
