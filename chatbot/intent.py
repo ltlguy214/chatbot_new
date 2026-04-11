@@ -3,6 +3,7 @@ import re
 import os
 import unicodedata
 import time
+import hashlib
 
 try:
     from chatbot.env import load_env
@@ -30,7 +31,16 @@ ALLOWED_ACTIONS: set[str] = {
 }
 
 
-_GEMINI_QUOTA_COOLDOWN_UNTIL: float = 0.0
+_GEMINI_KEY_COOLDOWN_UNTIL: dict[str, float] = {}
+
+
+def _key_fingerprint(api_key: str) -> str:
+    """Return a non-sensitive id for cooldown bookkeeping."""
+
+    try:
+        return hashlib.sha256(str(api_key).encode('utf-8')).hexdigest()[:16]
+    except Exception:
+        return "unknown"
 
 
 def _parse_gemini_api_keys() -> list[str]:
@@ -146,29 +156,44 @@ def parse_intent_llm(user_input, has_file=False):
     """
     
     try:
-        global _GEMINI_QUOTA_COOLDOWN_UNTIL
         now = time.time()
-        if _GEMINI_QUOTA_COOLDOWN_UNTIL and now < _GEMINI_QUOTA_COOLDOWN_UNTIL:
-            remaining = int(_GEMINI_QUOTA_COOLDOWN_UNTIL - now)
-            return _heuristic_intent(
-                user_input,
-                has_file=has_file,
-                thought=f"Gemini đang quá quota (cooldown {remaining}s), mình dùng phân loại nhanh.",
-            )
 
         keys = _parse_gemini_api_keys()
         if not keys:
-            return {
-                "action": "CLARIFY",
-                "params": _empty_params(),
-                "thought": "Thiếu cấu hình Gemini (GEMINI_API_KEY / GEMINI_API_KEYS).",
-            }
+            return _heuristic_intent(
+                user_input,
+                has_file=has_file,
+                thought="Gemini chưa được cấu hình (GEMINI_API_KEY / GEMINI_API_KEYS), mình dùng phân loại nhanh.",
+            )
 
         model_name = _intent_model_from_env()
         last_err: Exception | None = None
+        last_quota_err: Exception | None = None
         response_text: str | None = None
 
+        # Only use keys that are not cooling down.
+        eligible_keys: list[str] = []
+        min_remaining: int | None = None
         for api_key in keys:
+            fp = _key_fingerprint(api_key)
+            until = float(_GEMINI_KEY_COOLDOWN_UNTIL.get(fp, 0.0) or 0.0)
+            if until and now < until:
+                remaining = int(until - now)
+                if min_remaining is None or remaining < min_remaining:
+                    min_remaining = remaining
+                continue
+            eligible_keys.append(api_key)
+
+        if not eligible_keys:
+            remaining = int(min_remaining or 0)
+            suffix = f" (cooldown {remaining}s)" if remaining > 0 else ""
+            return _heuristic_intent(
+                user_input,
+                has_file=has_file,
+                thought=f"Gemini đang quá quota/quá tải{suffix}, mình dùng phân loại nhanh.",
+            )
+
+        for api_key in eligible_keys:
             try:
                 from google import genai
 
@@ -184,16 +209,17 @@ def parse_intent_llm(user_input, has_file=False):
                 last_err = e
                 if _looks_like_quota_error(e):
                     # Rotate key on quota/rate-limit.
-                    _GEMINI_QUOTA_COOLDOWN_UNTIL = time.time() + 10 * 60
+                    last_quota_err = e
+                    fp = _key_fingerprint(api_key)
+                    _GEMINI_KEY_COOLDOWN_UNTIL[fp] = time.time() + 10 * 60
                     continue
                 # Non-quota errors: still try next key (can be invalid key / region).
                 continue
 
         if not response_text:
             # Avoid leaking raw quota/stack traces to the UI.
-            if last_err and _looks_like_quota_error(last_err):
-                _GEMINI_QUOTA_COOLDOWN_UNTIL = time.time() + 10 * 60
-                detail = _short_error_for_ui(last_err)
+            if last_quota_err is not None and _looks_like_quota_error(last_quota_err):
+                detail = _short_error_for_ui(last_quota_err)
                 suffix = f" ({detail})" if detail else ""
                 return _heuristic_intent(user_input, has_file=has_file, thought=f"Gemini đang quá tải/quá quota{suffix}, mình dùng phân loại nhanh.")
             detail = _short_error_for_ui(last_err)
@@ -223,6 +249,8 @@ def parse_intent_llm(user_input, has_file=False):
                 intent_data["action"] = "CLARIFY"
                 intent_data["thought"] = str(intent_data.get("thought") or "") or "Action không hợp lệ"
             # ===== END VALIDATE =====
+
+            intent_data = _postprocess_intent(intent_data, user_input)
             
             # ===== HANDLE FILE LOGIC =====
             if intent_data["action"] == "SEARCH_AUDIO" and not has_file:
@@ -241,20 +269,186 @@ def parse_intent_llm(user_input, has_file=False):
             # ===== END =====
             return intent_data
         else:
-            return {
-                    "action": "CLARIFY",
-                    "params": _empty_params(),
-                    "thought": "AI không trả về JSON chuẩn"
-                }
+            return _heuristic_intent(user_input, has_file=has_file, thought="Gemini không trả về JSON chuẩn, mình dùng phân loại nhanh.")
             
     except Exception as e:
         return _heuristic_intent(user_input, has_file=has_file, thought="Có lỗi khi phân tích ý định, mình dùng phân loại nhanh.")
+
+
+def _cleanup_entity_text(value: str) -> str:
+    text = str(value or '').strip()
+    if not text:
+        return ''
+    # Remove wrapping quotes.
+    text = text.strip('"\'“”‘’`')
+    # Trim common trailing fillers.
+    text = re.sub(r"\s+(nhe|nhé|di|đi|voi|với|nha|nhá|giup|giúp|please|pls)\b.*$", "", text, flags=re.IGNORECASE)
+    # Trim trailing punctuation.
+    text = re.sub(r"[\s\.,;:!\?]+$", "", text).strip()
+    return text
+
+
+def _extract_artist_from_text(user_input: str) -> str:
+    raw = str(user_input or '').strip()
+    if not raw:
+        return ''
+
+    def _reject_ambiguous(cand: str) -> bool:
+        c = normalize(str(cand or ''))
+        if not c:
+            return True
+        # Avoid misclassifying mood/genre tokens as artist names.
+        bad = {
+            'vui', 'buon', 'buồn', 'sad', 'suy', 'chill', 'thu gian', 'thư giãn', 'quay', 'quẩy', 'dance',
+            'rap', 'hiphop', 'hip-hop', 'pop', 'rock', 'ballad',
+            'toi', 'tôi', 'minh', 'mình', 'ban', 'bạn', 'tao', 't',
+        }
+        if c in bad:
+            return True
+        # Too short to be a meaningful artist name.
+        if len(c) < 3:
+            return True
+        return False
+
+    patterns = [
+        # "tìm nhạc của Phùng Khánh Linh"
+        r"(?:nhac|nhạc|bai hat|bài hát|bai|bài|song|songs|track|tracks)\s+(?:cua|của)\s+(.+)$",
+        # "bài của Phùng Khánh Linh"
+        r"(?:bai|bài)\s+(?:cua|của)\s+(.+)$",
+        # "ca sĩ Phùng Khánh Linh"
+        r"(?:ca\s*si|ca\s*sĩ|nghe\s*si|nghệ\s*sĩ|artist)\s+(.+)$",
+    ]
+
+    for pat in patterns:
+        m = re.search(pat, raw, flags=re.IGNORECASE)
+        if not m:
+            continue
+        cand = _cleanup_entity_text(m.group(1))
+        if cand and not _reject_ambiguous(cand):
+            return cand
+
+    # Generic: if contains "của/cua" and looks like a person name after it.
+    m = re.search(r"\b(?:cua|của)\b\s+(.+)$", raw, flags=re.IGNORECASE)
+    if m:
+        cand = _cleanup_entity_text(m.group(1))
+        if cand and len(cand) >= 3 and not _reject_ambiguous(cand):
+            return cand
+
+    return ''
+
+
+def _extract_lyric_snippet_from_text(user_input: str) -> str:
+    raw = str(user_input or '').strip()
+    if not raw:
+        return ''
+
+    # Prefer quoted snippet.
+    m = re.search(r"[\"'“”‘’]([^\"'“”‘’]{5,})[\"'“”‘’]", raw)
+    if m:
+        return _cleanup_entity_text(m.group(1))
+
+    m = re.search(r"(?:loi|lời|lyrics|doan|đoạn)\s*(?:nhac|nhạc)?\s*[:\-]?\s*(.+)$", raw, flags=re.IGNORECASE)
+    if m:
+        return _cleanup_entity_text(m.group(1))
+
+    # Fallback: use the full user input.
+    return raw
+
+
+def _extract_song_title_from_text(user_input: str) -> tuple[str, str]:
+    """Return (song_title, artist) best-effort for SEARCH_NAME."""
+
+    raw = str(user_input or '').strip()
+    if not raw:
+        return '', ''
+
+    # 1) Quoted title: "See Tình" / 'See Tinh'
+    m = re.search(r"[\"'“”‘’`]([^\"'“”‘’`]{2,})[\"'“”‘’`]", raw)
+    if m:
+        title = _cleanup_entity_text(m.group(1))
+        artist = _extract_artist_from_text(raw)
+        return title, artist
+
+    # 2) "tên bài (hát) ..." / "bài hát tên ..."
+    m = re.search(r"(?:ten\s+bai\s+hat|ten\s+bai|tên\s+bài\s+hát|tên\s+bài)\s*[:\-]?\s*(.+)$", raw, flags=re.IGNORECASE)
+    if m:
+        tail = _cleanup_entity_text(m.group(1))
+        if tail:
+            # Split "<title> của <artist>" if present.
+            m2 = re.search(r"^(.+?)\s+(?:cua|của)\s+(.+)$", tail, flags=re.IGNORECASE)
+            if m2:
+                return _cleanup_entity_text(m2.group(1)), _cleanup_entity_text(m2.group(2))
+            return tail, ''
+
+    return '', ''
+
+
+def _postprocess_intent(intent_data: dict, user_input: str) -> dict:
+    """Fill missing params when Gemini returns action but empty entity."""
+
+    if not isinstance(intent_data, dict):
+        return intent_data
+    params = intent_data.get('params')
+    if not isinstance(params, dict):
+        params = {}
+        intent_data['params'] = params
+
+    action = str(intent_data.get('action') or '').upper().strip()
+
+    if action == 'RECOMMEND_ARTIST':
+        if not str(params.get('artist') or '').strip():
+            artist = _extract_artist_from_text(user_input)
+            if artist:
+                params['artist'] = artist
+
+    if action == 'SEARCH_LYRIC':
+        if not str(params.get('lyric_snippet') or '').strip():
+            snippet = _extract_lyric_snippet_from_text(user_input)
+            if snippet:
+                params['lyric_snippet'] = snippet
+
+    # If Gemini is unsure (CLARIFY) but the pattern is clearly artist-based, upgrade.
+    if action == 'CLARIFY':
+        artist = _extract_artist_from_text(user_input)
+        if artist:
+            intent_data['action'] = 'RECOMMEND_ARTIST'
+            params['artist'] = artist
+
+    return intent_data
 
 
 def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
     """Fallback intent parser when Gemini is unavailable."""
 
     text = normalize(str(user_input or ""))
+
+    # Strong artist pattern: "nhạc/bài của <artist>".
+    artist = _extract_artist_from_text(str(user_input or ''))
+    if artist:
+        params = _empty_params()
+        params['artist'] = artist
+        return {
+            'action': 'RECOMMEND_ARTIST',
+            'params': params,
+            'thought': thought,
+        }
+
+    # SEARCH_NAME best-effort when user explicitly provides a title.
+    # (Avoid stealing mood queries like "tìm nhạc vui".)
+    mood_tokens = ["buồn", "sad", "suy", "vui", "happy", "chill", "thư giãn", "thu gian", "quẩy", "quay", "dance"]
+    genre_tokens = ["rap", "hiphop", "hip-hop", "ballad", "pop", "rock"]
+    if not any(tok in text for tok in (mood_tokens + genre_tokens)):
+        title, artist2 = _extract_song_title_from_text(str(user_input or ''))
+        if title:
+            params = _empty_params()
+            params['song_title'] = title
+            if artist2:
+                params['artist'] = artist2
+            return {
+                'action': 'SEARCH_NAME',
+                'params': params,
+                'thought': thought,
+            }
 
     if any(k in text for k in ["phân tích", "phan tich", "dự đoán", "du doan", "hit"]):
         return {
@@ -271,9 +465,11 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
         }
 
     if any(k in text for k in ["lời", "loi", "lyrics", "câu", "cau"]):
+        params = _empty_params()
+        params['lyric_snippet'] = _extract_lyric_snippet_from_text(str(user_input or ''))
         return {
             "action": "SEARCH_LYRIC",
-            "params": _empty_params(),
+            "params": params,
             "thought": thought,
         }
 
@@ -319,9 +515,14 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             }
 
     if any(k in text for k in ["ca sĩ", "ca si", "nghệ sĩ", "nghe si", "artist"]):
+        params = _empty_params()
+        # Best-effort extraction after the keyword.
+        extracted = _extract_artist_from_text(str(user_input or ''))
+        if extracted:
+            params['artist'] = extracted
         return {
             "action": "RECOMMEND_ARTIST",
-            "params": _empty_params(),
+            "params": params,
             "thought": thought,
         }
 

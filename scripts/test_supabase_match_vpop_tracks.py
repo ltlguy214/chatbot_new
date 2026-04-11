@@ -85,6 +85,23 @@ def main() -> int:
     try:
         from chatbot.action_handler import handle_action
 
+        # Probe 1 known song row for SEARCH_NAME / GENRE seed.
+        probe_title = ''
+        probe_artist = ''
+        probe_genre = ''
+        try:
+            probe_resp = client.table('songs').select('title, artists, spotify_genres').limit(1).execute()
+            probe_rows = getattr(probe_resp, 'data', None) or []
+            if probe_rows and isinstance(probe_rows[0], dict):
+                probe_title = str(probe_rows[0].get('title') or '').strip()
+                probe_artist = str(probe_rows[0].get('artists') or '').strip()
+                probe_genres = str(probe_rows[0].get('spotify_genres') or '').strip()
+                if probe_genres:
+                    # Try to pick the first genre token.
+                    probe_genre = probe_genres.split(',')[0].strip()
+        except Exception:
+            pass
+
         # Mood
         mood_result = handle_action(
             'RECOMMEND_MOOD',
@@ -97,6 +114,48 @@ def main() -> int:
             print('MOOD_OK', 'source=', mood_result.get('source'), 'tracks=', len(mood_result.get('tracks') or []))
         else:
             print('MOOD_RET', type(mood_result).__name__)
+
+        # SEARCH_LYRIC (via handle_action -> RPC)
+        lyric_result = handle_action(
+            'SEARCH_LYRIC',
+            {'lyric_snippet': 'tình yêu'},
+            client,
+            embed_fn=embed_fn,
+            match_count=5,
+        )
+        if isinstance(lyric_result, dict):
+            print('LYRIC_OK', 'source=', lyric_result.get('source'), 'tracks=', len(lyric_result.get('tracks') or []))
+        else:
+            print('LYRIC_RET', type(lyric_result).__name__)
+
+        # SEARCH_NAME (seed from probe row if available)
+        name_params = {'song_title': probe_title, 'artist': ''}
+        if probe_artist:
+            # Use a short slice of artist string (some rows contain multi-artist).
+            name_params['artist'] = probe_artist.split(',')[0].strip()
+        search_name_result = handle_action(
+            'SEARCH_NAME',
+            name_params,
+            client,
+            match_count=5,
+        )
+        if isinstance(search_name_result, dict):
+            print('NAME_OK', 'source=', search_name_result.get('source'), 'tracks=', len(search_name_result.get('tracks') or []))
+        else:
+            print('NAME_RET', type(search_name_result).__name__)
+
+        # RECOMMEND_GENRE (best-effort genre)
+        genre = probe_genre or 'pop'
+        genre_result = handle_action(
+            'RECOMMEND_GENRE',
+            {'genre': genre},
+            client,
+            match_count=5,
+        )
+        if isinstance(genre_result, dict):
+            print('GENRE_OK', 'genre=', genre, 'source=', genre_result.get('source'), 'tracks=', len(genre_result.get('tracks') or []))
+        else:
+            print('GENRE_RET', type(genre_result).__name__)
 
         # Artist list (prefer Supabase artists table; fallback to CSV)
         artist_list: list[str] = []
@@ -167,6 +226,41 @@ def main() -> int:
             print('ARTIST_FALLBACK_OK', 'source=', artist_result_fallback.get('source'), 'tracks=', len(artist_result_fallback.get('tracks') or []))
         else:
             print('ARTIST_FALLBACK_RET', type(artist_result_fallback).__name__)
+
+        # Missing-file behaviors
+        audio_no_file = handle_action(
+            'SEARCH_AUDIO',
+            {},
+            client,
+            embed_fn=embed_fn,
+            has_file=False,
+            match_count=5,
+        )
+        if isinstance(audio_no_file, dict):
+            print('AUDIO_NOFILE_OK', 'source=', audio_no_file.get('source'), 'error=', str(audio_no_file.get('error') or '')[:120])
+        else:
+            print('AUDIO_NOFILE_RET', type(audio_no_file).__name__)
+
+        analyze_no_file = handle_action(
+            'ANALYZE_READY',
+            {},
+            client,
+            embed_fn=embed_fn,
+            has_file=False,
+            match_count=5,
+        )
+        if isinstance(analyze_no_file, dict):
+            print('ANALYZE_NOFILE_OK', 'source=', analyze_no_file.get('source'), 'error=', str(analyze_no_file.get('error') or '')[:120])
+        else:
+            print('ANALYZE_NOFILE_RET', type(analyze_no_file).__name__)
+
+        clarify = handle_action('CLARIFY', {}, client, embed_fn=embed_fn)
+        if isinstance(clarify, dict):
+            print('CLARIFY_OK', 'source=', clarify.get('source'), 'error=', str(clarify.get('error') or '')[:120])
+
+        oos = handle_action('OUT_OF_SCOPE', {}, client, embed_fn=embed_fn)
+        if isinstance(oos, dict):
+            print('OOS_OK', 'source=', oos.get('source'), 'error=', str(oos.get('error') or '')[:120])
 
     except Exception as ex:
         print('HANDLE_ACTION_FAIL', type(ex).__name__, str(ex)[:300])

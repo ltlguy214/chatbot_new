@@ -4,8 +4,48 @@ from typing import Any, Callable
 import os
 import re
 import unicodedata
+import difflib
 
-from rapidfuzz import process
+try:
+    from rapidfuzz import process as _rf_process  # type: ignore
+except Exception:  # pragma: no cover
+    _rf_process = None
+
+
+def _extract_one(query: str, choices: list[str]) -> tuple[str, float, int] | None:
+    """Return best match as (match, score, index).
+
+    Uses rapidfuzz when available; falls back to stdlib difflib otherwise.
+    Score is on a 0-100 scale.
+    """
+
+    if not query or not choices:
+        return None
+
+    if _rf_process is not None:
+        try:
+            match = _rf_process.extractOne(query, choices)
+            if not match:
+                return None
+            m, score, idx = match
+            return str(m), float(score), int(idx)
+        except Exception:
+            # Fall through to difflib.
+            pass
+
+    try:
+        best = difflib.get_close_matches(query, choices, n=1, cutoff=0)
+        if not best:
+            return None
+        m = best[0]
+        try:
+            idx = next(i for i, c in enumerate(choices) if c == m)
+        except StopIteration:
+            idx = 0
+        score = difflib.SequenceMatcher(a=query, b=m).ratio() * 100.0
+        return str(m), float(score), int(idx)
+    except Exception:
+        return None
 
 
 def _is_truthy_env(name: str, default: str = '0') -> bool:
@@ -100,7 +140,7 @@ def _find_best_artist(user_input: str, artist_list: Any) -> str | None:
     query = _normalize_text(user_input)
     if not query:
         return None
-    match = process.extractOne(query, normalized_artists)
+    match = _extract_one(query, normalized_artists)
     if not match:
         return None
     _m, score, idx = match
