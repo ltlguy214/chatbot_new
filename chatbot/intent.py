@@ -4,6 +4,7 @@ import os
 import unicodedata
 import time
 import hashlib
+from pydantic import BaseModel, Field
 
 try:
     from chatbot.env import load_env
@@ -14,14 +15,24 @@ except ModuleNotFoundError:
 load_env()
 
 _DEFAULT_INTENT_MODEL_CANDIDATES: list[str] = [
-    # Try newer models first; fall back to older ones if needed.
-    'gemini-2.5-flash',
     'gemini-2.0-flash',
-    'gemini-1.5-flash',
-    'gemini-1.5-pro',
 ]
 
-# 11 ACTIONS:
+class IntentParams(BaseModel):
+    song_title: str = Field(default="", description="Tên bài hát")
+    artist: str = Field(default="", description="Tên nghệ sĩ, ca sĩ")
+    mood: str = Field(default="", description="Tâm trạng (vui, buồn, suy, chill...)")
+    genre: str = Field(default="", description="Thể loại nhạc (pop, rap, ballad...)")
+    lyric_snippet: str = Field(default="", description="Đoạn lời bài hát")
+    seed_name: str = Field(default="", description="Tên bài hát mẫu để tìm tương tự")
+    attributes: str = Field(default="", description="Các tính chất âm thanh")
+
+class IntentResponse(BaseModel):
+    action: str = Field(description="Mã hành động")
+    params: IntentParams = Field(description="Tham số trích xuất")
+    thought: str = Field(description="Lý do chọn hành động")
+    
+# 15 ACTIONS:
 ALLOWED_ACTIONS: set[str] = {
     "SEARCH_NAME",
     "SEARCH_LYRIC",
@@ -29,11 +40,16 @@ ALLOWED_ACTIONS: set[str] = {
     "RECOMMEND_MOOD",
     "RECOMMEND_ARTIST",
     "RECOMMEND_GENRE",
+    "ADVANCED_SEARCH",
+    "RECOMMEND_SEED",
+    "RECOMMEND_ATTRIBUTES",
+    "RECOMMEND_POPULARITY",
     "ANALYZE_READY",
     "MISSING_FILE",
     "CLARIFY",
     "MUSIC_KNOWLEDGE",
     "OUT_OF_SCOPE",
+    "GREETING"
 }
 
 
@@ -218,6 +234,8 @@ def _empty_params() -> dict:
         "mood": "",
         "genre": "",
         "lyric_snippet": "",
+        "seed_name": "",    # Mới thêm
+        "attributes": ""    # Mới thêm
     }
 
 def normalize(text):
@@ -227,7 +245,7 @@ def normalize(text):
 
 def parse_intent_llm(user_input, has_file=False):
     """
-    Phân tích ý định người dùng thành 11 Action chuẩn.
+    Phân tích ý định người dùng thành 15 Action chuẩn.
     """
     file_context = "ĐÃ TẢI LÊN" if has_file else "CHƯA TẢI LÊN"
     
@@ -235,24 +253,46 @@ def parse_intent_llm(user_input, has_file=False):
     Bạn là AI điều phối cho hệ thống âm nhạc V-Pop. Hãy phân tích câu lệnh sau: "{user_input}"
     Ngữ cảnh: Người dùng {file_context} file nhạc.
 
-    HÃY CHỌN 1 ACTION DUY NHẤT TRONG 11 TRƯỜNG HỢP SAU:
+    HÃY CHỌN 1 ACTION DUY NHẤT TRONG 15 TRƯỜNG HỢP SAU. ĐỌC KỸ ĐIỀU KIỆN ÁP DỤNG CỦA TỪNG ACTION:
 
-    --- NHÓM LISTENER (NGƯỜI NGHE) ---
-    1. SEARCH_NAME: Tìm đích danh tên bài hát/ca sĩ.
-    2. SEARCH_LYRIC: Tìm bài hát qua một đoạn lời nhạc.
-    3. SEARCH_AUDIO: Tìm bài hát tương đồng bằng giai điệu (yêu cầu có file).
-    4. RECOMMEND_MOOD: Gợi ý nhạc theo tâm trạng (vui, buồn, chill, quẩy).
-    5. RECOMMEND_ARTIST: Gợi ý nhạc tương tự một ca sĩ nào đó.
-    6. RECOMMEND_GENRE: Gợi ý theo thể loại (Rap, Pop, Ballad).
+    1. SEARCH_NAME: Người dùng ĐƯA RA TÊN BÀI HÁT CỤ THỂ để nghe (VD: "Mở bài Nơi này có anh", "Tìm bài Chạy Ngay Đi của Sơn Tùng"). 
+       *Cấm dùng nếu chỉ nhắc đến tên ca sĩ mà không có tên bài.*
+       *Lưu ý: Kể cả khi người dùng chỉ nhớ mang máng một phần tên bài (VD: "bài gì mà có anh á của Sơn Tùng"), VẪN PHẢI DÙNG action này và trích xuất phần tên đó.*
+       *Lưu ý: Nếu trong câu lệnh có các từ như "lời", "câu hát", "lyrics" -> TUYỆT ĐỐI KHÔNG dùng action này, mà phải dùng SEARCH_LYRIC.*
+    2. SEARCH_LYRIC: Tìm bài hát thông qua MỘT ĐOẠN LỜI (VD: "Bài gì có câu mang tiền về cho mẹ").
+       *Ưu tiên action này nếu có từ khóa "lời", "lyrics", "câu".*
+    3. SEARCH_AUDIO: Tìm bài hát bằng giai điệu/âm thanh. (CHỈ DÙNG KHI ĐÃ CÓ FILE đính kèm. VD: "Bài này là bài gì?").
+    4. RECOMMEND_MOOD: Gợi ý nhạc theo CẢM XÚC/TÂM TRẠNG (VD: vui, buồn, suy, lụy, chill, chữa lành, thất tình, quẩy...).
+    5. RECOMMEND_ARTIST: Gợi ý nhạc CỦA MỘT CA SĨ (VD: "Mở nhạc Đen Vâu", "Dạo này Vũ có bài gì mới").
+       *Bắt buộc dùng action này nếu có tên ca sĩ nhưng KHÔNG CÓ tên bài hát.*
+    6. RECOMMEND_GENRE: Gợi ý theo thể loại (Rap, Pop, Ballad, Indie...).
+        *Đặc biệt: Gộp chung các từ lóng mô tả không khí club (xập xình, quẩy, remix, vinahouse) vào Thể Loại này, KHÔNG đưa vào Advanced Search.*
+    7. ADVANCED_SEARCH: TÌM KIẾM KẾT HỢP. Bắt buộc phải có TỪ 2 TIÊU CHÍ TRỞ LÊN giao thoa nhau. 
+       (VD: "Nhạc rap buồn" = Genre + Mood. "Nhạc chill của Đen Vâu" = Mood + Artist) hoặc (Thể loại + Ca sĩ).
+    8. RECOMMEND_SEED: TÌM THEO DNA/VIBE CỦA BÀI MẪU (BẰNG TEXT). User nhập TÊN một bài hát và muốn tìm các bài khác có nhịp điệu, phong cách tương tự bài đó. KHÔNG CẦN FILE. 
+        (VD: "Tìm bài có beat giống Suýt Nữa Thì", "Nhạc tựa tựa Waiting for you"). -> BẮT BUỘC trích xuất tên bài hát làm mẫu vào param `seed_name`.
+    9. RECOMMEND_ATTRIBUTES: Gợi ý theo tính chất âm thanh (nhanh, chậm, căng, nhạc nhịp nhanh, tempo dồn dập, năng lượng mạnh). Trích xuất vào param attributes.
+    10. RECOMMEND_POPULARITY: Xem bảng xếp hạng, top hit, bài hát hot nhất, nhạc trending.
+        *ĐẶC BIỆT: Nếu người dùng yêu cầu top hit của một ca sĩ/thể loại cụ thể (VD: "Top nhạc Sơn Tùng", "Nhạc pop hot nhất"), BẮT BUỘC phải trích xuất tên ca sĩ/thể loại đó vào params `artist` hoặc `genre`.*
+    11. ANALYZE_READY: Phân tích file audio để dự đoán Hit/Viral (YÊU CẦU ĐÃ CÓ FILE).
+    12. MISSING_FILE: Người dùng yêu cầu SEARCH_AUDIO hoặc ANALYZE_READY nhưng ngữ cảnh báo là CHƯA TẢI FILE.
+        *Hoặc người dùng cố gắng miêu tả giai điệu bằng chữ (VD: "tèn ten ten", "la la la") để tìm bài hát nhưng QUÊN TẢI FILE.*
+    13. GREETING: Lời chào hỏi giao tiếp cơ bản (VD: "Chào bot", "Hello", "Chào buổi sáng").
+    14. CLARIFY: Câu lệnh quá ngắn, mập mờ, vô nghĩa, không xác định được ý muốn tìm nhạc gì.
+    15. MUSIC_KNOWLEDGE: Hỏi lý thuyết âm nhạc (hợp âm, vòng hòa âm, tempo là gì...).
+    16. OUT_OF_SCOPE: Câu hỏi lạc đề, không liên quan đến âm nhạc (thời tiết, nấu ăn...).
 
-    --- NHÓM PRODUCER (NHÀ SẢN XUẤT) ---
-    7. ANALYZE_READY: Phân tích bài hát, dự đoán hit (KHI ĐÃ CÓ FILE).
-    8. MISSING_FILE: Muốn phân tích bài hát NHƯNG CHƯA TẢI FILE.
+    QUY TẮC TRÍCH XUẤT PARAMS:
+        - Luôn sử dụng icon (emoji) để sinh động.
+        - Giọng văn: Trẻ trung, kiến thức chuyên sâu về V-Pop.
+        - Điền giá trị vào các params tương ứng. Nếu không có, để chuỗi rỗng "".
+        - Với RECOMMEND_SEED, bài hát làm mẫu phải nằm ở param `seed_name`.
+        - Với RECOMMEND_ATTRIBUTES, các tính chất âm thanh mô tả sẽ nằm ở param `attributes`.
 
-    --- NHÓM HỆ THỐNG ---
-    9. CLARIFY: Câu hỏi mập mờ, cần hỏi lại để rõ ý.
-    10. MUSIC_KNOWLEDGE: Hỏi kiến thức nhạc lý, lịch sử âm nhạc chung.
-    11. OUT_OF_SCOPE: Hỏi chuyện không liên quan đến âm nhạc.
+    RULE QUAN TRỌNG:  
+    CHỈ CHỌN 1 ACTION PHÙ HỢP NHẤT. KHÔNG ĐƯỢC CHỌN NHIỀU HƠN 1 ACTION. NẾU KHÔNG CHẮC, HÃY CHỌN CLARIFY.
+    Nếu câu nói có nhắc đến ca sĩ VÀ một cụm từ trông giống tên bài hát (hoặc một đoạn lời), thì phải ưu tiên SEARCH_NAME hoặc SEARCH_LYRIC.
+
 
     CHỈ TRẢ VỀ JSON:
     {{
@@ -262,7 +302,9 @@ def parse_intent_llm(user_input, has_file=False):
             "artist": "",
             "mood": "",
             "genre": "",
-            "lyric_snippet": ""
+            "lyric_snippet": "",
+            "seed_name": "",
+            "attributes": ""
         }},
         "thought": ""
     }}
@@ -273,11 +315,14 @@ def parse_intent_llm(user_input, has_file=False):
 
         keys = _parse_gemini_api_keys()
         if not keys:
-            return _heuristic_intent(
+            out = _heuristic_intent(
                 user_input,
                 has_file=has_file,
                 thought="Gemini chưa được cấu hình (GEMINI_API_KEY / GEMINI_API_KEYS), mình dùng phân loại nhanh.",
             )
+            if isinstance(out, dict):
+                out.setdefault('method', 'Rule')
+            return out
 
         model_candidates = _intent_model_candidates_from_env()
         last_err: Exception | None = None
@@ -300,11 +345,14 @@ def parse_intent_llm(user_input, has_file=False):
         if not eligible_keys:
             remaining = int(min_remaining or 0)
             suffix = f" (cooldown {remaining}s)" if remaining > 0 else ""
-            return _heuristic_intent(
+            out = _heuristic_intent(
                 user_input,
                 has_file=has_file,
                 thought=f"Gemini đang quá quota/quá tải{suffix}, mình dùng phân loại nhanh.",
             )
+            if isinstance(out, dict):
+                out.setdefault('method', 'Rule')
+            return out
 
         for api_key in eligible_keys:
             try:
@@ -378,10 +426,16 @@ def parse_intent_llm(user_input, has_file=False):
             if last_quota_err is not None and _looks_like_quota_error(last_quota_err):
                 detail = _short_error_for_ui(last_quota_err)
                 suffix = f" ({detail})" if detail else ""
-                return _heuristic_intent(user_input, has_file=has_file, thought=f"Gemini đang quá tải/quá quota{suffix}, mình dùng phân loại nhanh.")
+                out = _heuristic_intent(user_input, has_file=has_file, thought=f"Gemini đang quá tải/quá quota{suffix}, mình dùng phân loại nhanh.")
+                if isinstance(out, dict):
+                    out.setdefault('method', 'Rule')
+                return out
             detail = _short_error_for_ui(last_err)
             suffix = f" ({type(last_err).__name__}: {detail})" if detail else f" ({type(last_err).__name__})" if last_err else ""
-            return _heuristic_intent(user_input, has_file=has_file, thought=f"Không gọi được Gemini{suffix}, mình dùng phân loại nhanh.")
+            out = _heuristic_intent(user_input, has_file=has_file, thought=f"Không gọi được Gemini{suffix}, mình dùng phân loại nhanh.")
+            if isinstance(out, dict):
+                out.setdefault('method', 'Rule')
+            return out
         
         # Lọc lấy JSON an toàn
         match = re.search(r"\{.*\}", response_text, re.DOTALL)
@@ -391,7 +445,7 @@ def parse_intent_llm(user_input, has_file=False):
             intent_data = json.loads(clean_json_text)
 
             # ===== VALIDATE PARAMS =====
-            required_fields = ["song_title", "artist", "mood", "genre", "lyric_snippet"]
+            required_fields = ["song_title", "artist", "mood", "genre", "lyric_snippet", "seed_name", "attributes"]
 
             if "params" not in intent_data:
                 intent_data["params"] = {}
@@ -408,28 +462,38 @@ def parse_intent_llm(user_input, has_file=False):
             # ===== END VALIDATE =====
 
             intent_data = _postprocess_intent(intent_data, user_input)
+            if isinstance(intent_data, dict):
+                intent_data.setdefault('method', 'LLM')
             
             # ===== HANDLE FILE LOGIC =====
             if intent_data["action"] == "SEARCH_AUDIO" and not has_file:
                 return {
                     "action": "MISSING_FILE",
                     "params": _empty_params(),
-                    "thought": "Bạn chưa tải file âm thanh lên!"
+                    "thought": "Bạn chưa tải file âm thanh lên!",
+                    "method": "LLM",
                 }
 
             if intent_data["action"] == "ANALYZE_READY" and not has_file:
                 return {
                     "action": "MISSING_FILE",
                     "params": _empty_params(),
-                    "thought": "Bạn chưa tải file để phân tích!"
+                    "thought": "Bạn chưa tải file để phân tích!",
+                    "method": "LLM",
                 }
             # ===== END =====
             return intent_data
         else:
-            return _heuristic_intent(user_input, has_file=has_file, thought="Gemini không trả về JSON chuẩn, mình dùng phân loại nhanh.")
+            out = _heuristic_intent(user_input, has_file=has_file, thought="Gemini không trả về JSON chuẩn, mình dùng phân loại nhanh.")
+            if isinstance(out, dict):
+                out.setdefault('method', 'Rule')
+            return out
             
     except Exception as e:
-        return _heuristic_intent(user_input, has_file=has_file, thought="Có lỗi khi phân tích ý định, mình dùng phân loại nhanh.")
+        out = _heuristic_intent(user_input, has_file=has_file, thought="Có lỗi khi phân tích ý định, mình dùng phân loại nhanh.")
+        if isinstance(out, dict):
+            out.setdefault('method', 'Rule')
+        return out
 
 
 def _cleanup_entity_text(value: str) -> str:
@@ -573,14 +637,37 @@ def _postprocess_intent(intent_data: dict, user_input: str) -> dict:
 
     return intent_data
 
+def _looks_like_mood_request(text: str) -> bool:
+    # Một số keyword đặc trưng cho tâm trạng mà không kèm tên bài
+    keywords = ["buồn", "vui", "chill", "suy", "lụy", "thất tình", "cô đơn"]
+    text_low = text.lower()
+    return any(k in text_low for k in keywords) and len(text.split()) < 10
 
 def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
     """Fallback intent parser when Gemini is unavailable."""
 
-    text = normalize(str(user_input or ""))
+    raw = str(user_input or "")
+    text = normalize(raw)
+    method = 'Rule'
+
+    # --- ĐOẠN MỚI THÊM VÀO ĐẦU HÀM ---
+    if any(k in text for k in ["bxh", "hot", "top", "phổ biến", "trending", "viral"]):
+        params = _empty_params()
+        # Cố gắng vớt tên ca sĩ nếu có
+        artist = _extract_artist_from_text(raw)
+        if artist:
+            params['artist'] = artist
+            
+        return {"action": "RECOMMEND_POPULARITY", "params": params, "thought": thought, 'method': method}
+
+    # Mood-like phrasing (vd: "bài nào sâu/thấm/lụy/đau...") should not be misread as SEARCH_NAME.
+    if _looks_like_mood_request(raw):
+        params = _empty_params()
+        params["mood"] = raw.strip()
+        return {"action": "RECOMMEND_MOOD", "params": params, "thought": thought, 'method': method}
 
     # Strong artist pattern: "nhạc/bài của <artist>".
-    artist = _extract_artist_from_text(str(user_input or ''))
+    artist = _extract_artist_from_text(raw)
     if artist:
         params = _empty_params()
         params['artist'] = artist
@@ -588,6 +675,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             'action': 'RECOMMEND_ARTIST',
             'params': params,
             'thought': thought,
+            'method': method,
         }
 
     if any(k in text for k in ["phân tích", "phan tich", "dự đoán", "du doan", "hit"]):
@@ -595,6 +683,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "action": "ANALYZE_READY" if has_file else "MISSING_FILE",
             "params": _empty_params(),
             "thought": thought,
+            'method': method,
         }
 
     if any(k in text for k in ["tìm", "tim", "giống", "giong", "tương tự", "tuong tu"]) and has_file:
@@ -602,7 +691,13 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "action": "SEARCH_AUDIO",
             "params": _empty_params(),
             "thought": thought,
+            'method': method,
         }
+    
+    if "giống bài" in text or "giong bai" in text:
+        params = _empty_params()
+        params["seed_name"] = text.split("giống bài")[-1].strip()
+        return {"action": "RECOMMEND_SEED", "params": params, "thought": thought, 'method': method}
 
     if any(k in text for k in ["lời", "loi", "lyrics", "câu", "cau"]):
         params = _empty_params()
@@ -611,12 +706,30 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "action": "SEARCH_LYRIC",
             "params": params,
             "thought": thought,
+            'method': method,
         }
 
     mood_map = {
         "buồn": "buồn",
         "sad": "buồn",
         "suy": "buồn",
+        "deep": "buồn",
+        "lụy": "buồn",
+        "luy": "buồn",
+        "thấm": "buồn",
+        "tham": "buồn",
+        "sâu": "buồn",
+        "sau": "buồn",
+        "đau": "buồn",
+        "dau": "buồn",
+        "đau lòng": "buồn",
+        "dau long": "buồn",
+        "thất tình": "buồn",
+        "that tinh": "buồn",
+        "cô đơn": "buồn",
+        "co don": "buồn",
+        "tâm trạng": "buồn",
+        "tam trang": "buồn",
         "vui": "vui",
         "happy": "vui",
         "chill": "chill",
@@ -634,6 +747,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
                 "action": "RECOMMEND_MOOD",
                 "params": params,
                 "thought": thought,
+                'method': method,
             }
 
     genre_map = {
@@ -652,6 +766,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
                 "action": "RECOMMEND_GENRE",
                 "params": params,
                 "thought": thought,
+                'method': method,
             }
 
     if any(k in text for k in ["ca sĩ", "ca si", "nghệ sĩ", "nghe si", "artist"]):
@@ -664,6 +779,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "action": "RECOMMEND_ARTIST",
             "params": params,
             "thought": thought,
+            'method': method,
         }
 
     # SEARCH_NAME best-effort when user explicitly provides a title.
@@ -681,6 +797,7 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
                 'action': 'SEARCH_NAME',
                 'params': params,
                 'thought': thought,
+                'method': method,
             }
 
     if any(k in text for k in ["hợp âm", "hop am", "nhạc lý", "nhac ly", "theory"]):
@@ -688,12 +805,14 @@ def _heuristic_intent(user_input: str, *, has_file: bool, thought: str) -> dict:
             "action": "MUSIC_KNOWLEDGE",
             "params": _empty_params(),
             "thought": thought,
+            'method': method,
         }
 
     return {
         "action": "CLARIFY",
         "params": _empty_params(),
         "thought": thought,
+        'method': method,
     }
 
 # Chạy test lại

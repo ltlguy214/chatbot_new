@@ -28,9 +28,9 @@ class ModelStorageConfig:
         prefix_lower = prefix.lower()
         looks_like_file_list = (
             ("," in prefix)
+            or ("\n" in prefix)
             or prefix_lower.endswith(".pkl")
             or ".pkl.part" in prefix_lower
-            or "best_model_" in prefix_lower
         )
         if looks_like_file_list:
             prefix = ""
@@ -184,7 +184,14 @@ def _first_existing(paths: list[str]) -> Path | None:
     return None
 
 
-def resolve_model_paths(*, allow_download: bool = True, report: dict[str, str] | None = None) -> dict[str, Path]:
+def resolve_model_paths(
+    *,
+    allow_download: bool = True,
+    report: dict[str, str] | None = None,
+    prefer_storage: bool | None = None,
+    force_storage: bool | None = None,
+    tasks: list[str] | set[str] | tuple[str, ...] | None = None,
+) -> dict[str, Path]:
     """Resolve local model paths, downloading from Supabase Storage if needed.
 
     Returns a mapping with keys: P0, P1, P2, P3, P4 when available.
@@ -203,154 +210,253 @@ def resolve_model_paths(*, allow_download: bool = True, report: dict[str, str] |
 
     result: dict[str, Path] = {}
 
-    prefer_storage = str(os.getenv("MODELS_PREFER_STORAGE") or "").strip().lower() in {"1", "true", "yes", "on"}
+    if prefer_storage is None:
+        prefer_storage = str(os.getenv("MODELS_PREFER_STORAGE") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+    if force_storage is None:
+        # Deploy default: if Supabase credentials exist, prefer forcing storage.
+        # You can override via MODELS_FORCE_STORAGE=0.
+        env_force = str(os.getenv("MODELS_FORCE_STORAGE") or "").strip().lower()
+        if env_force in {"0", "false", "no", "off"}:
+            force_storage = False
+        elif env_force in {"1", "true", "yes", "on"}:
+            force_storage = True
+        else:
+            force_storage = bool(os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_KEY"))
 
     def _prefer_order(storage_first: list[str], local_fallback: list[str]) -> list[str]:
+        if force_storage:
+            return storage_first
         return (storage_first + local_fallback) if prefer_storage else (local_fallback + storage_first)
 
     def _note(key: str, message: str) -> None:
         if report is not None:
             report[key] = str(message)
 
+    wanted = {"P0", "P1", "P2", "P3", "P4"}
+    if tasks is not None:
+        try:
+            wanted = {str(x).upper().strip() for x in list(tasks) if str(x).strip()}
+        except Exception:
+            wanted = {"P0", "P1", "P2", "P3", "P4"}
+
     # P0
-    p0 = _first_existing(
-        _prefer_order(
-            [str(cfg.cache_dir / files["P0"])],
-            [
-                "DA/models/best_model_p0.pkl",
-                "pkl_file/best_model_p0.pkl",
-                "best_model_p0.pkl",
-            ],
-        )
-    )
-    if p0 is not None:
-        _note("P0", f"local:{p0}")
-    if p0 is None and allow_download:
-        errs: list[str] = []
-        p0 = download_from_storage(filename=files["P0"], cfg=cfg, errors=errs)
+    if "P0" not in wanted:
+        _note("P0", "skipped")
+    else:
+        p0 = None
+        if allow_download and force_storage:
+            errs: list[str] = []
+            p0 = download_from_storage(filename=files["P0"], cfg=cfg, errors=errs)
+            if p0 is not None:
+                _note("P0", f"storage:{p0}")
+            elif errs:
+                _note("P0", "missing:" + " | ".join(errs[:2]))
+
+        if p0 is None:
+            p0 = _first_existing(
+                _prefer_order(
+                    [str(cfg.cache_dir / files["P0"])],
+                    [
+                        "DA/models/best_model_p0.pkl",
+                        "pkl_file/best_model_p0.pkl",
+                        "best_model_p0.pkl",
+                    ],
+                )
+            )
+            if p0 is not None:
+                _note("P0", f"local:{p0}")
+
+        if p0 is None and allow_download and not force_storage:
+            errs = []
+            p0 = download_from_storage(filename=files["P0"], cfg=cfg, errors=errs)
+            if p0 is not None:
+                _note("P0", f"storage:{p0}")
+            elif errs:
+                _note("P0", "missing:" + " | ".join(errs[:2]))
         if p0 is not None:
-            _note("P0", f"storage:{p0}")
-        elif errs:
-            _note("P0", "missing:" + " | ".join(errs[:2]))
-    if p0 is not None:
-        result["P0"] = p0
-    elif "P0" not in result:
-        _note("P0", report.get("P0") if report is not None and "P0" in report else "missing")
+            result["P0"] = p0
+        elif "P0" not in result:
+            _note("P0", report.get("P0") if report is not None and "P0" in report else "missing")
 
     # P1 (stitched from parts if needed)
-    p1 = _first_existing(
-        _prefer_order(
-            [str(cfg.cache_dir / files["P1"])],
-            [
-                "DA/models/best_model_p1_compressed.pkl",
-                "DA/models/best_model_p1.pkl",
-                "pkl_file/best_model_p1.pkl",
-                "best_model_p1.pkl",
-            ],
-        )
-    )
+    if "P1" not in wanted:
+        _note("P1", "skipped")
+    else:
+        p1 = None
+        if allow_download and force_storage:
+            errs: list[str] = []
+            stitched = stitch_parts(
+                output_name=files["P1"],
+                part_names=[
+                    "best_model_p1_compressed.pkl.part1",
+                    "best_model_p1_compressed.pkl.part2",
+                    "best_model_p1_compressed.pkl.part3",
+                ],
+                cfg=cfg,
+                errors=errs,
+            )
+            if stitched is not None:
+                p1 = stitched
+                _note("P1", f"storage:{p1}")
+            elif errs:
+                _note("P1", "missing:" + " | ".join(errs[:2]))
 
-    if p1 is not None:
-        _note("P1", f"local:{p1}")
+        if p1 is None:
+            p1 = _first_existing(
+                _prefer_order(
+                    [str(cfg.cache_dir / files["P1"])],
+                    [
+                        "DA/models/best_model_p1_compressed.pkl",
+                        "DA/models/best_model_p1.pkl",
+                        "pkl_file/best_model_p1.pkl",
+                        "best_model_p1.pkl",
+                    ],
+                )
+            )
+            if p1 is not None:
+                _note("P1", f"local:{p1}")
 
-    if p1 is None and allow_download:
-        errs: list[str] = []
-        stitched = stitch_parts(
-            output_name=files["P1"],
-            part_names=[
-                "best_model_p1_compressed.pkl.part1",
-                "best_model_p1_compressed.pkl.part2",
-                "best_model_p1_compressed.pkl.part3",
-            ],
-            cfg=cfg,
-            errors=errs,
-        )
-        p1 = stitched
+        if p1 is None and allow_download and not force_storage:
+            errs: list[str] = []
+            stitched = stitch_parts(
+                output_name=files["P1"],
+                part_names=[
+                    "best_model_p1_compressed.pkl.part1",
+                    "best_model_p1_compressed.pkl.part2",
+                    "best_model_p1_compressed.pkl.part3",
+                ],
+                cfg=cfg,
+                errors=errs,
+            )
+            p1 = stitched
+
+            if p1 is not None:
+                _note("P1", f"storage-stitched:{p1}")
+            elif errs:
+                _note("P1", "missing:" + " | ".join(errs[:2]))
 
         if p1 is not None:
-            _note("P1", f"storage-stitched:{p1}")
-        elif errs:
-            _note("P1", "missing:" + " | ".join(errs[:2]))
-
-    if p1 is not None:
-        result["P1"] = p1
-    elif "P1" not in result:
-        _note("P1", report.get("P1") if report is not None and "P1" in report else "missing")
+            result["P1"] = p1
+        elif "P1" not in result:
+            _note("P1", report.get("P1") if report is not None and "P1" in report else "missing")
 
     # P2
-    p2 = _first_existing(
-        _prefer_order(
-            [str(cfg.cache_dir / files["P2"])],
-            [
-                "DA/models/best_model_p2.pkl",
-                "pkl_file/best_clustering_p2_10_algorithms.pkl",
-                "best_clustering_p2_10_algorithms.pkl",
-            ],
-        )
-    )
-    if p2 is not None:
-        _note("P2", f"local:{p2}")
-    if p2 is None and allow_download:
-        errs: list[str] = []
-        p2 = download_from_storage(filename=files["P2"], cfg=cfg, errors=errs)
+    if "P2" not in wanted:
+        _note("P2", "skipped")
+    else:
+        p2 = None
+        if allow_download and force_storage:
+            errs: list[str] = []
+            dl = download_from_storage(filename=files["P2"], cfg=cfg, errors=errs)
+            if dl is not None:
+                p2 = dl
+                _note("P2", f"storage:{p2}")
+            elif errs:
+                _note("P2", "missing:" + " | ".join(errs[:2]))
+
+        if p2 is None:
+            p2 = _first_existing(
+                _prefer_order(
+                    [str(cfg.cache_dir / files["P2"])],
+                    [
+                        "DA/models/best_model_p2.pkl",
+                        "pkl_file/best_clustering_p2_10_algorithms.pkl",
+                        "best_clustering_p2_10_algorithms.pkl",
+                    ],
+                )
+            )
+            if p2 is not None:
+                _note("P2", f"local:{p2}")
+        if p2 is None and allow_download and not force_storage:
+            errs: list[str] = []
+            p2 = download_from_storage(filename=files["P2"], cfg=cfg, errors=errs)
+            if p2 is not None:
+                _note("P2", f"storage:{p2}")
+            elif errs:
+                _note("P2", "missing:" + " | ".join(errs[:2]))
         if p2 is not None:
-            _note("P2", f"storage:{p2}")
-        elif errs:
-            _note("P2", "missing:" + " | ".join(errs[:2]))
-    if p2 is not None:
-        result["P2"] = p2
-    elif "P2" not in result:
-        _note("P2", report.get("P2") if report is not None and "P2" in report else "missing")
+            result["P2"] = p2
+        elif "P2" not in result:
+            _note("P2", report.get("P2") if report is not None and "P2" in report else "missing")
 
     # P3
-    p3 = _first_existing(
-        _prefer_order(
-            [str(cfg.cache_dir / files["P3"])],
-            [
-                "DA/models/best_model_p3.pkl",
-                "pkl_file/best_model_p3.pkl",
-                "best_model_p3.pkl",
-            ],
-        )
-    )
-    if p3 is not None:
-        _note("P3", f"local:{p3}")
-    if p3 is None and allow_download:
-        errs: list[str] = []
-        p3 = download_from_storage(filename=files["P3"], cfg=cfg, errors=errs)
+    if "P3" not in wanted:
+        _note("P3", "skipped")
+    else:
+        p3 = None
+        if allow_download and force_storage:
+            errs: list[str] = []
+            dl = download_from_storage(filename=files["P3"], cfg=cfg, errors=errs)
+            if dl is not None:
+                p3 = dl
+                _note("P3", f"storage:{p3}")
+            elif errs:
+                _note("P3", "missing:" + " | ".join(errs[:2]))
+
+        if p3 is None:
+            p3 = _first_existing(
+                _prefer_order(
+                    [str(cfg.cache_dir / files["P3"])],
+                    [
+                        "DA/models/best_model_p3.pkl",
+                        "pkl_file/best_model_p3.pkl",
+                        "best_model_p3.pkl",
+                    ],
+                )
+            )
+            if p3 is not None:
+                _note("P3", f"local:{p3}")
+        if p3 is None and allow_download and not force_storage:
+            errs: list[str] = []
+            p3 = download_from_storage(filename=files["P3"], cfg=cfg, errors=errs)
+            if p3 is not None:
+                _note("P3", f"storage:{p3}")
+            elif errs:
+                _note("P3", "missing:" + " | ".join(errs[:2]))
         if p3 is not None:
-            _note("P3", f"storage:{p3}")
-        elif errs:
-            _note("P3", "missing:" + " | ".join(errs[:2]))
-    if p3 is not None:
-        result["P3"] = p3
-    elif "P3" not in result:
-        _note("P3", report.get("P3") if report is not None and "P3" in report else "missing")
+            result["P3"] = p3
+        elif "P3" not in result:
+            _note("P3", report.get("P3") if report is not None and "P3" in report else "missing")
 
     # P4
-    p4 = _first_existing(
-        _prefer_order(
-            [str(cfg.cache_dir / files["P4"])],
-            [
-                "DA/models/best_model_p4_compressed.pkl",
-                "DA/models/best_model_p4.pkl",
-                "pkl_file/best_model_p4.pkl",
-                "pkl_file/best_model_p4_genre.pkl",
-            ],
-        )
-    )
-    if p4 is not None:
-        _note("P4", f"local:{p4}")
-    if p4 is None and allow_download:
-        errs: list[str] = []
-        p4 = download_from_storage(filename=files["P4"], cfg=cfg, errors=errs)
+    if "P4" not in wanted:
+        _note("P4", "skipped")
+    else:
+        p4 = None
+        if allow_download and force_storage:
+            errs: list[str] = []
+            dl = download_from_storage(filename=files["P4"], cfg=cfg, errors=errs)
+            if dl is not None:
+                p4 = dl
+                _note("P4", f"storage:{p4}")
+            elif errs:
+                _note("P4", "missing:" + " | ".join(errs[:2]))
+
+        if p4 is None:
+            p4 = _first_existing(
+                _prefer_order(
+                    [str(cfg.cache_dir / files["P4"])],
+                    [
+                        "DA/models/best_model_p4_compressed.pkl",
+                        "DA/models/best_model_p4.pkl",
+                        "pkl_file/best_model_p4.pkl",
+                        "pkl_file/best_model_p4_genre.pkl",
+                    ],
+                )
+            )
+            if p4 is not None:
+                _note("P4", f"local:{p4}")
+        if p4 is None and allow_download and not force_storage:
+            errs: list[str] = []
+            p4 = download_from_storage(filename=files["P4"], cfg=cfg, errors=errs)
+            if p4 is not None:
+                _note("P4", f"storage:{p4}")
+            elif errs:
+                _note("P4", "missing:" + " | ".join(errs[:2]))
         if p4 is not None:
-            _note("P4", f"storage:{p4}")
-        elif errs:
-            _note("P4", "missing:" + " | ".join(errs[:2]))
-    if p4 is not None:
-        result["P4"] = p4
-    elif "P4" not in result:
-        _note("P4", report.get("P4") if report is not None and "P4" in report else "missing")
+            result["P4"] = p4
+        elif "P4" not in result:
+            _note("P4", report.get("P4") if report is not None and "P4" in report else "missing")
 
     return result
