@@ -473,10 +473,10 @@ def check_intent_llm(*, network: bool) -> CheckResult:
         return CheckResult(name="Intent (LLM)", status="SKIP", details="Network tests disabled")
 
     try:
-        from chatbot.intent import ALLOWED_ACTIONS, parse_intent_llm  # type: ignore
+        from chatbot.intent2 import ALLOWED_ACTIONS, parse_intent_llm  # type: ignore
     except Exception:
         try:
-            from intent import ALLOWED_ACTIONS, parse_intent_llm  # type: ignore
+            from chatbot.intent2 import ALLOWED_ACTIONS, parse_intent_llm  # type: ignore
         except Exception as ex:
             return CheckResult(name="Intent (LLM)", status="FAIL", details="Cannot import intent.py", error=_safe_str(ex))
 
