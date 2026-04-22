@@ -5,3 +5,10 @@ __pycache__/
 .model_cache/
 DA/models/best_model_p4.pkl
 DA/models/best_model_p1.pkl
+
+# Local secrets (avoid accidental commits)
+.env
+.env.*
+
+# Allow tracked lockfiles (even though *.txt is ignored)
+!requirements-venv312.lock.txt

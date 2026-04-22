@@ -255,8 +255,15 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
             r['raw_score'] = raw_score
             ranked.append(r)
 
-    # Sắp xếp lần 1: Trả về thứ tự chất lượng thực tế (Chưa dính Diversity)
-    ranked.sort(key=lambda x: x['raw_score'], reverse=True)
+    # Sắp xếp lần 1: TUYỆT ĐỐI ƯU TIÊN ĐỘ TƯƠNG ĐỒNG (SIMILARITY)
+    # Nếu tương đồng bằng nhau -> Mới dùng Popularity để xếp trên/dưới
+    ranked.sort(
+        key=lambda x: (
+            float(x.get('similarity') or x.get('score') or 0.0), 
+            float(x.get('spotify_popularity') or 0.0)
+        ), 
+        reverse=True
+    )
 
     # =========================================================
     # PASS 2: DIVERSITY -> CLAMP -> NON-LINEAR SCALE
@@ -290,7 +297,14 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
             artist_count[artist_main] += 1
 
     # Sắp xếp lần 2: Thứ tự hiển thị cuối cùng
-    final_list.sort(key=lambda x: x['final_mix_score'], reverse=True)
+    # Tương tự, lấy Similarity làm "Vua", Popularity làm "Á quân"
+    final_list.sort(
+        key=lambda x: (
+            float(x.get('similarity') or x.get('score') or 0.0), 
+            float(x.get('spotify_popularity') or 0.0)
+        ), 
+        reverse=True
+    )
 
     # =========================================================
     # PASS 3: GLOBAL SOFTMAX (FIX: Tính trên toàn bộ Pool)
@@ -393,7 +407,8 @@ def _load_artist_list_from_supabase(supabase: Any, *, max_rows: int = 20000) -> 
 
 def _mood_maps(mood_text: str) -> tuple[list[str], list[str], str]:
     """
-    PHIÊN BẢN NÂNG CẤP (MULTI-SIGNAL)
+    BÓC TÁCH ĐỘC LẬP: Chỉ gán nhãn nếu người dùng thực sự nhắc đến.
+    Các nhãn (labels) trả về BẮT BUỘC phải là chuỗi con (substring) khớp với Database.
     Return: (target_vibes_list, target_topics_list, sentiment)
     """
     if not mood_text:
@@ -401,37 +416,66 @@ def _mood_maps(mood_text: str) -> tuple[list[str], list[str], str]:
         
     m = _normalize_text(mood_text)
     
-    # 1. NHÓM BUỒN / SUY
-    if any(
-        k in m
-        for k in [
-            'buon', 'sad', 'deep',
-            'that tinh', 'khoc', 'co don',
-            'luy', 'suy',
-            'tam trang',
-            'sau', 'sau lang', 'sau tham',
-            'tham', 'tham thia',
-            'dau', 'dau long', 'nang long',
-            'thui ruot', 'ruot gan',
-            'tuyet vong',
-        ]
-    ):
-        return ["Sâu lắng", "Kịch tính"], ["chia tay", "thất tình", "cô đơn", "phản bội"], "negative"
+    target_vibes = []
+    target_topics = []
+    target_sentiment = ""
+    
+    # ==========================================
+    # 1. BẮT TÍN HIỆU SENTIMENT (Cảm xúc cốt lõi)
+    # ==========================================
+    if any(k in m for k in ['buon', 'suy','sau', 'sad', 'tieu cuc', 'khoc', 'nang long']):
+        target_sentiment = "negative"
+    elif any(k in m for k in ['vui', 'happy', 'tich cuc', 'yeu doi']):
+        target_sentiment = "positive"
         
-    # 2. NHÓM CHILL / CHỮA LÀNH
-    if any(k in m for k in ['chill', 'thu gian', 'binh yen', 'lofi', 'nhe nhang', 'healing', 'chua lanh', 'relax']):
-        return ["Bình yên"], ["kỷ niệm", "cuộc sống", "yên bình"], "positive"
+    # ==========================================
+    # 2. BẮT TÍN HIỆU VIBE (Phải khớp chuỗi con trong DB)
+    # Các nhãn có trong DB: "Kịch tính / Da diết", "Sâu lắng / Thấu cảm", 
+    # "Bình yên / Chữa lành", "Tươi mới / Yêu đời", "Bùng nổ / Sôi động"
+    # ==========================================
+    if any(k in m for k in ['da diet', 'kich tinh', 'cao trao']):
+        target_vibes.append("Kịch tính") # Sẽ khớp "Kịch tính / Da diết"
         
-    # 3. NHÓM VUI / TÍCH CỰC
-    if any(k in m for k in ['vui', 'happy', 'tuoi moi', 'yeu doi', 'tich cuc']):
-        return ["Tươi mới", "Bùng nổ"], ["tình yêu", "hạnh phúc", "thanh xuân"], "positive"
+    if any(k in m for k in ['sau lang', 'tham', 'sau tham', 'thau cam']):
+        target_vibes.append("Sâu lắng") # Sẽ khớp "Sâu lắng / Thấu cảm"
         
-    # 4. NHÓM QUẨY / SÔI ĐỘNG
-    if any(k in m for k in ['quay', 'party', 'sung', 'chay', 'soi dong', 'bung no']):
-        return ["Bùng nổ"], [], "positive"
+    if any(k in m for k in ['chill', 'thu gian', 'binh yen', 'lofi', 'nhe nhang', 'healing', 'chua lanh']):
+        target_vibes.append("Bình yên") # Sẽ khớp "Bình yên / Chữa lành"
         
-    # Fallback
-    return [mood_text], [], ""
+    if any(k in m for k in ['tuoi moi', 'yeu doi']):
+        target_vibes.append("Tươi mới") # Sẽ khớp "Tươi mới / Yêu đời"
+        
+    if any(k in m for k in ['quay', 'party', 'sung', 'chay', 'soi dong', 'bung no', 'nang luong']):
+        target_vibes.append("Bùng nổ") # Sẽ khớp "Bùng nổ / Sôi động"
+        
+    # ==========================================
+    # 3. BẮT TÍN HIỆU TOPIC (Phải khớp chuỗi con trong DB)
+    # Các nhãn có trong DB: "Ballad Thất tình / Chia tay", "Hoài niệm / Kỷ niệm", 
+    # "Tình yêu đôi lứa / Lãng mạn", "Tình cảm Gia đình / Cha mẹ", "Nhạc Tết / Xuân",...
+    # ==========================================
+    if any(k in m for k in ['that tinh', 'chia tay', 'dau long', 'phan boi', 'co don', 'thui ruot']):
+        target_topics.append("Thất tình") # Khớp "Ballad Thất tình / Chia tay"
+        
+    if any(k in m for k in ['tinh yeu', 'ngot ngao', 'lang man']):
+        target_topics.append("Tình yêu") # Khớp "Tình yêu đôi lứa / Lãng mạn"
+        
+    if any(k in m for k in ['ky niem', 'qua khu', 'hoai niem', 'nho nhung']):
+        target_topics.append("Kỷ niệm") # Khớp "Hoài niệm / Kỷ niệm"
+        
+    if any(k in m for k in ['gia dinh', 'me', 'cha', 'que huong']):
+        target_topics.append("Gia đình") # Khớp "Tình cảm Gia đình / Cha mẹ"
+        
+    if any(k in m for k in ['tha thinh', 'tan tinh', 'crush']):
+        target_topics.append("Thả thính") # Khớp "Pop hiện đại / Thả thính"
+        
+    if any(k in m for k in ['tet', 'xuan', 'nam moi']):
+        target_topics.append("Xuân") # Khớp "Nhạc Tết / Xuân"
+        
+    if any(k in m for k in ['tu hao', 'yeu nuoc', 'que huong']):
+        target_topics.append("Tự hào") # Khớp "Lòng yêu nước / Tự hào"
+    
+    # Loại bỏ các giá trị trùng lặp nếu có
+    return list(set(target_vibes)), list(set(target_topics)), target_sentiment
 
 
 def get_genre_target(genre_text: str) -> str:
@@ -574,111 +618,112 @@ def handle_action(
         
         except Exception as ex:
             return {'tracks': [], 'source': 'search-name-error', 'error': f"Lỗi tìm kiếm: {ex}"}
-        
+
 
     # =========================
-    # 2. SEARCH_LYRIC
+    # 2. SEARCH_LYRIC (Smart Logic: Trigram Fuzzy Matching)
     # =========================
     elif action == "SEARCH_LYRIC":
-        lyric = str(params.get("lyric_snippet", "") or "").strip()
+        lyric = str(params.get("lyric_snippet", "") or "").strip().strip("'").strip('"')
         if not lyric:
-            return {
-                'tracks': [], 
-                'source': 'fallback-missing-param', 
-                'error': 'Bạn muốn tìm theo đoạn lời nào?'
-            }
+            return {'tracks': [], 'source': 'fallback-missing-param', 'error': 'Bạn muốn tìm theo đoạn lời nào?'}
                     
-        # --- LỚP 1: TÌM CHÍNH XÁC (Hybrid Text Search: Title + Lyric) ---
-        print(f"[Text Search] Đang tìm chính xác đoạn lời hoặc tiêu đề: '{lyric}'")
+        print(f"[SEARCH_LYRIC] AI Fuzzy Searching: '{lyric}'")
+        
+        # 1. Chuẩn hóa cực hạn (Dùng cho cả Query và DB)
+        def deep_clean(t):
+            t = re.sub(r'[\n\r\,\.\?\!\-]', ' ', t).lower()
+            return re.sub(r'\s+', ' ', t).strip()
+
+        clean_query = deep_clean(lyric)
+
         try:
-            # 1. Tìm Tiêu đề (Ưu tiên)
-            title_res = supabase.table('songs').select('title, artists, vibe, main_topic, spotify_track_id, spotify_popularity').ilike('title', f'%{lyric}%').limit(3).execute()
-            title_rows = getattr(title_res, 'data', None) or []
+            # --- TẦNG 1: TÌM TIÊU ĐỀ (Luôn ưu tiên vì đây là ý định rõ nhất) ---
+            t_res = supabase.table('songs').select(
+                'spotify_track_id, title, artists, vibe, main_topic, spotify_popularity, is_hit, genres'
+            ).ilike('title', f'%{clean_query}%').limit(3).execute()
             
-            # 2. Tìm Lời bài hát & Lưu toàn bộ Snippet
-            lyric_res = supabase.table('lyrics').select('spotify_track_id, lyric').ilike('lyric', f'%{lyric}%').limit(20).execute()
-            l_rows = getattr(lyric_res, 'data', None) or []
+            pool = []
+            if t_res.data:
+                for r in t_res.data:
+                    r['similarity'] = 100.0
+                    pool.append(r)
+
+            # --- TẦNG 2: FUZZY TEXT SEARCH (Sức mạnh của Trigram) ---
+            # Thay vì ILIKE %...%, ta dùng RPC gọi hàm match_lyrics_fuzzy (mình sẽ tạo ở dưới)
+            # Hàm này sẽ trả về độ tương đồng % thực tế.
             
-            lyric_ids = []
-            snippet_dict = {} # MỚI: Cuốn sổ lưu snippet theo ID bài hát
-            
-            for r in l_rows:
-                tid = str(r.get('spotify_track_id') or '')
-                if tid:
-                    lyric_ids.append(tid)
-                    full_text = r.get('lyric')
-                    if full_text:
-                        start_idx = full_text.lower().find(lyric.lower())
-                        if start_idx != -1:
-                            start = max(0, start_idx - 25)
-                            end = min(len(full_text), start_idx + len(lyric) + 35)
-                            snippet_dict[tid] = full_text[start:end].replace('\n', ' / ')
+            # GỌI RPC THAY VÌ TRUY VẤN TRỰC TIẾP ĐỂ TẬN DỤNG THUẬT TOÁN POSTGRES
+            l_res = supabase.rpc('match_lyrics_fuzzy', {
+                'query_text': clean_query,
+                'match_threshold': 0.3, # Chỉ lấy những bài giống trên 30% cấu trúc câu
+                'match_count': 10
+            }).execute()
 
-            # 3. Lấy thông tin bài hát từ ID lời nhạc
-            lyric_tracks = []
-            if lyric_ids:
-                songs_q = supabase.table('songs').select('title, artists, vibe, main_topic, spotify_track_id, spotify_popularity').in_('spotify_track_id', lyric_ids).order('spotify_popularity', desc=True).limit(10)
-                songs_res = songs_q.execute()
-                lyric_tracks = getattr(songs_res, 'data', None) or []
+            if l_res.data:
+                text_ids = [r['spotify_track_id'] for r in l_res.data]
+                # Lấy Metadata cho các bài tìm được
+                songs_res = supabase.table('songs').select('*').in_('spotify_track_id', text_ids).execute()
+                meta_map = {s['spotify_track_id']: s for s in (songs_res.data or [])}
 
-            # 4. Gộp và lọc trùng
-            combined_rows = title_rows + lyric_tracks
-            unique_tracks = {r['spotify_track_id']: r for r in combined_rows if r.get('spotify_track_id')}
-            final_rows = list(unique_tracks.values())[:int(match_count)]
+                for match in l_res.data:
+                    tid = match['spotify_track_id']
+                    if tid in meta_map:
+                        row = meta_map[tid]
+                        # similarity ở đây là điểm % do Postgres tính toán cực chuẩn
+                        row['similarity'] = round(match['similarity'] * 100, 2)
+                        pool.append(row)
 
-            # MỚI: Khớp Snippet với bài hát có rank cao nhất (Top 1)
-            final_snippet = ""
-            for track in final_rows:
-                tid = track.get('spotify_track_id')
-                if tid in snippet_dict:
-                    final_snippet = snippet_dict[tid]
-                    break # Tìm thấy snippet của bài cao nhất thì dừng ngay
+           # --- TẦNG 3: VECTOR SEARCH (Vá lỗi Metadata & Đồng nhất điểm) ---
+            # Chỉ cứu viện khi 2 tầng trên không tìm thấy bài nào thực sự khớp (> 75%)
+            max_sim = max([r['similarity'] for r in pool]) if pool else 0
+            if max_sim < 75:
+                print(" -> Fuzzy điểm thấp. Kích hoạt Vector AI cứu viện...")
+                try:
+                    from chatbot.supabase import query_supabase_lyrics as ai_lyric_search
+                    vec_res = ai_lyric_search(lyric, match_threshold=0.3, match_count=5)
+                    vec_raw = vec_res.get('tracks') if isinstance(vec_res, dict) else vec_res or []
+                    
+                    if vec_raw:
+                        # FIX LỖI TRỐNG TÊN: Ép lấy Metadata từ bảng songs
+                        v_ids = [v.get('spotify_id') or v.get('spotify_track_id') for v in vec_raw]
+                        v_meta = supabase.table('songs').select('*').in_('spotify_track_id', v_ids).execute()
+                        v_map = {s['spotify_track_id']: s for s in (v_meta.data or [])}
+                        
+                        for v in vec_raw:
+                            tid = v.get('spotify_id') or v.get('spotify_track_id')
+                            if tid in v_map:
+                                row = v_map[tid]
+                                # Đồng nhất điểm similarity sang thang 100
+                                raw_v_sim = v.get('similarity', 60.0)
+                                row['similarity'] = raw_v_sim if raw_v_sim > 1.0 else raw_v_sim * 100
+                                pool.append(row)
+                except Exception as e:
+                    print(f" -> Lớp 3 lỗi: {e}")
 
-            if final_rows:
-                return {
-                    'tracks': _normalize_track_rows(final_rows),    #spotify_id, title, artists, vibe, main_topic
-                    'source': 'text-search:title+lyrics',
-                    'snippet': f"...{final_snippet.strip()}..." if final_snippet else "", # Trả về snippet để UI hiển thị  
-                    'error': None,
-                }
-        except Exception as e:
-            print(f"[Lỗi Text Search Lời nhạc] {e}")
-
-        # --- LỚP 2: FALLBACK VECTOR SEARCH (Cứu cánh khi nhớ sai lời) ---
-        print(f"[Fallback] Không tìm thấy mặt chữ '{lyric}'. Đang dùng AI Vector Search đoán ngữ nghĩa...")
-        try:
-            query_embedding = _safe_embed(embed_fn, lyric)
-            if not query_embedding:
-                detail = _embed_error(embed_fn)
-                suffix = f" ({detail})" if detail else ""
-                return {
-                    'tracks': [],
-                    'source': 'fallback-missing-embedding',
-                    'error': 'Chưa có embedding function hoặc không tạo được embedding' + suffix,
-                }
+            # --- RANKING & DEDUP ---
+            if pool:
+                unique = {}
+                for r in pool:
+                    tid = r.get('spotify_track_id') or r.get('spotify_id')
+                    if tid and (tid not in unique or r['similarity'] > unique[tid]['similarity']):
+                        unique[tid] = r
                 
-            thr = float(match_threshold) if match_threshold is not None else 0.5
-            res = supabase.rpc(
-                "match_vpop_tracks",
-                {
-                    "query_embedding": query_embedding,
-                    "match_threshold": thr,
-                    "match_count": int(match_count),
-                },
-            ).execute()
+                # Sắp xếp: Ưu tiên Độ tương đồng > Độ Hot
+                final_list = sorted(unique.values(), key=lambda x: (x['similarity'], x.get('spotify_popularity', 0)), reverse=True)
+
+                return {
+                    'tracks': _normalize_track_rows(final_list[:int(match_count)]),
+                    'source': 'smart-fuzzy-logic',
+                    'error': None
+                }
             
-            rows = getattr(res, 'data', None)
-            return {
-                'tracks': _normalize_track_rows(rows), #spotify_id, title, artists, vibe, main_topic
-                'source': 'vector-fallback:lyrics',
-                'error': None,
-            }
+            return {'tracks': [], 'error': f"Không tìm thấy bài hát nào khớp với: '{lyric}'."}
+
         except Exception as e:
-            return {
-                'tracks': [],
-                'source': 'fallback-lyric-error',
-                'error': f"Lỗi trong quá trình tìm lời: {e}"
-            }
+            return {'tracks': [], 'error': f"Lỗi logic: {e}"}
+        
+
     # =========================
     # 3. SEARCH_AUDIO (Nâng cấp: Dùng Backend Scaler + Multi-segment)
     # =========================
@@ -731,37 +776,50 @@ def handle_action(
 
 
     # =========================
-    # 4. RECOMMEND_MOOD (Multi-Signal & Centralized Ranking)
+    # 4. RECOMMEND_MOOD
     # =========================
     elif action == "RECOMMEND_MOOD":
         mood_query = str(params.get("mood") or "").strip()
         if not mood_query:
             return {'tracks': [], 'source': 'error', 'error': 'Bạn muốn nghe nhạc theo tâm trạng như thế nào? Hãy nói cho mình biết nhé.'}
 
-        # LỚP 1: GỌI HÀM HỖ TRỢ ĐỂ LẤY TÍN HIỆU
+        # LỚP 1: LẤY ĐÚNG TÍN HIỆU NGƯỜI DÙNG NHẮC TỚI
         target_vibes, target_topics, target_sentiment = _mood_maps(mood_query)
-        print(f"[RECOMMEND_MOOD] vibes={target_vibes}, topics={target_topics}")
+        print(f"[RECOMMEND_MOOD] vibes={target_vibes}, topics={target_topics}, sentiment={target_sentiment}")
 
         try:
-            # LỚP 2: TRUY VẤN SQL (Ưu tiên Vibe để lọc thô)
-            # Dùng OR để quét tất cả các Vibe liên quan (ví dụ: Sâu lắng OR Kịch tính)
-            vibe_filters = ",".join([f"vibe.ilike.%{v}%" for v in target_vibes])
-            
-            res = supabase.table('songs').select(
+            q = supabase.table('songs').select(
                 'spotify_track_id, title, artists, vibe, main_topic, final_sentiment, spotify_popularity, is_hit, genres'
-            ).or_(vibe_filters).limit(int(match_count) * 4).execute()
-            
-            rows = getattr(res, 'data', None) or []
-            source_label = 'multi-signal:mood-ranked'
+            )
 
-            # LỚP 3: VECTOR FALLBACK (Nếu SQL không tìm thấy bài nào khớp Vibe)
-            if not rows:
-                print(f"[Fallback] Kích hoạt Vector Search cho Mood: {mood_query}")
+            # LỚP 2: LẮP RÁP SQL THÔNG MINH
+            if target_sentiment:
+                q = q.eq('final_sentiment', target_sentiment)
+                
+            if target_vibes:
+                vibe_cond = ",".join([f"vibe.ilike.%{v}%" for v in target_vibes])
+                q = q.or_(vibe_cond)
+                
+            if target_topics:
+                topic_cond = ",".join([f"main_topic.ilike.%{t}%" for t in target_topics])
+                q = q.or_(topic_cond)
+
+            # [FIX LỖI 1]: ÉP SẮP XẾP THEO ĐỘ HOT ĐỂ TRÁNH LẤY RANDOM THEO BẢNG CHỮ CÁI (A-Z)
+            q = q.order('spotify_popularity', desc=True)
+
+            # Lấy dư x4 số lượng để Ranker chọn lọc
+            res = q.limit(int(match_count) * 4).execute()
+            rows = getattr(res, 'data', None) or []
+            source_label = 'exact-mood-ranked'
+
+            # LỚP 3: FALLBACK NẾU QUÁ KHẮT KHE (Vector Search)
+            if not rows and (target_vibes or target_topics or target_sentiment):
+                print(f"[Fallback] Điều kiện quá gắt, nới lỏng sang Vector Search cho: {mood_query}")
                 query_embedding = _safe_embed(embed_fn, mood_query)
                 if query_embedding:
                     res_vec = supabase.rpc("match_vpop_tracks", {
                         "query_embedding": query_embedding,
-                        "match_threshold": float(match_threshold or 0.4),
+                        "match_threshold": float(match_threshold or 0.35),
                         "match_count": int(match_count) * 4
                     }).execute()
                     rows = getattr(res_vec, 'data', None) or []
@@ -770,10 +828,20 @@ def handle_action(
             if not rows:
                 return {'tracks': [], 'source': 'empty', 'error': f"Chưa tìm thấy nhạc phù hợp với tâm trạng '{mood_query}'."}
 
-            # =======================================================
+            # [FIX LỖI 2]: GÁN ĐIỂM SIMILARITY NẾU TÌM BẰNG SQL ĐỂ UI KHÔNG BỊ 0.0%
+            if 'vector-fallback' not in source_label:
+                for r in rows:
+                    match_score = 0.65 # Điểm gốc
+                    # Khớp cái nào cộng điểm cái đó
+                    if target_sentiment and r.get('final_sentiment') == target_sentiment:
+                        match_score += 0.15
+                    if target_vibes and any(v in (r.get('vibe') or '') for v in target_vibes):
+                        match_score += 0.10
+                    if target_topics and any(t in (r.get('main_topic') or '') for t in target_topics):
+                        match_score += 0.10
+                    r['similarity'] = min(0.98, match_score)
+
             # GLOBAL RANKER
-            # =======================================================
-            # Ném tất cả tín hiệu vào hàm Ranker vạn năng
             ranked_tracks = rank_and_normalize_tracks(
                 raw_rows=rows,
                 limit=int(match_count),
@@ -784,18 +852,14 @@ def handle_action(
                 }
             )
 
-            return {
-                'tracks': ranked_tracks,
-                'source': source_label,
-                'error': None
-            }
+            return {'tracks': ranked_tracks, 'source': source_label, 'error': None}
 
         except Exception as e:
             return {'tracks': [], 'source': 'error', 'error': str(e)}
 
 
     # =========================
-    # 5. RECOMMEND_ARTIST (4 Lớp: Fuzzy -> Exact -> Wildcard -> Vector -> Ranker)
+    # 5. RECOMMEND_ARTIST (Kiến trúc Fallback Tiêu chuẩn)
     # =========================
     elif action == "RECOMMEND_ARTIST":
         artist = str(params.get("artist", "") or "").strip()
@@ -805,55 +869,81 @@ def handle_action(
         print(f"[RECOMMEND_ARTIST] Đang tìm nghệ sĩ: '{artist}'")
 
         try:
-            # --- LỚP 1: SỬA LỖI CHÍNH TẢ (Fuzzy Matching) ---
-            try:
-                current_artist_list = _load_artist_list_from_supabase(supabase)
-            except Exception:
-                current_artist_list = []
-
-            best_artist = _find_best_artist(artist, current_artist_list)
-            artist_query = best_artist if best_artist else artist
-            
-            if best_artist and best_artist.lower() != artist.lower():
-                print(f" -> AI dò lỗi chính tả: Đã nắn '{artist}' thành '{best_artist}'")
-
             rows = []
             source_label = ""
+            artist_query = artist # Biến lưu tên ca sĩ dùng để Ranking
 
-            # --- LỚP 2: TÌM KIẾM THEO TÊN (SQL ILIKE) ---
+            # --- LỚP 1: TÌM KIẾM CHUẨN (SQL ILIKE) ---
+            # Xử lý hoàn hảo các trường hợp gõ đúng, hoặc gõ thiếu họ/tên lót (VD: "Sơn Tùng" -> "Sơn Tùng M-TP")
             q1 = supabase.table('songs').select(
                 'title, artists, vibe, main_topic, spotify_track_id, spotify_popularity, is_hit, genres, final_sentiment'
-            ).ilike('artists', f'%{artist_query}%').limit(int(match_count) * 4)
+            ).ilike('artists', f'%{artist}%')
             
-            res1 = q1.execute()
+            res1 = q1.order('spotify_popularity', desc=True).limit(int(match_count) * 4).execute()
             rows = getattr(res1, 'data', None) or []
             
             if rows:
-                source_label = 'text-search:artist-fuzzy'
+                source_label = 'text-search:artist-exact'
 
-            # --- LỚP 3: LỚP BẢO VỆ DÍNH CHỮ (Wildcard SQL) ---
+            # --- LỚP 2: BẢO VỆ GÕ DÍNH CHỮ (Wildcard SQL) ---
+            # Kích hoạt khi gõ: "sơntùng"
             if not rows:
                 artist_wildcard = artist.replace(" ", "%")
                 if artist_wildcard != artist:
                     print(f"[Fallback] Nới lỏng khoảng trắng: '{artist_wildcard}'")
-                    # FIX BUG: Đã sửa artist_query thành artist_wildcard ở đây
                     q2 = supabase.table('songs').select(
                         'title, artists, vibe, main_topic, spotify_track_id, spotify_popularity, is_hit, genres , final_sentiment'
-                    ).ilike('artists', f'%{artist_wildcard}%').limit(int(match_count) * 4)
+                    ).ilike('artists', f'%{artist_wildcard}%')
                 
-                    res2 = q2.execute()
+                    res2 = q2.order('spotify_popularity', desc=True).limit(int(match_count) * 4).execute()
                     rows = getattr(res2, 'data', None) or []
-                    
                     if rows:
                         source_label = 'text-search:artist-wildcard'
+                        artist_query = artist_wildcard # Cập nhật query để Ranker biết
 
-            # --- LỚP 4: VECTOR SEARCH (Cứu cánh cho Tiếng Việt KHÔNG DẤU) ---
+            ## --- LỚP 3: AI SỬA LỖI CHÍNH TẢ (Fuzzy Matching) ---
+            # CHỈ kích hoạt khi gõ sai chính tả nhẹ. Tuyệt đối không chạy trước để tránh phá data.
+            if not rows:
+                try:
+                    current_artist_list = _load_artist_list_from_supabase(supabase)
+                except Exception:
+                    current_artist_list = []
+
+                if current_artist_list:
+                    # Lấy tên không dấu để kiểm tra
+                    query_norm = _normalize_text(artist)
+                    match = _extract_one(query_norm, [_normalize_text(a) for a in current_artist_list])
+                    
+                    # SIẾT CHẶT: Ngưỡng an toàn >= 88% VÀ không được chênh lệch quá 4 ký tự
+                    # Để chặn vụ "son tug" (7 chữ) biến thành "Cao Thái Sơn" (12 chữ)
+                    if match and match[1] >= 88:
+                        best_artist_norm = match[0]
+                        best_artist = current_artist_list[match[2]]
+                        
+                        # Điều kiện chặn độ dài
+                        if abs(len(query_norm) - len(best_artist_norm)) <= 4:
+                            if best_artist.lower() != artist.lower():
+                                print(f"[Fallback] AI dò lỗi chính tả: Đã nắn '{artist}' thành '{best_artist}'")
+                                
+                                # Tìm lại với tên đã sửa
+                                q3 = supabase.table('songs').select(
+                                    'title, artists, vibe, main_topic, spotify_track_id, spotify_popularity, is_hit, genres, final_sentiment'
+                                ).ilike('artists', f'%{best_artist}%')
+                                
+                                res3 = q3.order('spotify_popularity', desc=True).limit(int(match_count) * 4).execute()
+                                rows = getattr(res3, 'data', None) or []
+                                if rows:
+                                    source_label = 'text-search:artist-fuzzy'
+                                    artist_query = best_artist
+
+            # --- LỚP 4: VECTOR SEARCH (Cứu cánh cuối cùng) ---
+            # Kích hoạt khi gõ tiếng Việt không dấu hoặc sai quá nặng (VD: "son tung m tp")
             if not rows:
                 print(f"[Fallback] Kích hoạt Vector Search đoán nghệ sĩ: '{artist}'...")
                 try:
                     query_embedding = _safe_embed(embed_fn, artist)
                     if query_embedding:
-                        thr = float(match_threshold) if match_threshold is not None else 0.5
+                        thr = float(match_threshold) if match_threshold is not None else 0.4
                         res4 = supabase.rpc(
                             "match_vpop_tracks",
                             {"query_embedding": query_embedding, "match_threshold": thr, "match_count": int(match_count) * 4},
@@ -869,25 +959,31 @@ def handle_action(
             if not rows:
                 return {'tracks': [], 'source': 'search-artist-empty', 'error': f"Tiếc quá, hiện tại mình chưa có bài nào của '{artist}'."}
 
+            # BƠM ĐIỂM SIMILARITY (Fix lỗi 0.0%)
+            if 'vector-fallback' not in source_label:
+                for r in rows:
+                    db_artists = _normalize_text(r.get('artists') or '')
+                    clean_query = _normalize_text(artist_query).replace("%", " ")
+                    
+                    if clean_query in db_artists:
+                        r['similarity'] = 0.95
+                    else:
+                        r['similarity'] = 0.70
+
             # =======================================================
             # GLOBAL RANKER
             # =======================================================
-            # Dù tìm được bằng Lớp 2, 3 hay 4, tất cả đều phải qua Ranker để:
-            # 1. Chấm điểm Pop/Hit.
-            # 2. Phạt điểm nếu bị spam trùng nghệ sĩ.
-            # 3. Thưởng điểm nếu trùng khớp artist_query.
             ranked_tracks = rank_and_normalize_tracks(
                 raw_rows=rows,
                 limit=int(match_count),
-                boosts={'artist': artist_query}
+                boosts={'artist': artist_query.replace("%", " ")}
             )
 
             return {'tracks': ranked_tracks, 'source': source_label, 'error': None}
 
         except Exception as ex:
             return {'tracks': [], 'source': 'search-artist-error', 'error': f"Lỗi hệ thống: {ex}"}
-
-
+        
     # =========================
     # 6. RECOMMEND_GENRE (Lọc Thể loại + Centralized Ranking)
     # =========================
@@ -1061,22 +1157,32 @@ def handle_action(
                 q = q.ilike('artists', f'%{artist}%')
                 boosts['artist'] = artist
 
-            # 3. Ráp mảnh ghép Tâm trạng (Linh hoạt - OR)
+            # 3. Ráp mảnh ghép Tâm trạng (Linh hoạt - Gom 3 tín hiệu)
             if mood:
                 target_vibes, target_topics, target_sentiment = _mood_maps(mood)
                 boosts.update({'vibe': target_vibes, 'topics': target_topics, 'sentiment': target_sentiment})
                 
-                # Ép DB lọc Vibe
+                mood_filters = []
+                if target_sentiment:
+                    mood_filters.append(f"final_sentiment.eq.{target_sentiment}")
                 if target_vibes:
-                    vibe_filters = ",".join([f"vibe.ilike.%{v}%" for v in target_vibes])
-                    q = q.or_(vibe_filters)
+                    mood_filters.extend([f"vibe.ilike.%{v}%" for v in target_vibes])
+                if target_topics:
+                    mood_filters.extend([f"main_topic.ilike.%{t}%" for t in target_topics])
+                
+                # Ép DB lọc bằng OR cho các tín hiệu tâm trạng
+                if mood_filters:
+                    q = q.or_(",".join(mood_filters))
+
+            # [FIX QUAN TRỌNG]: Ép sắp xếp theo Popularity để tránh kéo Random
+            q = q.order('spotify_popularity', desc=True)
 
             # 4. CHẠY TRUY VẤN SQL (Lấy dư ra x4 để Ranker làm việc)
             res = q.limit(int(match_count) * 4).execute()
             rows = getattr(res, 'data', None) or []
             source_label = 'advanced-search-sql'
 
-            # 5. VECTOR FALLBACK (Cứu cánh nếu lọc quá gắt không ra bài nào)
+            # 5. VECTOR FALLBACK (Cứu cánh nếu lọc chéo quá gắt không ra bài nào)
             if not rows:
                 combo_text = f"{mood} {genre} {artist}".strip()
                 print(f"[Fallback] Lọc chéo không ra, đưa vào Vector Search: '{combo_text}'")
@@ -1092,6 +1198,20 @@ def handle_action(
 
             if not rows:
                 return {'tracks': [], 'source': 'search-advanced-empty', 'error': "Khẩu vị của bạn mặn quá, hệ thống lọc mãi không ra bài nào khớp hết các điều kiện này!"}
+
+            # [FIX LỖI 0.0%]: Bơm điểm Similarity giả lập cho các bài chui qua màng lọc SQL
+            if 'vector-fallback' not in source_label:
+                for r in rows:
+                    match_score = 0.65
+                    if artist and _normalize_text(artist) in _normalize_text(r.get('artists') or ''):
+                        match_score += 0.15
+                    if genre and _normalize_text(mapped_genre) in _normalize_text(r.get('genres') or ''):
+                        match_score += 0.10
+                    # Tăng điểm nếu khớp mood
+                    if mood:
+                        if target_sentiment and r.get('final_sentiment') == target_sentiment:
+                            match_score += 0.10
+                    r['similarity'] = min(0.98, match_score)
 
             # =======================================================
             # GLOBAL RANKER
