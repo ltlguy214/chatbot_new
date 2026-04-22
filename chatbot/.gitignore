@@ -11,6 +11,9 @@ venv/
 .env
 .env.*
 
+# Keep the public template file tracked
+!.env.example
+
 # Local caches / tokens
 .cache
 

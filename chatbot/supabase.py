@@ -8,6 +8,27 @@ from importlib import import_module
 from typing import Any, Callable
 
 
+from sentence_transformers import SentenceTransformer
+import streamlit as st
+
+@st.cache_resource
+def get_embedding_model():
+    # Load 1 lần và dùng mãi mãi trong suốt session
+    return SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
+def encode_lyrics_embedding_debug(text: str) -> tuple[list[float] | None, str | None]:
+    text = str(text or '').strip()
+    if not text:
+        return None, 'empty-text'
+    try:
+        # Dùng model đã cache
+        model = get_embedding_model()
+        vec = model.encode(text)
+        out = vec.tolist() if hasattr(vec, 'tolist') else list(vec)
+        return [float(x) for x in out], None
+    except Exception as ex:
+        return None, f"{type(ex).__name__}: {ex}"
+
 def _import_third_party_supabase_create_client():
     """Import `supabase.create_client` from the pip package safely.
 
@@ -146,34 +167,12 @@ class LyricsEmbeddingProvider:
         if not text:
             return None
         try:
-            model = _cached_sentence_transformer(self.model_name())
+            # Ép nó dùng model từ st.cache_resource
+            model = get_embedding_model()
             vec = model.encode(text)
-            return vec.tolist()  # type: ignore[no-any-return]
+            return vec.tolist()
         except Exception:
             return None
-
-
-def encode_lyrics_embedding_debug(text: str) -> tuple[list[float] | None, str | None]:
-    """Encode text into the same embedding space as the lyrics vectors.
-
-    Unlike LyricsEmbeddingProvider.encode(), this returns an error string
-    instead of swallowing exceptions, so UI/tests can show the real cause.
-    """
-
-    text = str(text or '').strip()
-    if not text:
-        return None, 'empty-text'
-    try:
-        provider = LyricsEmbeddingProvider()
-        model = _cached_sentence_transformer(provider.model_name())
-        vec = model.encode(text)
-        out = vec.tolist() if hasattr(vec, 'tolist') else list(vec)
-        if not out:
-            return None, 'empty-vector'
-        return [float(x) for x in out], None
-    except Exception as ex:
-        return None, f"{type(ex).__name__}: {ex}"
-
 
 class SupabaseLyricsSearchService:
     def __init__(

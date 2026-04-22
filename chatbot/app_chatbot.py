@@ -3470,7 +3470,35 @@ def _dynamic_intro_text(*, user_prompt: str, action: str, tracks: list[dict], pa
                 f"Danh sách tìm được:\n{track_block}"
             )
 
-        # 6. HÀNH ĐỘNG: CÁC TRƯỜNG HỢP CÒN LẠI (TÌM CA SĨ, TÊN BÀI, THỂ LOẠI...)
+        # 6. HÀNH ĐỘNG: TÌM QUA LỜI BÀI HÁT (SEARCH_LYRIC)
+        elif action == "SEARCH_LYRIC":
+            lyric_snippet = params.get("lyric_snippet", "")
+            llm_prompt = (
+                f"Người dùng vừa cung cấp một đoạn lời bài hát: '{lyric_snippet}' và muốn tìm xem đó là bài gì.\n"
+                f"Nhiệm vụ: Dựa vào danh sách kết quả hệ thống tìm được dưới đây, hãy viết 1-2 câu giới thiệu ngắn gọn, thân thiện và chuyên nghiệp.\n"
+                f"(Ví dụ: 'Với đoạn lời trên, mình tìm thấy bài hát [Tên Bài] của [Ca Sĩ]. Bạn nghe thử xem có đúng không nhé!' hoặc 'Dưới đây là một số bài hát có chứa hoặc liên quan đến đoạn lời bạn đang tìm.')\n\n"
+                f"⚠️ QUY TẮC CỐT LÕI:\n"
+                f"- TUYỆT ĐỐI KHÔNG liệt kê lại toàn bộ danh sách.\n"
+                f"- Chỉ xưng là 'mình'.\n\n"
+                f"Danh sách tìm được:\n{track_block}"
+            )
+
+        # 7. HÀNH ĐỘNG: GỢI Ý THEO NGHỆ SĨ (RECOMMEND_ARTIST)
+        elif action == "RECOMMEND_ARTIST":
+            artist_req = params.get("artist", "ca sĩ này")
+            llm_prompt = (
+                f"Bạn là một chuyên gia âm nhạc V-Pop và là một người bạn tâm giao.\n"
+                f"Người dùng đang muốn nghe nhạc của ca sĩ: '{artist_req}'.\n"
+                f"Nhiệm vụ: Viết 1-2 câu giới thiệu cực kỳ nhiệt tình, có cánh về nghệ sĩ này để dẫn dắt vào danh sách.\n"
+                f"Ví dụ: 'Bạn đang tìm nhạc của {artist_req} phải không? Vậy thì để mình gửi bạn vài ca khúc rất đặc trưng, đầy cảm xúc của {artist_req} nhé!'\n\n"
+                f"⚠️ QUY TẮC CỐT LÕI:\n"
+                f"- CHỈ viết câu dẫn, TUYỆT ĐỐI KHÔNG liệt kê danh sách bài hát trong câu trả lời (vì giao diện đã tự hiển thị thẻ bài hát).\n"
+                f"- Trả lời tự nhiên, xưng 'mình'.\n"
+                f"- Không dùng gạch đầu dòng.\n\n"
+                f"Danh sách bài hát của nghệ sĩ:\n{track_block}"
+            )
+
+        # 8. HÀNH ĐỘNG: CÁC TRƯỜNG HỢP CÒN LẠI (TÌM CA SĨ, TÊN BÀI, THỂ LOẠI...)
         else:
             llm_prompt = (
                 f"Bạn là trợ lý âm nhạc V-Pop siêu nhiệt tình. Hãy viết 1-2 câu giới thiệu danh sách bài hát dưới đây, nói chuyện tự nhiên như một người bạn.\n"
@@ -3745,38 +3773,69 @@ if st.session_state.get('processing_prompt'):
     start_total = time.perf_counter()
 
     # MỞ HỘP THOẠI CỦA AI TRƯỚC TIÊN
+    # MỞ HỘP THOẠI CỦA AI TRƯỚC TIÊN
     with _aligned_chat_col("assistant"):
         with st.chat_message("assistant"):
 
-            # ⏳ BAO TRỌN TẤT CẢ VÀO 1 VÒNG XOAY TRONG HỘP THOẠI
-            with st.spinner("⏳ Đang phân tích dữ liệu và tìm kiếm kết quả phù hợp nhất..."):
-                
-                # ⏱️ [BƯỚC 2] ĐO THỜI GIAN AI PHÂN TÍCH Ý ĐỊNH (INTENT)
+            # ---------------------------------------------------------
+            # PHẦN 1: TỐI ƯU INTENT BẰNG REGEX (TRONG SPINNER 1)
+            # ---------------------------------------------------------
+            with st.spinner("⏳ Đang phân tích yêu cầu..."):
                 start_intent = time.perf_counter()
-                intent_data = parse_intent_llm(p_prompt, has_file=p_has_file)
+
+                lower_prompt = str(p_prompt).strip().lower()
+                quick_match = re.match(r'^(tìm|mở|bật|nghe)\s+(?:bài hát|bài|ca khúc)?\s*(.+)', lower_prompt)
+                
+                # Các từ khóa nhạy cảm bắt buộc phải gọi AI xử lý để tránh nhận diện nhầm
+                needs_ai = re.search(r'\b(lời|lyric|lyrics|tâm trạng|buồn|vui|suy|chill|thể loại|giống|top|hot|nhạc)\b', lower_prompt)                
+                if quick_match and not p_has_file and not needs_ai:
+                    raw_query = quick_match.group(2).strip()
+                    # Cắt chữ " của " hoặc " do " để phân biệt Bài hát và Ca sĩ
+                    split_match = re.search(r'(.*?)\s+(?:của|do)\s+(.+)', raw_query)
+                    
+                    if split_match:
+                        s_title = split_match.group(1).strip()
+                        s_artist = split_match.group(2).strip()
+                    else:
+                        s_title = raw_query
+                        s_artist = ""
+
+                    intent_data = {
+                        "action": "SEARCH_NAME",
+                        "params": {"song_title": s_title, "artist": s_artist}
+                    }
+                else:
+                    # Chuyển cho Gemini xử lý (Tìm lời, tìm theo mood, phân tích...)
+                    intent_data = parse_intent_llm(p_prompt, has_file=p_has_file)
+
                 intent_ms = (time.perf_counter() - start_intent) * 1000
-            
                 action = intent_data.get("action", "CLARIFY")
                 params = intent_data.get("params", {})
-
-                # ⏱️ [BƯỚC 3] BẮT ĐẦU ĐO THỜI GIAN BACKEND
                 start_backend = time.perf_counter()
 
-                if show_debug:
-                    st.caption(f"*(AI Action: **{action}**)*")
+            if show_debug:
+                st.caption(f"*(AI Action: **{action}**)*")
 
-                # --- LUỒNG 1: TÌM NHẠC ---
-                if action in ["SEARCH_NAME", "SEARCH_LYRIC", "SEARCH_AUDIO", 
-                            "RECOMMEND_MOOD", "RECOMMEND_ARTIST", "RECOMMEND_GENRE",
-                            "ADVANCED_SEARCH", "RECOMMEND_SEED", "RECOMMEND_ATTRIBUTES", "RECOMMEND_POPULARITY"]:
-                    
+            # Khởi tạo biến để tí nữa in ra ngoài spinner
+            intro_text = ""
+            track_previews = []
+
+            # ---------------------------------------------------------
+            # PHẦN 2: XỬ LÝ THEO TỪNG LUỒNG (BỌC SPINNER 2 NẾU CẦN)
+            # ---------------------------------------------------------
+            
+            # --- LUỒNG 1: TÌM NHẠC ---
+            if action in ["SEARCH_NAME", "SEARCH_LYRIC", "SEARCH_AUDIO", 
+                        "RECOMMEND_MOOD", "RECOMMEND_ARTIST", "RECOMMEND_GENRE",
+                        "ADVANCED_SEARCH", "RECOMMEND_SEED", "RECOMMEND_ATTRIBUTES", "RECOMMEND_POPULARITY"]:
+                
+                with st.spinner("⏳ Đang tìm kiếm trong kho nhạc..."):
                     supabase_client = _get_supabase_client()
                     artist_list = _load_artist_list() if action in ['RECOMMEND_ARTIST', 'ADVANCED_SEARCH'] else None
 
                     temp_audio = None
                     params_to_use = params
                     try:
-                        # [FIX SEARCH_AUDIO] Dùng p_has_file và check bytes trong session
                         if action == "SEARCH_AUDIO" and p_has_file and st.session_state.get('global_audio_bytes'):
                             audio_obj = io.BytesIO(st.session_state.global_audio_bytes)
                             audio_obj.name = st.session_state.global_audio_name
@@ -3784,47 +3843,27 @@ if st.session_state.get('processing_prompt'):
                             temp_audio = save_uploaded_file(audio_obj, suffix=suffix)
                             params_to_use = dict(params or {})
                             params_to_use['audio_path'] = temp_audio
-
+                        
+                        fast_embed_fn = None if action in ["SEARCH_NAME", "SEARCH_AUDIO"] else _embed_query_text
+                        
                         result = _handle_action(
                             action, params_to_use, supabase_client,
-                            embed_fn=_embed_query_text, has_file=p_has_file, artist_list=artist_list
+                            embed_fn=fast_embed_fn, has_file=p_has_file, artist_list=artist_list
                         )
                     finally:
                         if temp_audio: safe_remove(temp_audio)
 
-                    # Normalize result into the same shape the renderer expects.
                     top_tracks: list[dict] = []
                     vector_result = {'source': None, 'error': None}
                     if isinstance(result, str):
-                        vector_result['source'] = 'fallback-handle-action'
                         vector_result['error'] = result
-                        top_tracks = []
                     elif isinstance(result, list):
                         top_tracks = _normalize_handle_action_rows([r for r in result if isinstance(r, dict)])
-                        vector_result['source'] = 'live-supabase'
                     elif isinstance(result, dict):
-                        # allow future extension: {'tracks': [...], 'source':..., 'error':...}
                         top_tracks = _normalize_handle_action_rows([r for r in (result.get('tracks') or []) if isinstance(r, dict)])
-                        vector_result['source'] = result.get('source')
-                        vector_result['error'] = result.get('error')
-                        #LẤY ĐOẠN LỜI NHẠC:
                         vector_result['snippet'] = result.get('snippet', '')
-                    else:
-                        top_tracks = []
-                        vector_result['source'] = 'fallback-handle-action'
-                        vector_result['error'] = 'Kết quả truy vấn không hợp lệ'
+                        vector_result['error'] = result.get('error')
 
-                    # Show whether we're using live Supabase or a fallback (and why).
-                    try:
-                        src = str(vector_result.get('source') or '').strip()
-                        err = str(vector_result.get('error') or '').strip()
-                        if src or err:
-                            err_one_line = re.sub(r"\s+", " ", err)[:220]
-                            suffix = f" | Lỗi: {err_one_line}" if err_one_line else ""
-                    except Exception:
-                        pass
-
-                    # SEARCH: keep top 5 by similarity (score desc).
                     if isinstance(top_tracks, list) and str(action).startswith('SEARCH_'):
                         try:
                             top_tracks = sorted(top_tracks, key=lambda t: float((t or {}).get('score', 0.0)), reverse=True)
@@ -3832,8 +3871,6 @@ if st.session_state.get('processing_prompt'):
                             pass
                     
                     if top_tracks:
-                        # 1. Gọi câu chào mặc định của hệ thống
-                        # Pass intent params (plus any backend meta) so LLM can speak convincingly.
                         intro_params = dict(params or {})
                         try:
                             if isinstance(result, dict):
@@ -3853,74 +3890,36 @@ if st.session_state.get('processing_prompt'):
 
                         intro_text = _dynamic_intro_text(user_prompt=prompt, action=action, tracks=top_tracks, params=intro_params)
 
-                        # Nếu là SEARCH_LYRIC và có snippet, nhờ Gemini viết lại câu chào cho "ngầu"
                         snippet = vector_result.get('snippet', '')
                         if action == "SEARCH_LYRIC" and snippet:
                             song_title = top_tracks[0].get('title', 'bài này')
                             artist_name = top_tracks[0].get('artist', '')
-                            
-                            # Prompt này giúp Gemini tạo ra câu nói tự nhiên như chúng ta đã bàn
-                            ai_prompt = f"""
-                            Bạn là chatbot V-Pop. Người dùng tìm từ khóa: '{params.get("lyric_snippet")}'. 
-                            Hệ thống tìm thấy bài {song_title} của {artist_name} có đoạn lời: "{snippet}".
-                            Hãy viết 1 câu giới thiệu ngắn gọn, thân thiện (có trích dẫn đoạn lời đó) để hỏi xem có đúng bài người dùng tìm không.
-                            """
-                            # Gọi Gemini (hàm call_gemini_engine đã có sẵn trong file của bạn)
+                            ai_prompt = f"""Bạn là chatbot V-Pop. Người dùng tìm từ khóa: '{params.get("lyric_snippet")}'. Hệ thống tìm thấy bài {song_title} của {artist_name} có đoạn lời: "{snippet}". Hãy viết 1 câu giới thiệu ngắn gọn, thân thiện (có trích dẫn đoạn lời đó) để hỏi xem có đúng bài người dùng tìm không."""
                             llm_text = call_gemini_engine(ai_prompt, module='home')
                             if llm_text:
                                 intro_text = llm_text
 
-                        # 3. Xử lý preview Spotify
                         top5 = list(top_tracks[:5])
                         track_previews, popularity_by_id = _build_track_previews_from_spotify_batch(top5, batch_size=5)
 
-                        # RECOMMEND: sort by Spotify popularity (desc) when available.
                         if str(action).startswith('RECOMMEND_') and popularity_by_id and str(action) != 'RECOMMEND_SEED':
                             def _pop_key(item: dict) -> int:
                                 tid = str((item or {}).get('spotify_id') or '').strip()
                                 return int(popularity_by_id.get(tid, -1))
-
                             top5_sorted = sorted(top5, key=_pop_key, reverse=True)
                             track_previews, _ = _build_track_previews_from_spotify_batch(top5_sorted, batch_size=5)
-                        
-                        # Sau đó mới hiển thị và lưu lịch sử như bình thường
-                        st.markdown(intro_text)
-                        _render_track_previews(track_previews) # Giữ nguyên luồng hiển thị card nhạc
-
-                        # Lưu vào session để không bị mất khi F5
-                        st.session_state.main_messages.append({
-                            'role': 'assistant', 
-                            'content': intro_text, 
-                            'track_previews': track_previews
-                        })
-                        if p_msg_save:
-                            _persist_chat_message(module='home', role='user', content=p_msg_save)
-                        _persist_chat_message(module='home', role='assistant', content=intro_text)
                     else:
-                        # Keep error/empty messages in the same chat style (avoid Streamlit warning boxes).
-                        msg = str(vector_result.get('error') or '').strip() or "Không tìm thấy bài hát phù hợp."
-                        st.markdown(_md_preserve_newlines(msg))
-                        st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                        
-                        # LƯU DB KHI KHÔNG TÌM THẤY BÀI HÁT
-                        if p_msg_save:
-                            _persist_chat_message(module='home', role='user', content=p_msg_save)
-                        _persist_chat_message(module='home', role='assistant', content=msg)
+                        intro_text = str(vector_result.get('error') or '').strip() or "Không tìm thấy bài hát phù hợp."
 
-                # --- LUỒNG 2: PHÂN TÍCH ---
-                elif action == "ANALYZE_READY":
-                    if not has_file or not has_lyric:
-                        msg = "⚠️ Bạn hãy đính kèm file nhạc và lời bài hát để mình phân tích nhé."
-                        st.warning(msg)
-                        st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                        _persist_chat_message(module='home', role='assistant', content=msg)
-                        st.stop()
-
+            # --- LUỒNG 2: PHÂN TÍCH ---
+            elif action == "ANALYZE_READY":
+                if not has_file or not has_lyric:
+                    intro_text = "⚠️ Bạn hãy đính kèm file nhạc và lời bài hát để mình phân tích nhé."
+                    st.warning(intro_text)
+                else:
                     audio_obj = io.BytesIO(st.session_state.global_audio_bytes)
                     audio_obj.name = st.session_state.global_audio_name
-                    
                     try:
-                        # Dùng spinner thay cho status để icon quay tròn hiện tự nhiên trong khung chat
                         with st.spinner('🔍 Đang đánh giá file nhạc của bạn...'):
                             temp_audio = save_uploaded_file(audio_obj, suffix='.wav')
                             from chatbot.analyze_ready_action import run_analyze_ready
@@ -3932,105 +3931,70 @@ if st.session_state.get('processing_prompt'):
                                     lyric_text=st.session_state.get('global_lyric_text'),
                                     supabase_client=supabase_client,
                                     allow_download=False,
-                                    compute_shap=True, # Giữ True để AI có dữ liệu đọc
+                                    compute_shap=True,
                                     force_storage=True,
                                     skip_p1=True,
                                 )
                             finally:
                                 safe_remove(temp_audio)
-                        
-                        # Lấy lời khuyên từ AI (Hàm này Huy đã thêm thông số Tempo, Duration... ở bước trước)
-                        advice = generate_arrangement_advice_llm(bundle)
-                        
-                        # Hiển thị trực tiếp lời khuyên ra khung chat
-                        st.markdown(advice)
-                        
-                        # Lưu vào lịch sử (Chỉ lưu text lời khuyên để load lại không hiện bảng dashboard)
-                        st.session_state.main_messages.append({
-                            'role': 'assistant', 
-                            'content': advice
-                        })
-                        _persist_chat_message(module='home', role='assistant', content=f"Đã phân tích xong bài hát.")
-                    
+                            
+                            intro_text = generate_arrangement_advice_llm(bundle)
                     except Exception as ex:
                         st.error(f'Lỗi hệ thống: {ex}')
+                        intro_text = f"Đã xảy ra lỗi khi phân tích: {ex}"
 
-                elif action == "GREETING":
-                    msg = "Xin chào! Mình là VMusic AI, trợ lý âm nhạc V-Pop của bạn. Bạn có thể hỏi mình về bài hát, tìm nhạc theo tâm trạng, hoặc đính kèm file để mình phân tích nhé!"
-                    st.markdown(msg)
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
-                    
-                elif action == "MISSING_FILE":
-                    st.warning("Vui lòng đính kèm tệp âm thanh để hệ thống có thể thực hiện phân tích hoặc tìm kiếm dựa trên nội dung âm thanh.")
-                    msg = "Vui lòng đính kèm file."
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
-
-                elif action == "OUT_OF_SCOPE":
-                    ans = call_gemini_engine(
-                        f"Người dùng đang hỏi ngoài lề hoặc hỏi về bản thân bạn/người dùng. Hãy trả lời thân thiện dựa vào lịch sử trò chuyện. Câu hỏi: {prompt}", 
-                        module='home'
-                    )
-                    msg = "Xin lỗi, mình là Trợ lý AI chuyên về âm nhạc V-Pop. Mình chỉ có thể giúp bạn tìm nhạc, phân tích bài hát hoặc trả lời các kiến thức về âm nhạc thôi!"
-                    st.markdown(msg)
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
-                    
-                elif action == "CLARIFY":
-                    msg = "Xin lỗi, mình chưa hiểu rõ ý bạn lắm. Bạn có thể nói rõ hơn là bạn muốn tìm bài hát, nghe nhạc theo tâm trạng, hay muốn mình phân tích file âm thanh không?"
-                    st.markdown(msg)
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
-
-                elif action == "MUSIC_KNOWLEDGE":
-                    # Dùng p_prompt (chứa câu hỏi hiện tại) thay vì prompt
-                    user_q = str(p_prompt or '').strip()
-                    
-                    # 1. Thử dùng hàm trả lời nhanh (Fast-path) đã định nghĩa ở trên
-                    fast_ans = _answer_music_knowledge_local(user_q)
-                    
-                    if fast_ans:
-                        msg = fast_ans
-                    else:
-                        # 2. Nếu không có sẵn, gọi AI với prompt sạch sẽ, không vòng lặp
+            # --- LUỒNG 3: CÁC LUỒNG KHÁC ---
+            elif action == "GREETING":
+                intro_text = "Xin chào! Mình là VMusic AI, trợ lý âm nhạc V-Pop của bạn. Bạn có thể hỏi mình về bài hát, tìm nhạc theo tâm trạng, hoặc đính kèm file để mình phân tích nhé!"
+            elif action == "MISSING_FILE":
+                st.warning("Vui lòng đính kèm tệp âm thanh để hệ thống có thể thực hiện phân tích hoặc tìm kiếm dựa trên nội dung âm thanh.")
+                intro_text = "Vui lòng đính kèm file."
+            elif action == "OUT_OF_SCOPE":
+                with st.spinner("⏳ Đang suy nghĩ..."):
+                    ans = call_gemini_engine(f"Người dùng đang hỏi ngoài lề hoặc hỏi về bản thân bạn/người dùng. Hãy trả lời thân thiện dựa vào lịch sử trò chuyện. Câu hỏi: {prompt}", module='home')
+                intro_text = ans if ans else "Xin lỗi, mình là Trợ lý AI chuyên về âm nhạc V-Pop. Mình chỉ có thể giúp bạn tìm nhạc, phân tích bài hát hoặc trả lời các kiến thức về âm nhạc thôi!"
+            elif action == "CLARIFY":
+                intro_text = "Xin lỗi, mình chưa hiểu rõ ý bạn lắm. Bạn có thể nói rõ hơn là bạn muốn tìm bài hát, nghe nhạc theo tâm trạng, hay muốn mình phân tích file âm thanh không?"
+            elif action == "MUSIC_KNOWLEDGE":
+                user_q = str(p_prompt or '').strip()
+                fast_ans = _answer_music_knowledge_local(user_q)
+                if fast_ans:
+                    intro_text = fast_ans
+                else:
+                    with st.spinner("⏳ Đang lục lọi kiến thức âm nhạc..."):
                         knowledge_prompt = (
                             f"Bạn là chuyên gia âm nhạc và nhạc lý. Hãy trả lời câu hỏi sau một cách chính xác, dễ hiểu và ngắn gọn.\n"
                             f"Quy tắc: Đi thẳng vào câu trả lời, KHÔNG chào hỏi, KHÔNG gợi ý bài hát.\n\n"
                             f"Câu hỏi: {user_q}"
                         )
                         ans = call_gemini_engine(knowledge_prompt, module='home')
-                        msg = ans if ans else "Hệ thống đang bận, bạn vui lòng thử lại sau nhé."
-                    
-                    # 3. Hiển thị và lưu lịch sử
-                    st.markdown(msg)
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
-
-                else:
+                    intro_text = ans if ans else "Hệ thống đang bận, bạn vui lòng thử lại sau nhé."
+            else:
+                with st.spinner("⏳ Đang suy nghĩ..."):
                     ans = call_gemini_engine(f"Trả lời như chatbot: {prompt}", module='home')
-                    msg = ans if ans else "Hệ thống hỏi đáp đang nâng cấp."
-                    st.markdown(msg)
-                    st.session_state.main_messages.append({'role': 'assistant', 'content': msg})
-                    
-                    if p_msg_save:
-                        _persist_chat_message(module='home', role='user', content=p_msg_save)
-                    _persist_chat_message(module='home', role='assistant', content=msg)
+                intro_text = ans if ans else "Hệ thống hỏi đáp đang nâng cấp."
+
+            # =========================================================
+            # PHẦN 3: HIỂN THỊ LÊN MÀN HÌNH (THOÁT KHỎI TẤT CẢ SPINNER)
+            # =========================================================
+            if intro_text and action != "ANALYZE_READY": # Analyze đã tự in lỗi ở trên nếu fail, nhưng ta vẫn in kết quả
+                st.markdown(_md_preserve_newlines(intro_text))
+            
+            if track_previews:
+                _render_track_previews(track_previews)
+
+            # Lưu vào session UI để không mất khi F5
+            st.session_state.main_messages.append({
+                'role': 'assistant', 
+                'content': intro_text, 
+                'track_previews': track_previews if track_previews else None
+            })
+
+            # CHẠY NGẦM LƯU DATABASE TỐN THỜI GIAN NHẤT Ở CUỐI CÙNG!!!
+            if p_msg_save:
+                _persist_chat_message(module='home', role='user', content=p_msg_save)
+            if intro_text:
+                _persist_chat_message(module='home', role='assistant', content=intro_text)
     
     # ⏱️ [KẾT THÚC] TÍNH TOÁN VÀ IN BÁO CÁO HIỆU SUẤT
     backend_ms = (time.perf_counter() - start_backend) * 1000
@@ -4047,13 +4011,19 @@ if st.session_state.get('processing_prompt'):
     # --- [MỚI] TRÍCH XUẤT DANH SÁCH BÀI HÁT CHO VÀO BÁO CÁO ---
     print(f"🎵 Danh sách bài hát xuất ra web:")
     try:
-        # Dùng trực tiếp biến track_previews thay vì assistant_msg
-        if 'track_previews' in locals() and track_previews:
-            for idx, track in enumerate(track_previews, 1):
+        # Dùng top_tracks để lấy được điểm số (similarity) từ Database
+        if 'top_tracks' in locals() and top_tracks:
+            for idx, track in enumerate(top_tracks[:5], 1):
                 t_title = track.get('title', 'Unknown')
                 t_artist = track.get('artist', 'Unknown')
-                t_pop = track.get('popularity', 'N/A')
-                print(f"   {idx}. {t_title} - {t_artist} (Độ hot: {t_pop})")
+                t_sim = track.get('similarity', 'N/A') # Lấy độ liên quan (%)
+                
+                # Lấy thêm độ hot từ track_previews (nếu có)
+                t_pop = 'N/A'
+                if 'track_previews' in locals() and track_previews and idx <= len(track_previews):
+                    t_pop = track_previews[idx-1].get('popularity', 'N/A')
+                    
+                print(f"   {idx}. {t_title} - {t_artist} (Độ hot: {t_pop} | Độ liên quan: {t_sim}%)")
         else:
             print("   (Không có bài hát nào được gợi ý hoặc đây là luồng hỏi đáp/phân tích)")
     except Exception as e:
