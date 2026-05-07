@@ -21,8 +21,10 @@ import pandas as pd
 def _import_third_party_librosa():
     """Import the pip package `librosa` safely.
 
-    This repo also contains `chatbot/librosa.py` which can shadow the pip package
-    if the working directory / sys.path includes the `chatbot/` folder.
+    This repo previously contained `chatbot/librosa.py` which could shadow the pip
+    package if the working directory / sys.path included the `chatbot/` folder.
+    The local module was renamed to `ana_librosa.py`; keep detection logic
+    defensive in case an older import remains in `sys.modules`.
     """
 
     here = os.path.dirname(os.path.abspath(__file__))
@@ -34,8 +36,10 @@ def _import_third_party_librosa():
         try:
             existing = sys.modules.get('librosa')
             existing_file = os.path.normcase(os.path.abspath(getattr(existing, '__file__', '') or '')) if existing is not None else ''
-            local_librosa = os.path.normcase(os.path.abspath(os.path.join(here, 'librosa.py')))
-            if existing is not None and existing_file == local_librosa:
+            # Support legacy local module name (librosa.py) and the new ana_librosa.py
+            local_librosa_old = os.path.normcase(os.path.abspath(os.path.join(here, 'librosa.py')))
+            local_ana_librosa = os.path.normcase(os.path.abspath(os.path.join(here, 'ana_librosa.py')))
+            if existing is not None and existing_file in (local_librosa_old, local_ana_librosa):
                 popped_module = sys.modules.pop('librosa', None)
         except Exception:
             popped_module = None

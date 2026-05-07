@@ -1,0 +1,31 @@
+﻿STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Tìm bài Bống Bống Bang Bang,SEARCH_NAME,003iEoAGOlKmq0BgygQzjZ,Dễ,"[Truy vấn chính xác] Tên bài rất rõ ràng, không kèm ca sĩ."
+2,Mở bài Một Người Đánh Mất Một Người của Olew,SEARCH_NAME,00be0bf1yiRaJB8PMXG9uj,Dễ,"[Truy vấn chính xác] Đầy đủ Tên bài + Nghệ sĩ, chuẩn viết hoa."
+3,Bật bài Cứ Chill Thôi,SEARCH_NAME,014DA3BdnmD3kI5pBogH7c,Dễ,"[Truy vấn chính xác] Tên bài quen thuộc, dễ bóc tách."
+4,Phát bài Sao Cũng Được của Tiến Luật,SEARCH_NAME,00dxxxvhRedffBoxOqJZET,Dễ,[Truy vấn chính xác] Kiểm tra SQL ILIKE cơ bản.
+5,Tìm ca khúc Người Đang Yêu Trung Quân,SEARCH_NAME,00e9MGXtzE1wo3c65ZFjMU,Dễ,"[Truy vấn chính xác] Tên bài và ca sĩ dính liền không chữ ""của""."
+6,Bật bài Gam Màu Tối Hustlang Robber,SEARCH_NAME,00IgIQXM2cUMaqq0Vzs42m,Dễ,[Truy vấn chính xác] Tên tiếng Việt + Ca sĩ tiếng Anh.
+7,Nghe bài Niềm Tin Chiến Thắng Hồng Sơn,SEARCH_NAME,02jFBlMAH8IDpcfnV6O1BX,Dễ,[Truy vấn chính xác] Truy vấn tiêu chuẩn.
+8,Tìm bài Phía Sau Một Chàng Trai,SEARCH_NAME,00dMFkFoKGYfOFDlVK5wec,Dễ,"[Truy vấn chính xác] Tên bài dài, dễ bóc."
+9,Mở bài Cánh Chim Phượng Hoàng của Tùng Dương,SEARCH_NAME,01rVuw9puq1gv8jOswOEB1,Dễ,[Truy vấn chính xác] Truy vấn tiêu chuẩn.
+10,Tìm bài Tạm Bợ MiiNa,SEARCH_NAME,00dggIDSzu0KPsK07wAGtZ,Dễ,"[Truy vấn chính xác] Tên bài ngắn (2 chữ), dễ nhầm sang text thường."
+11,tim bai hat de noi cho nghe cu cai,SEARCH_NAME,00QDC0c7ejbHf9LqXpyg4T,Trung bình,[No accents] Gõ hoàn toàn không dấu.
+12,mở bài xao củng dc tiến luật,SEARCH_NAME,00dxxxvhRedffBoxOqJZET,Trung bình,[Sai chính tả] Sai chính tả nặng (xao củng dc). Test Vector Fallback Lớp 3.
+13,bật bài mame vse,SEARCH_NAME,01EEe1TirG0eJc8NIYTQE8,Trung bình,[Foreign chars] Gõ tiếng Latin/Séc không dấu (MÁME VŠE).
+14,nghe bai hat mua phi truong,SEARCH_NAME,00g9pgNWzVk2j45o8SDJQu,Trung bình,"[Partial Match] Tên trong DB có đuôi "" - 25th Làn Sóng Xanh"", user chỉ gõ tên đầu."
+15,tìm bài từ 1 sẽ thành 2 của kai đinh,SEARCH_NAME,02BHlLrO9jmkdCkP9V7722,Trung bình,"[Number/Text] Tên gốc là ""từ 1 sẽ thành 2"". Test xử lý số."
+16,mở bài chill ý em của liu grace,SEARCH_NAME,01SsKnzCc3hmJus8w70NhQ,Trung bình,"[Regex Noise] Tên bài có chữ ""chill"" - test xem Regex có bị lộn sang RECOMMEND_MOOD không."
+17,bài hát âm thầm vàng seachain,SEARCH_NAME,02El5WezsW88jBzMOte6EM,Trung bình,"[Typo Artist] Gõ sai ""seachains"" thành ""seachain""."
+18,hoa bang lang bao anh,SEARCH_NAME,02fA8uMVTpFtcHO2y7MH5J,Trung bình,"[No prefix] Không có chữ ""tìm/mở/bật"". Test NLP fallback nếu Regex xịt."
+19,tìm bài the chosen one puppy,SEARCH_NAME,01xdSF7Ih0miCqPLhVipOE,Trung bình,[English title] Tên tiếng Anh toàn bộ.
+20,bật bài liệu anh có thể yêu em khắc việt,SEARCH_NAME,02NkFtyzVNT3ZYAjCmVpby,Trung bình,"[Punctuation] Tên bài trong DB có dấu ? ở cuối, user không gõ dấu ?."
+21,Tìm bài Một Người Đánh Mất Một Người của Sơn Tùng,SEARCH_NAME,00be0bf1yiRaJB8PMXG9uj,Khó,[Cơ chế xử lý dự phòng] Gõ sai tên ca sĩ hoàn toàn. Cần hệ thống bỏ Sơn Tùng để lấy bài của Olew.
+22,Mở bài Tạm Bợ của Bảo Anh,SEARCH_NAME,00dggIDSzu0KPsK07wAGtZ,Khó,[Cơ chế xử lý dự phòng] Cố tình gắn nhầm ca sĩ (Bảo Anh thay vì MiiNa).
+23,Bật bài Cảm Giác Lúc Ấy Sẽ Ra Sao,SEARCH_NAME,02fKj4He0UVECRfYkIT4EJ,Khó,"[Cross-Intent Noise] Có chữ ""nhạc buồn"", AI dễ nhầm sang RECOMMEND_MOOD. Cần bóc được tên bài."
+24,Tìm bài Mười Năm Tình Cũ,SEARCH_NAME,02Pj9HKgsgbrn9MXx1lAoc,Khó,"[Short Title] Tên phổ thông, test khả năng xếp hạng bài có Popularity cao của Global Ranker."
+25,Mở bài hát Chúng Ta Còn Ở Đó Không nhạc phim Bộ Tứ Báo Thủ,SEARCH_NAME,015cWxefajYwEUZodBvpfn,Khó,"[Noise Suffix] Người dùng thêm ""nhạc phim..."" vào sau tên bài. Tên gốc DB dài."
+26,tìm bài mười k năm của Lemese,SEARCH_NAME,176iNjQ1SWH7JlYscCD6BH,Khó,"[Number/Text Convert] Tên DB là ""10k năm"", user gõ ""mười k năm"". Test Vector Semantic."
+27,Bật bài Dạ Vũ Tăng Duy Tân,SEARCH_NAME,1jtrGtWxnZUeKtSN4Xxh1e,Khó,"[Entity Ambiguity] Tên bài là ""Dạ Vũ"", có thể bị nhầm với tên ca sĩ ""Vũ""."
+28,Tìm bài hát Tâm Ý Một Phần Hai,SEARCH_NAME,02I5wwXo8md8no5g1deUiz,Khó,"[Special Chars] Tên DB là ""Tâm Ý 1/2"". User gõ chữ. Cần Vector Search Lớp 3 cứu viện."
+29,nghe bài hát buồn làm chi em ơi của hoài lâm,SEARCH_NAME,24kwZyv96w9wE10XjbLFwh,Khó,"[Cross-Intent Noise] Bắt đầu bằng chữ ""buồn"" (buồn làm chi). Rất dễ kích hoạt RECOMMEND_MOOD."
+30,Mở bài hát nhạc chẳng giống giáng sinh của Lu,SEARCH_NAME,015GG73Q1VmvLAiPIF1w8O,Khó,"[Cross-Intent Noise] Có chữ ""nhạc giáng sinh"", dễ bị bắt vào Topic/Genre. Cần bóc đúng title."

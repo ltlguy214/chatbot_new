@@ -1,0 +1,11 @@
+STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Tôi muốn nghe bài,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi câu hỏi thiếu mục đích.
+2,Mở bài,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi câu lệnh bị cụt.
+3,Tìm nhạc của,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi thiếu tiêu chí tìm kiếm.
+4,Gợi ý bài hát,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi câu hỏi thiếu thông tin ngữ cảnh.
+5,Nghe nhạc của,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi động từ đơn độc.
+6,Nhạc của ca sĩ bài,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi chỉ có một danh từ chung chung.
+7,Tìm ca sĩ,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi thiếu tên ca sĩ.
+8,Bạn có thể tìm bài cho tôi không?,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi câu bị cắt ngang.
+9,Giúp tìm bài hát này,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ yêu cầu trợ giúp.
+10,Tôi cần bạn gợi ý bài hát,CLARIFY,N/A,Trung bình,[Ngữ nghĩa mơ hồ] Kiểm tra bot yêu cầu làm rõ khi câu hỏi bị thiếu chủ ngữ/vị ngữ cụ thể.

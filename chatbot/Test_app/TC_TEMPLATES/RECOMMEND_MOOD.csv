@@ -1,0 +1,34 @@
+STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Mở nhạc vui vẻ yêu đời đi,RECOMMEND_MOOD,0wvpRHXXuImyrccNEPAXBo,Dễ,[Từ khóa rõ ràng] Keyword trực tiếp ánh xạ tới vibe Tươi mới / Yêu đời.
+2,Nghe nhạc buồn suy,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Dễ,"Sentiment 'buồn', 'suy'[cite: 1]."
+3,Gợi ý những bài hát buồn sâu lắng,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Dễ,[Từ khóa rõ ràng] Keyword trực tiếp ánh xạ tới vibe Sâu lắng / Thấu cảm.
+4,Nhac bung no soi dong,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Trung bình,[Không dấu] Keyword ánh xạ 100% vào Bùng nổ / Sôi động.
+5,Nghe nhạc nhẹ nhàng bình yên,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Dễ,[Từ khóa rõ ràng] Ánh xạ vào vibe Bình yên / Chữa lành.
+6,Có bài nào kịch tính không,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Dễ,[Từ khóa rõ ràng] Keyword ánh xạ 100% vào Kịch tính / Da diết.
+7,Tìm nhạc tươi mới,RECOMMEND_MOOD,29Tj2R8sZZ3fzlXZVe1OyY,Dễ,[Từ khóa rõ ràng] Ánh xạ vào vibe Tươi mới / Yêu đời.
+8,Nhạc quẩy cực mạnh,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Dễ,[Slang] Dùng từ lóng 'quẩy cực mạnh' chỉ vibe Bùng nổ / Sôi động.
+9,Bật nhạc chữa lành tâm hồn,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Dễ,[Từ khóa rõ ràng] Keyword Bình yên / Chữa lành.
+10,Playlist nhạc da diết,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Dễ,[Từ khóa rõ ràng] Keyword Kịch tính / Da diết.
+11,Nhạc xả stress cuối tuần,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Trung bình,[Ngữ cảnh] Ánh xạ ngữ cảnh 'xả stress' sang vibe Tươi mới / Yêu đời.
+12,Đang thất tình muốn khóc một trận,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Trung bình,[Ngữ cảnh phức tạp] Mô tả tâm trạng ẩn dụ (thất tình khóc) cần Sâu lắng / Thấu cảm.
+14,Playlist nào hợp để tập gym,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Trung bình,[Ngữ cảnh hoạt động] 'Tập gym' cần năng lượng ánh xạ sang Bùng nổ / Sôi động.
+15,Mở nhạc chill chill làm việc,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Trung bình,[Ngữ cảnh/Slang] 'chill chill' làm việc phổ biến map về Bình yên hoặc Tươi mới.
+16,Cần bài hát an ủi tôi lúc này,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Trung bình,[Ngữ cảnh ẩn dụ] Tâm trạng cần 'an ủi' thay vì nhạc buồn map Bình yên / Chữa lành.
+17,Nhạc nào nghe để có động lực làm việc,RECOMMEND_MOOD,0wvpRHXXuImyrccNEPAXBo,Trung bình,[Ngữ cảnh] Từ khóa "động lực" map sang Tươi mới / Yêu đời.
+18,Nghe nhạc sung tung nóc nhà,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Trung bình,[Slang] Từ lóng "sung" map sang Bùng nổ / Sôi động.
+19,Nghe nhạc ru ngủ dễ đi vào giấc mộng,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Trung bình,[Ngữ cảnh hoạt động] Tình huống "ru ngủ" map sang Bình yên / Chữa lành.
+20,Nhạc dằn vặt nội tâm,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Trung bình,[Semantic] Hiểu từ 'dằn vặt' thuộc về nhóm vibe Kịch tính / Da diết.
+21,Nghe nhạc xập xình,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Khó,[Cross-Intent Noise / Slang] "xập xình" + Tên nghệ sĩ. Map Bùng nổ / Sôi động.
+22,Mở nhạc não nề,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Khó,[Cross-Intent / Semantic] "não nề" map Kịch tính/Da diết + Artist filter.
+23,Nhạc buồn da diết, RECOMMEND_MOOD, 1ApIGNgp1azc0qB61x4GzG,Trung bình,"[2 keywords] 'buồn' và 'da diết' ánh xạ vibes=['Kịch tính'], sentiment=negative"
+24,Nhạc vui bình yên chữa lành về tình yêu, RECOMMEND_MOOD, 0wvpRHXXuImyrccNEPAXBo,Trung bình,"[2 keywords] 'vui' và 'bình yên' ánh xạ vibes=['Tươi mới'], sentiment=positive"
+25,"Đừng mở nhạc buồn nữa, bật bài nào vui vui lên",RECOMMEND_MOOD,0wvpRHXXuImyrccNEPAXBo,Khó,[Phủ định] Có chữ "nhạc buồn" nhưng bị phủ định "Đừng" yêu cầu thực sự là "vui vui".
+26,Nhạc thất tình chia tay nhưng bình yên đi,RECOMMEND_MOOD,4nXrVH5xwN1w6TpmP7uu8n,Trung bình,[Noise] Dễ nhầm sang ADVANCED_SEARCH
+26,"Đang chạy deadline khuya, cho xin tí nhạc edm cháy máy",RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Khó,"[Ngữ cảnh + Genre + Slang] 'cháy máy' -> Bùng nổ / Sôi động, genre=edm dễ nhầm sang ADVANCED_SEARCH"
+28,Bài nào nghe thật sầu thảm khóc cạn nước mắt đi,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Khó,[Ngữ nghĩa phức tạp] Mô tả cực tả của sự buồn bã đau khổ map Sâu lắng / Thấu cảm dễ nhầm sang SEARCH_NAME bài 'Cạn Cả Nước Mắt'.
+29,Nhạc thất tình chia tay,RECOMMEND_MOOD,1ApIGNgp1azc0qB61x4GzG,Dễ,Topic 'thất tình'[cite: 1].
+31,tinh yeu lang man,RECOMMEND_MOOD,7uUuftbcr94tzGOCJSM25u,Khó,Không dấu 'tinh yeu'[cite: 1].
+33,Nhạcxuântết,RECOMMEND_MOOD,7LVrrX8pkzI9fMF88nGabt,Dễ,Topic 'xuân'[cite: 1].
+34,Nhạc tự hào quê hương,RECOMMEND_MOOD,6roVxIZN2frBQoXFomdWW5,Dễ,Topic 'tự hào'[cite: 1].
+35,Nhạc thả thính crush,RECOMMEND_MOOD,3COYA2vgfcUhDyRlVpZy5p,Dễ,Topic 'thả thính'[cite: 1].
+37,nhacquayparty,RECOMMEND_MOOD,4yy21UkGZ7gZEGbSERllpE,Khó,"Không dấu, dính chữ."
