@@ -1,0 +1,6 @@
+STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Tìm nhạc Indie của SIVAN có vibe sâu lắng,DISCOVER_MUSIC,1rVTKF2XF1l3OqHoXNa4kc,Dễ,TC_026 (multi: genre+artist+vibe)
+2,mở bài của tùng,DISCOVER_MUSIC,6wvOfBj1mdlebpuVihkVhL,Dễ,TC_173 (artist-only, short name disambiguation)
+3,Nghe nhạc buồn suy,DISCOVER_MUSIC,1ApIGNgp1azc0qB61x4GzG,Dễ,TC_177 (mood-only)
+4,Bật nhạc Rap,DISCOVER_MUSIC,7uUuftbcr94tzGOCJSM25u,Dễ,TC_211 (genre-only)
+5,Tìm nhạc Indie Pop chill chill của SIVAN,DISCOVER_MUSIC,7FvtXQhi9UcSmHuUisbdzN,Trung bình,TC_036 (multi-genre + vibe + artist)

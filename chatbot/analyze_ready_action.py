@@ -202,7 +202,7 @@ def run_analyze_ready(
 
     from chatbot.model_store import resolve_model_paths
     from chatbot.shap_runtime import build_shap_payload_p0_only
-    from chatbot.librosa import extract_audio_features_full
+    from chatbot.ana_librosa import extract_audio_features_full
     from chatbot.nlp import analyze_lyrics
     from chatbot.topic import extract_topic_features
 

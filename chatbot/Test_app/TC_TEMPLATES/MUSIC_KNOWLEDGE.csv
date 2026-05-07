@@ -1,0 +1,31 @@
+STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Nhạc Jazz là gì vậy bạn?,MUSIC_KNOWLEDGE,N/A,Dễ,[Định nghĩa] Kiểm tra kiến thức về các thể loại nhạc cơ bản.
+2,Sơn Tùng M-TP sinh năm bao nhiêu?,MUSIC_KNOWLEDGE,N/A,Dễ,[Tiểu sử] Thông tin cơ bản về nghệ sĩ nổi tiếng.
+3,Hợp âm Đô trưởng gồm những nốt nào?,MUSIC_KNOWLEDGE,N/A,Dễ,[Lý thuyết] Kiến thức về cấu tạo hợp âm cơ bản.
+4,Sự khác biệt giữa Pop và Rock là gì?,MUSIC_KNOWLEDGE,N/A,Trung bình,[So sánh] Khả năng phân biệt các dòng nhạc.
+5,Làm thế nào để mix giọng hát cho trong trẻo?,MUSIC_KNOWLEDGE,N/A,Khó,[Kỹ thuật] Tư vấn về xử lý âm thanh (Mixing).
+6,Nguồn gốc của dòng nhạc Bolero Việt Nam,MUSIC_KNOWLEDGE,N/A,Trung bình,[Lịch sử] Kiến thức về lịch sử âm nhạc nội địa.
+7,Autotune là gì và khi nào nên dùng nó?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Công cụ] Giải thích về công nghệ âm thanh phổ biến.
+8,Tại sao nhạc Lo-fi lại giúp tập trung?,MUSIC_KNOWLEDGE,N/A,Dễ,[Xu hướng] Giải thích tác động của dòng nhạc cụ thể.
+9,Cách sử dụng Compressor trong sản xuất nhạc,MUSIC_KNOWLEDGE,N/A,Khó,[Kỹ thuật chuyên sâu] Kiến thức về thiết bị xử lý tín hiệu.
+10,Những nghệ sĩ Indie nổi bật tại Việt Nam hiện nay,MUSIC_KNOWLEDGE,N/A,Trung bình,[Thị trường] Cập nhật thông tin về thị trường âm nhạc.
+11,Nhịp 4/4 và 3/4 khác nhau thế nào?,MUSIC_KNOWLEDGE,N/A,Dễ,[Lý thuyết] Kiến thức về nhịp phách (Time Signature).
+12,Công việc chính của một Music Producer là gì?,MUSIC_KNOWLEDGE,N/A,Dễ,[Nghề nghiệp] Giải thích vai trò của nhà sản xuất.
+13,Làm sao để viết một đoạn điệp khúc bắt tai?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Sáng tác] Tư vấn về cấu trúc bài hát.
+14,V-Pop bắt đầu phát triển từ khi nào?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Lịch sử] Cột mốc phát triển của nhạc trẻ Việt Nam.
+15,Tác dụng của Reverb trong bản phối là gì?,MUSIC_KNOWLEDGE,N/A,Khó,[Kỹ thuật] Giải thích về hiệu ứng không gian trong âm nhạc.
+16,Sự nghiệp của nhạc sĩ Trịnh Công Sơn,MUSIC_KNOWLEDGE,N/A,Trung bình,[Danh nhân] Kiến thức về tượng đài âm nhạc Việt Nam.
+17,Dòng nhạc EDM có những nhánh nhỏ nào?,MUSIC_KNOWLEDGE,N/A,Dễ,[Phân loại] Kiến thức về các phân nhánh nhạc điện tử.
+18,BPM là gì trong âm nhạc?,MUSIC_KNOWLEDGE,N/A,Dễ,[Thuật ngữ] Định nghĩa đơn vị đo tốc độ bài hát.
+19,Làm thế nào để đăng ký bản quyền bài hát?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Pháp lý] Kiến thức về quyền tác giả và sở hữu trí tuệ.
+20,Sự khác nhau giữa Mixing và Mastering?,MUSIC_KNOWLEDGE,N/A,Khó,[Quy trình] Phân biệt các giai đoạn hậu kỳ âm nhạc.
+21,Nhạc cụ truyền thống Việt Nam gồm những loại nào?,MUSIC_KNOWLEDGE,N/A,Dễ,[Văn hóa] Kiến thức về nhạc cụ dân tộc.
+22,Tại sao vinyl (đĩa than) lại được ưa chuộng trở lại?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Thị trường] Giải thích xu hướng nghe nhạc analog.
+23,Cách tạo ra tiếng 808 bass căng và dày?,MUSIC_KNOWLEDGE,N/A,Khó,[Sản xuất] Kỹ thuật đặc thù trong dòng nhạc Hip-hop/Trap.
+24,Ai là người giữ kỷ lục MV nhiều view nhất Việt Nam?,MUSIC_KNOWLEDGE,N/A,Dễ,[Số liệu] Thông tin về thành tích âm nhạc số.
+25,Thể loại nhạc Synthwave có đặc điểm gì?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Đặc trưng] Kiến thức về âm hưởng thập niên 80.
+26,Thang âm ngũ cung là gì?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Lý thuyết] Kiến thức về hệ thống âm nhạc Á Đông.
+27,Nghệ sĩ thực lực và nghệ sĩ thần tượng khác nhau ra sao?,MUSIC_KNOWLEDGE,N/A,Khó,[Phân tích] Quan điểm về các mô hình nghệ sĩ trong ngành.
+28,Làm sao để cải thiện kỹ năng nghe (Ear Training)?,MUSIC_KNOWLEDGE,N/A,Trung bình,[Học thuật] Tư vấn phương pháp tự học nhạc.
+29,Tầm quan trọng của lời bài hát (Lyrics) trong Ballad,MUSIC_KNOWLEDGE,N/A,Dễ,[Phê bình] Vai trò của ca từ trong thể loại cụ thể.
+30,Phân tích phong cách âm nhạc của Đen Vâu,MUSIC_KNOWLEDGE,N/A,Khó,[Phân tích] Đánh giá phong cách sáng tác của nghệ sĩ cụ thể.

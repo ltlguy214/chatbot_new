@@ -1,0 +1,6 @@
+STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
+1,Top 5 bài hát hot nhất hiện nay,DISCOVER_MUSIC,4nXrVH5xwN1w6TpmP7uu8n,Dễ,[Discover Popularity] Global top
+2,Những ca khúc nào đang trending vậy?,DISCOVER_MUSIC,4nXrVH5xwN1w6TpmP7uu8n,Dễ,[Discover Popularity] Keyword trending
+3,Top hits của Sơn Tùng M-TP,DISCOVER_MUSIC,2wZAvkgiOE5tyrnqhB69KA,Dễ,[Discover Popularity] Artist filter
+4,Cho mình xin list nhạc hay nhất của Vũ.,DISCOVER_MUSIC,41DlPJXKTCypXdf2eSqa03,Dễ,[Discover Popularity] Artist with dot
+5,Bật nhạc viral trên TikTok của Hoàng Thùy Linh,DISCOVER_MUSIC,34zLev2Poav7NqDi6zWTtb,Trung bình,[Discover Popularity] Platform noise
