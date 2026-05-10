@@ -124,17 +124,25 @@ def run_and_evaluate_test_cases():
     if len(sys.argv) >= 3 and str(sys.argv[2]).strip():
         output_file = str(sys.argv[2]).strip()
     
+    # Ép chặt CỘT CHUẨN theo đúng yêu cầu của bạn
     columns_out = [
-        'Test Case ID', 'No.', 'User Query', 
+        'Test Case ID', 'User Query', 'Category', 
         'Expected Intent', 'Predicted Intent', 'Extracted Entities', 'Search Strategy',
-        'Expected Result (ID)', 'Actual Result (ID)', 
+        'Expected Result (ID)', 'Actual Result (ID)', 'Evaluation',
         'Intent Processing Time (ms)', 'Backend Processing Time (ms)', 'Total Response Time (ms)',
-        'Evaluation'
+        'Run_Status'
     ]
     
+    # Đọc file cũ và TỰ ĐỘNG CHẶT BỎ CÁC CỘT RÁC (No., Type, Notes, etc.)
     if os.path.exists(output_file):
         try:
             df_out = pd.read_csv(output_file, dtype=str)
+            # Thêm cột nếu thiếu
+            for col in columns_out:
+                if col not in df_out.columns:
+                    df_out[col] = ""
+            # Ép lại đúng thứ tự và loại bỏ cột thừa
+            df_out = df_out[columns_out]
         except pd.errors.EmptyDataError:
             df_out = pd.DataFrame(columns=columns_out)
     else:
@@ -142,7 +150,7 @@ def run_and_evaluate_test_cases():
         
     df_out = df_out.astype(object)
 
-    print(f"Bắt đầu quá trình kiểm thử bán tự động (Semi-Auto) + Auto File Upload + Resume.")
+    print(f"Bắt đầu quá trình kiểm thử có kiểm duyệt thủ công (Manual Review).")
     print(f"Nguồn: {input_file} | Kết quả lưu tại: {output_file}\n")
 
     with sync_playwright() as p:
@@ -179,11 +187,11 @@ def run_and_evaluate_test_cases():
 
             query = _get_col_val(row, ['Query', 'User Query', 'Câu hỏi'])
             expected_intent = _get_col_val(row, ['Expected_Action', 'Expected Intent', 'Expected Action']).strip()
+            # Đọc thêm cột Category từ file input để lưu sang báo cáo
+            category = _get_col_val(row, ['Category', 'Phân loại', 'Loại', 'Nhóm'])
             
-            # Cờ báo cho vòng lặp biết có cần Playwright tự gõ text không
             need_to_type = True
             
-            # === VÒNG LẶP XỬ LÝ (RERUN) CHO 1 TEST CASE ===
             while True:
                 expected_result_id = _get_col_val(df.loc[index], ['Expected_Result_ID', 'Expected Result (ID)', 'Expected ID']).strip()
 
@@ -202,7 +210,6 @@ def run_and_evaluate_test_cases():
                     chat_input.fill(query)
                     chat_input.press("Enter")
 
-                    # Chờ Streamlit chạy xong (khi Playwright tự gõ)
                     try:
                         page.wait_for_function(f"""
                             () => {{
@@ -217,11 +224,8 @@ def run_and_evaluate_test_cases():
                     except:
                         page.wait_for_timeout(2000)
                 else:
-                    # NẾU USER VỪA RERUN TRÊN APP (Bấm phím 'r')
-                    # Chỉ cần chờ nhẹ 0.5s để đảm bảo DOM đã cập nhật xong
                     page.wait_for_timeout(500)
 
-                # ================= BÓC TÁCH DỮ LIỆU TỪ MÀN HÌNH =================
                 actual_result = "N/A"
                 evaluation = "FAIL"
                 predicted_intent = "N/A"
@@ -249,103 +253,110 @@ def run_and_evaluate_test_cases():
                 except Exception:
                     pass
 
-                try:
-                    last_message_html = page.locator('div[data-testid="stChatMessage"]').last.inner_html()
-                except:
-                    last_message_html = ""
-
                 exp_id_clean = "" if expected_result_id in ['nan', 'N/A', 'None'] else expected_result_id
                 is_valid_id = bool(re.match(r'^[A-Za-z0-9]{22}$', actual_top))
                 
                 if is_valid_id:
                     actual_result = actual_top
+                elif predicted_intent == "UI_BLOCKED":  # <-- UI đã chặn nên intent thực tế là UI_BLOCKED
+                    actual_result = "UI Blocked" 
+                elif predicted_intent == "GENERAL_CHAT":
+                    actual_result = "No ID Needed"
                 else:
-                    actual_result = "Không trả về ID" if predicted_intent in ["GENERAL_CHAT", "MISSING_FILE"] else "Không tìm thấy"
+                    actual_result = "Không tìm thấy"
 
-                # ================= KIỂM TRA ĐIỀU KIỆN ĐỂ DỪNG LẠI HỎI BẠN =================
-                found_match = False
-                if exp_id_clean:
-                    if actual_top == exp_id_clean or exp_id_clean in last_message_html:
-                        found_match = True
-
-                # Nếu khác Intent HOẶC xuất hiện ID hợp lệ nhưng khác với ID mong muốn
-                pause_for_user = (predicted_intent != expected_intent) or (not found_match and is_valid_id and actual_result != exp_id_clean)
-
-                if pause_for_user:
-                    print("\n" + "-"*50)
-                    print(f"⚠️ CẦN XÁC NHẬN - TEST CASE [{test_id}]")
-                    print(f"   - Query: {query}")
-                    print(f"   - Intent: {predicted_intent} (Mong muốn: {expected_intent})")
-                    print(f"   - ID thực tế: {actual_result} (ID cũ: {exp_id_clean or '[Trống]'})")
-                    
+                print("\n" + "-"*50)
+                print(f"📌 KIỂM TRA & ĐÁNH GIÁ - [{test_id}]")
+                print(f"   - Query: {query}")
+                print(f"   - Intent dự đoán: {predicted_intent} (Mong muốn: {expected_intent})")
+                print(f"   - ID thực tế: {actual_result} (ID cũ trong CSV: {exp_id_clean or '[Trống]'})")
+                
+                # --- [2] AUTO-PASS BỎ QUA KIỂM DUYỆT THỦ CÔNG ---
+                is_auto_pass = False
+                
+                # NẾU CSV mong chờ MISSING_FILE VÀ Giao diện thực tế đã trả về UI_BLOCKED -> Tự động cho PASS
+                if expected_intent == "MISSING_FILE" and predicted_intent == "UI_BLOCKED":
+                    print(f"   ✅ AUTO-PASS: Hệ thống UI Guardrail đã đánh chặn thành công lỗi thiếu file!")
+                    evaluation = "PASS"
+                    is_auto_pass = True
+                if is_auto_pass:
+                    choice = 'y'
+                else:
                     try:
-                        choice = input("\n👉 Menu Tùy chọn:\n"
-                                       "   [y] ĐÚNG RỒI! Lưu ID này và đánh PASS\n"
-                                       "   [n] SAI! Đánh FAIL câu này và đi tiếp\n"
-                                       "   [r] TÔI VỪA RERUN APP WEB! Đọc lại kết quả mới ngay\n"
-                                       "   [t] Chạy lại câu này từ đầu (Playwright tự gõ lại)\n"
+                        choice = input("\n👉 QUYẾT ĐỊNH CỦA BẠN:\n"
+                                       "   [y] ĐÁNH GIÁ PASS (Lưu kết quả & đi tiếp)\n"
+                                       "   [n] ĐÁNH GIÁ FAIL (Lưu kết quả Fail & đi tiếp)\n"
+                                       "   [r] LẤY KẾT QUẢ MỚI (Tôi vừa tự bấm Rerun trên app web)\n"
+                                       "   [t] CHẠY LẠI TỪ ĐẦU (Script sẽ tự gõ lại query này)\n"
                                        "Lựa chọn của bạn: ").strip().lower()
                     except KeyboardInterrupt:
                         print("\n🛑 Dừng tiến trình.")
                         sys.exit(0)
 
-                    if choice == 'y':
-                        if is_valid_id:
-                            exp_col_name = _get_actual_col_name(df, ['Expected_Result_ID', 'Expected Result (ID)', 'Expected ID'])
-                            if exp_col_name:
-                                df.at[index, exp_col_name] = actual_result
-                                df.to_csv(input_file, index=False, encoding='utf-8-sig')
-                                expected_result_id = actual_result
-                                exp_id_clean = actual_result
-                                print("✅ Đã ghi nhận ID mới!")
-                        evaluation = "PASS"
-                        break # Thoát vòng lặp, đi lưu file
-                    
-                    elif choice == 'r':
-                        print("🔄 Đang bóc tách lại dữ liệu từ giao diện web...")
-                        need_to_type = False
-                        continue # Vòng lại đầu `while True`
-                        
-                    elif choice == 't':
-                        print("🔄 Đang gõ lại query...")
-                        need_to_type = True
-                        continue # Vòng lại đầu `while True`
-                        
-                    else: # Mặc định nếu bấm 'n' hoặc bậy bạ
-                        evaluation = "FAIL"
-                        print("❌ Ghi nhận FAIL.")
-                        break # Thoát vòng lặp, đi lưu file
-                else:
-                    # NẾU KHÔNG CÓ LỖI GÌ -> CHẤM PASS VÀ CHẠY TIẾP LUÔN
+                if choice == 'y':
+                    if is_valid_id and actual_result != exp_id_clean:
+                        exp_col_name = _get_actual_col_name(df, ['Expected_Result_ID', 'Expected Result (ID)', 'Expected ID'])
+                        if exp_col_name:
+                            df.at[index, exp_col_name] = actual_result
+                            df.to_csv(input_file, index=False, encoding='utf-8-sig')
+                            expected_result_id = actual_result
+                            print(f"   ✅ Đã tự động cập nhật ID mới ({actual_result}) vào file testcase gốc!")
                     evaluation = "PASS"
                     break
+                
+                elif choice == 'n':
+                    evaluation = "FAIL"
+                    break
+                
+                elif choice == 'r':
+                    print("🔄 Đang lấy lại kết quả mới nhất từ app web...")
+                    need_to_type = False
+                    continue
+                    
+                elif choice == 't':
+                    print("🔄 Đang bắt đầu gõ lại query...")
+                    need_to_type = True
+                    continue
+                    
+                else:
+                    print("⚠️ Lựa chọn không hợp lệ. Đánh dấu FAIL mặc định.")
+                    evaluation = "FAIL"
+                    break
 
-            # ================= GHI KẾT QUẢ VÀO FILE =================
-            print(f"[{evaluation}] {test_id} ({total_lat}ms) - Intent: {predicted_intent} | ID: {actual_result}")
+            print(f"=> KẾT LUẬN: [{evaluation}] {test_id} ({total_lat}ms)")
 
+            # GHÉP ĐÚNG THEO CỘT CHUẨN ĐÃ KHAI BÁO
             new_row_data = {
                 'Test Case ID': test_id,
-                'No.': stt,
                 'User Query': query,
+                'Category': category,
                 'Expected Intent': expected_intent,
                 'Predicted Intent': predicted_intent,
                 'Extracted Entities': extracted_entities,
                 'Search Strategy': search_strategy,
                 'Expected Result (ID)': expected_result_id,
                 'Actual Result (ID)': actual_result,
+                'Evaluation': evaluation,
                 'Intent Processing Time (ms)': intent_lat,
                 'Backend Processing Time (ms)': backend_lat,
                 'Total Response Time (ms)': total_lat,
-                'Evaluation': evaluation
+                'Run_Status': 'DONE'
             }
 
-            if test_id in df_out['Test Case ID'].values:
-                idx = df_out.index[df_out['Test Case ID'] == test_id].tolist()[0]
-                for key, val in new_row_data.items():
-                    df_out.at[idx, key] = val
-            else:
-                df_out = pd.concat([df_out, pd.DataFrame([new_row_data])], ignore_index=True)
+            if 'Test Case ID' in df_out.columns:
+                df_out['Test Case ID'] = df_out['Test Case ID'].astype(str).str.strip()
+            
+            # Xóa các bản ghi cũ của test_case này để thay thế bằng cái mới
+            df_out = df_out[df_out['Test Case ID'] != test_id.strip()]
 
+            # Nối dữ liệu vào và gán lại dataframe
+            df_out = pd.concat([df_out, pd.DataFrame([new_row_data])], ignore_index=True)
+
+            # Khôi phục thứ tự chuẩn theo "TC01, TC02, ..."
+            df_out['sort_key'] = df_out['Test Case ID'].str.extract(r'(\d+)').astype(float)
+            df_out = df_out.sort_values('sort_key').drop(columns=['sort_key'])
+
+            # Xuất ra file an toàn
             df_out.to_csv(output_file, index=False, encoding='utf-8-sig')
 
             df.at[index, STATUS_COL] = "DONE"
