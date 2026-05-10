@@ -4,13 +4,23 @@ import os
 import re
 import unicodedata
 import difflib
+import math
+from collections import defaultdict
+from datetime import datetime
+from rapidfuzz import fuzz 
 
 try:
-    from rapidfuzz import process as _rf_process  # type: ignore
-except Exception:  # pragma: no cover
+    from rapidfuzz import process as _rf_process
+except Exception:
     _rf_process = None
 
 _GLOBAL_SONGS_CACHE = []
+
+DERIVATIVE_ARTISTS = [
+    'forest studio', 'lofi', 'remix', 'cover', 'live', 'acoustic', 
+    'orinn', 'freak d', 'mee media', 'nguyenn', 'instrumental'
+]
+JUNK_FILTER = r'\b(tìm|tim|mở|mo|bật|bat|nghe|phát|phat|gợi ý|goi y|cho|tôi|toi|mình|minh|xin|một|mot|vài|vai|những|nhung|bạn|ban|có|co|thể|the|không|khong|ko|cần|can|muốn|muon|giúp|giup|hộ|ho|này|nay|kia|đó|do|của|cua|ca sĩ|ca si|nhạc sĩ|nhac si|nghệ sĩ|nghe si|bài hát|bai hat|bài|bai|ca khúc|ca khuc|nhạc|nhac|playlist|list|đi|nhé|nha|với|voi|luôn|luon|chứ|chu|nữa|nua|thử|thu|nào|nao|nhỉ|nhi|hả|ha|vậy|vay|giùm|gium|được|duoc|chưa|chua|thì|thi|vào|vao|đây|day|trong|ngoài|ngoai|do|làm|lam|để|de|ngay|luôn|thịnh\s+hành|thinh\s+hanh|hot|trending|viral|đang|dang)\b'
 
 def _get_all_songs_cached(supabase_client):
     """
@@ -154,9 +164,7 @@ def _normalize_track_rows(rows: Any) -> list[dict]:
     return out
 
 
-import math
-from collections import defaultdict
-from datetime import datetime
+
 
 def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict = None) -> list[dict]:
     if not raw_rows: return []
@@ -226,6 +234,17 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
             base_score = (0.7 * pop) + (0.3 * hit)
 
         if not raw_vibe and not raw_genre: penalty_score -= 0.05
+
+        # --- [FIX LỖI PHẠT QUÁ TAY TẠI ĐÂY] ---
+        if not target_artist: 
+            lower_artists = raw_artists.lower()
+            if any(kw in lower_artists for kw in DERIVATIVE_ARTISTS):
+                # ĐÃ SỬA THÀNH -0.3 ĐỂ KHÔNG BỊ RỚT XUỐNG 0.0%
+                penalty_score -= 0.3 
+            if 'remix' in db_title or 'cover' in db_title or 'live' in db_title:
+                # ĐÃ SỬA THÀNH -0.2
+                penalty_score -= 0.2
+        # -----------------------------------------------------------------
 
         # DYNAMIC BOOSTS & PENALTIES
         if target_vibes:
@@ -355,7 +374,7 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
     # Sắp xếp lần 2: dùng điểm sau non-linear scale.
     final_list.sort(
         key=lambda x: (
-            float(x.get('final_mix_score') or x.get('raw_score') or 0.0),
+            float(x.get('final_mix_score') or x.get('raw_score') or 0.0), 
             float(x.get('spotify_popularity') or 0.0),
         ),
         reverse=True,
@@ -373,28 +392,43 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
         for i, r in enumerate(final_list):
             r['prob'] = exp_scores[i] / sum_exp if sum_exp > 0 else 0.0
 
-    # Expose a stable relevance score for UI (%).
-    # Use softmax probability because it's always in [0, 1] and reflects global ranking.
+    # =========================================================
+    # PASS 3: CHỐT ĐIỂM CHUẨN XÁC THEO YÊU CẦU
+    # =========================================================
     for r in final_list:
         try:
+            # Lấy độ khớp chuỗi (%) thật sự từ bộ lọc SQL
+            original_sim = float(r.get('similarity') or 0.0)
             score = float(r.get('final_mix_score') or r.get('raw_score') or 0.0)
-            # Map score từ [0.0, 2.0] sang [0.60, 0.99] để hiển thị % trực quan, hợp lý
-            sim = min(0.99, max(0.60, score / 2.0))
-            r['similarity'] = sim
+            
+            # Nếu người dùng đang TÌM LỜI, hãy hiển thị Độ khớp lời thật sự ra Web!
+            if action_mode == 'SEARCH_LYRIC' and original_sim > 0:
+                r['similarity'] = min(0.99, original_sim)
+            else:
+                # Các luồng khác vẫn dùng điểm Ranker (nhưng cấm không cho rớt xuống âm)
+                r['similarity'] = min(0.99, max(0.0, score / 2.0))
         except Exception:
             r['similarity'] = 0.0
 
-    # Final display order: probability first, then popularity.
+    # SẮP XẾP BẰNG ĐIỂM TOÁN HỌC NGUYÊN BẢN (Tuyệt đối không dùng similarity bị giới hạn)
     final_list.sort(
         key=lambda x: (
-            float(x.get('similarity') or 0.0),
+            float(x.get('final_mix_score') or x.get('raw_score') or 0.0),
             float(x.get('spotify_popularity') or 0.0),
         ),
         reverse=True,
     )
+    # --- [MỚI] DYNAMIC CUTOFF CHO TÌM LỜI BÀI HÁT ---
+    if action_mode == 'SEARCH_LYRIC' and final_list:
+        max_sim = max([r.get('similarity', 0.0) for r in final_list])
+        
+        # Nếu có bất kỳ bài nào quá chuẩn xác (>= 85%), dọn sạch rác dưới 75%
+        if max_sim >= 0.85:
+            final_list = [r for r in final_list if r.get('similarity', 0.0) >= 0.75]
 
-    # Trả về Top K (Cắt sau khi đã Softmax)
+    # Trả về Top K
     return _normalize_track_rows(final_list[:limit])
+
 
 def _artist_index(artist_list: Any) -> tuple[list[str], list[str]]:
     """Return (original_artists, normalized_artists) for rapidfuzz."""
@@ -508,10 +542,10 @@ def _mood_maps(mood_text: str) -> tuple[list[str], list[str], str]:
     # Các nhãn có trong DB: "Kịch tính / Da diết", "Sâu lắng / Thấu cảm", 
     # "Bình yên / Chữa lành", "Tươi mới / Yêu đời", "Bùng nổ / Sôi động"
     # ==========================================
-    if any(k in m for k in ['da diet', 'kich tinh', 'cao trao', 'dằn vặt', 'dan vat', 'não nề', 'nao ne']):
+    if any(k in m for k in ['da diet', 'kich tinh']):
         target_vibes.append("Kịch tính") # Sẽ khớp "Kịch tính / Da diết"
         
-    if any(k in m for k in ['sau lang', 'tham', 'sau tham', 'thau cam']):
+    if any(k in m for k in ['sâu lắng', 'tham', 'sau tham', 'thau cam']):
         target_vibes.append("Sâu lắng") # Sẽ khớp "Sâu lắng / Thấu cảm"
 
     # "Hoài cổ" thường được người dùng mô tả theo cảm giác hoài niệm + sâu lắng.
@@ -593,18 +627,6 @@ def handle_action(
     match_threshold: float | None = None,
     match_count: int = 5,
 ) -> Any:
-    # IMPORTANT:
-    # This function contains branch-local `import re` statements.
-    # In Python, that makes `re` a local variable across the entire function scope,
-    # so we must bind it up-front to avoid `UnboundLocalError` in branches that use `re.*`.
-    import re
-    """Route action -> Supabase query.
-
-    Notes:
-    - Vector RPC must be called as: match_vpop_tracks(query_embedding, match_threshold, match_count)
-    - `embed_fn` should return a 1-D vector (list/np.ndarray)
-    """
-
     action = str(action or "").strip().upper()
     params = params if isinstance(params, dict) else {}
 
@@ -616,9 +638,6 @@ def handle_action(
             'path': ["Level 0: Precheck", "Error: No Supabase"],
         }
 
-    # =========================
-    # 1. SEARCH_TRACK (Tìm Tên Bài Hát + Nghệ sĩ)
-    # =========================
     # =========================
     # 1. SEARCH_TRACK (Super Engine: Tìm Tên Bài Hát -> Ca Sĩ -> Tự động Fallback Lời Bài Hát)
     # =========================
@@ -650,15 +669,11 @@ def handle_action(
             execution_path.append("Level 1.1: Name Search Engine")
             print(f"[SEARCH_TRACK -> NAME] Đầu vào: Title='{song_title}', Artist='{artist}'")
             try:
-                import re
-                import unicodedata
                 rows = []
                 source_label = ""
                 original_song_title = song_title
 
                 def try_sql_search(title_query, artist_query):
-                    import unicodedata
-                    import re
                     
                     q = supabase.table('songs').select(
                         'spotify_track_id, title, artists, vibe, main_topic, final_sentiment, spotify_popularity, is_hit, genres'
@@ -726,7 +741,6 @@ def handle_action(
                                             known_artists_map[norm_a.replace(" ", "")] = a
                                             known_artists_map[norm_a] = a
                                 
-                                found_artist = False
                                 for i in range(min(5, len(words) - 1), 0, -1):
                                     potential_artist_str = " ".join(words[-i:])
                                     if len(potential_artist_str) < 3: continue
@@ -735,25 +749,31 @@ def handle_action(
                                     norm_pot_nospace = norm_pot.replace(" ", "")
                                     
                                     best_match = ""
-                                    # Fuzzy Check: Trị bệnh "seachain" thiếu chữ "s"
-                                    for norm_db, real_db in known_artists_map.items():
-                                        if norm_pot_nospace in norm_db and len(norm_pot_nospace) >= len(norm_db) * 0.75:
-                                            best_match = real_db
-                                            break
-                                        elif norm_db in norm_pot_nospace and len(norm_db) >= len(norm_pot_nospace) * 0.75:
-                                            best_match = real_db
-                                            break
+                                    
+                                    # [FIX TẠI ĐÂY]: Luật bắt ca sĩ khắt khe hơn để tránh cắt nhầm tên bài
+                                    if len(norm_pot_nospace) <= 4:
+                                        # Tên quá ngắn (như BAN, MIN) phải khớp 100%
+                                        if norm_pot_nospace in known_artists_map:
+                                            best_match = known_artists_map[norm_pot_nospace]
+                                    else:
+                                        # Tên dài cho phép sai số 15% (threshold 0.85)
+                                        for norm_db, real_db in known_artists_map.items():
+                                            if norm_pot_nospace in norm_db and len(norm_pot_nospace) >= len(norm_db) * 0.85:
+                                                best_match = real_db
+                                                break
+                                            elif norm_db in norm_pot_nospace and len(norm_db) >= len(norm_pot_nospace) * 0.85:
+                                                best_match = real_db
+                                                break
                                     
                                     if not best_match:
-                                        import difflib
-                                        matches = difflib.get_close_matches(norm_pot_nospace, [k for k in known_artists_map.keys() if " " not in k], n=1, cutoff=0.85)
+                                        # Nâng cutoff từ 0.85 lên 0.88 để cực kỳ an toàn
+                                        matches = difflib.get_close_matches(norm_pot_nospace, [k for k in known_artists_map.keys() if " " not in k], n=1, cutoff=0.88)
                                         if matches: best_match = known_artists_map[matches[0]]
 
                                     if best_match:
                                         artist = best_match
                                         song_title = " ".join(words[:-i]).strip()
                                         print(f"[SEARCH_TRACK] AI Bóc Tách Dính Chữ -> Title: '{song_title}', Artist: '{artist}'")
-                                        found_artist = True
                                         
                                         rows = try_sql_search(song_title, artist)
                                         if rows:
@@ -764,13 +784,10 @@ def handle_action(
                                         # Mục đích: Chốt giữ song_title và artist chuẩn xác để
                                         # các tầng RapidFuzz/Vector phía dưới có "đạn" chuẩn để bắn
                                         break
-                                if found_artist: pass
 
                     # --- LỚP 1.5: PRODUCTION-GRADE FUZZY STICKY MATCH (ĐÃ CHẶN ĂN HÔI TÊN NGẮN) ---
                     if not rows:
                         all_songs = _get_all_songs_cached(supabase)
-                        from rapidfuzz import fuzz 
-                        
                         if all_songs:
                             execution_path.append("Level 1.3: RapidFuzz Sticky Engine")
                             q_t_sticky = _normalize_text(song_title).replace(" ", "")
@@ -882,15 +899,8 @@ def handle_action(
 
         execution_path.append("Level 2: Lyric Match Fallback")
         print(f"[SEARCH_TRACK -> LYRIC] Bắt đầu tìm kiếm thuần chuỗi: '{lyric_query}'")
-        
-        # --- 1. CHUẨN HÓA VĂN BẢN ---
-        def deep_clean(t):
-            import re 
-            t = re.sub(r'[\n\r\,\.\?\!\-]', ' ', t).lower()
-            return re.sub(r'\s+', ' ', t).strip()
 
-        clean_query = deep_clean(lyric_query)
-        is_unaccented = (clean_query == _normalize_text(clean_query))
+        clean_query = _normalize_text(lyric_query)
         pool = []
 
         try:
@@ -1076,17 +1086,6 @@ def handle_action(
             }
         except Exception as e:
             return {'error': f"Lỗi phân tích chuyên sâu: {str(e)}", 'source': 'analyze-error', 'path': execution_path}
-
-    # =========================
-    # 8. MISSING_FILE
-    # =========================
-    elif action == "MISSING_FILE":
-        return {
-            'tracks': [], 
-            'source': 'fallback-missing-file', 
-            'error': 'Bạn quên đính kèm file âm thanh (MP3/WAV) ở thanh bên trái (Sidebar) rồi kìa! Hãy tải file lên để mình phân tích nhé.',
-            'path': ["Level 0: Static Response"],
-        }
 
     # =========================
     # DISCOVER_MUSIC (Siêu động cơ hợp nhất: Trích xuất tất cả params)
@@ -1400,8 +1399,6 @@ def handle_action(
             }
         print(f"[DISCOVER_MUSIC] Input: Mood='{mood}', Genre='{genre}', Artist='{artist}'")
 
-        import re
-
         try:
             rows = []
             source_label = ""
@@ -1635,36 +1632,57 @@ def handle_action(
 
         try:
             # --- BƯỚC 1: TIỀN XỬ LÝ LỌC RÁC TỪ CHUỖI USER ---
-            import re
-            # Gọt bỏ các từ thừa mà LLM có thể lỡ trích xuất nhầm vào seed_name
-            clean_seed_name = re.sub(r'^(bài hát|bài|nhạc của|nhạc|ca khúc)\s+', '', seed_name, flags=re.IGNORECASE).strip()
-            if not clean_seed_name:
-                clean_seed_name = seed_name
-                
+            clean_seed_name = seed_name.strip(' "\'') 
             seed_track = None
-            
             # --- BƯỚC 2: LỚP 1 - TÌM SQL (Ưu tiên bài Hot nhất nếu trùng tên) ---
             song_q = supabase.table('songs').select(
                 'spotify_track_id, title, artists, vibe, genres, final_sentiment, spotify_popularity'
             ).ilike('title', f'%{clean_seed_name}%')
             
             if seed_artist_query:
-                # Nới lỏng khoảng trắng để bắt ca sĩ gõ thiếu/dính chữ
                 aw = seed_artist_query.replace(' ', '%')
                 song_q = song_q.ilike('artists', f'%{aw}%')
                 execution_path.append('Level 1.1: Seed Artist Filter')
 
-            # Lấy 5 bài khớp, SAU ĐÓ xếp hạng bằng Độ Hot để né bản Remix/Cover (Fix vụ The Masked Singer)
-            song_f = song_q.order('spotify_popularity', desc=True).limit(5).execute()
+            song_f = song_q.order('spotify_popularity', desc=True).limit(15).execute()
             
             if song_f.data:
-                seed_track = song_f.data[0]
+                best_seed = None
+                best_score = -9999
+                
+                for track in song_f.data:
+                    t_title = str(track.get('title', '')).strip().lower()
+                    t_artists = str(track.get('artists', '')).strip().lower()
+                    pop = float(track.get('spotify_popularity') or 0)
+                    score = pop  # Điểm nền tảng là độ hot
+                    
+                    # 1. Thưởng CỰC ĐẬM cho bài khớp chính xác 100% tên
+                    clean_db_title = re.sub(r'\(.*?\)|\[.*?\]', '', t_title).strip()
+                    if clean_db_title == clean_seed_name.lower():
+                        score += 1000
+                    
+                    # 2. Phạt NẶNG bản phái sinh ghi trên Title
+                    if "remix" not in clean_seed_name.lower() and "cover" not in clean_seed_name.lower():
+                        if "remix" in t_title or "mix" in t_title or "dj" in t_title:
+                            score -= 500
+                        if "cover" in t_title or "live" in t_title or "version" in t_title:
+                            score -= 300
+                            
+                    # 3. Phạt NẶNG nghệ sĩ/kênh phái sinh ghi ở trường Artists
+                    if not seed_artist_query:
+                        if any(kw in t_artists for kw in DERIVATIVE_ARTISTS):
+                            score -= 800  
+                            
+                    if score > best_score:
+                        best_score = score
+                        best_seed = track
+                        
+                seed_track = best_seed
             else:
                 # --- BƯỚC 3: LỚP 2 - LOCAL SMART FUZZY (Cứu cánh không dấu, dính chữ) ---
                 execution_path.append("Level 2: Fuzzy Seed Lookup")
                 all_songs = _get_all_songs_cached(supabase)
                 if all_songs:
-                    import difflib
                     query_t = _normalize_text(clean_seed_name)
                     query_a = _normalize_text(seed_artist_query) if seed_artist_query else ""
                     query_full = f"{query_t} {query_a}".strip()
@@ -1687,7 +1705,6 @@ def handle_action(
                             elif db_full in query_full and len(db_full) >= 5:
                                 score = 90.0 * (len(db_full) / len(query_full))
                             else:
-                                # Tính ratio chéo cứu gõ dính chữ "yeumotnguoicole"
                                 seq_ratio = difflib.SequenceMatcher(None, query_full, db_full).ratio() * 100.0
                                 qw = set(query_full.split())
                                 dw = set(db_full.split())
@@ -1699,11 +1716,28 @@ def handle_action(
                             if score >= 75.0:
                                 s_copy = dict(s)
                                 s_copy['seed_sim_score'] = score
+                                
+                                # [MỚI] Áp dụng logic BẢO VỆ BẢN GỐC cho cả mảng Fuzzy Search
+                                penalty_bonus = 0
+                                db_t_lower = db_t.lower()
+                                db_a_lower = db_a.lower()
+                                
+                                if "remix" not in query_t and "cover" not in query_t:
+                                    if "remix" in db_t_lower or "mix" in db_t_lower or "dj" in db_t_lower:
+                                        penalty_bonus -= 50
+                                    if "cover" in db_t_lower or "live" in db_t_lower or "version" in db_t_lower:
+                                        penalty_bonus -= 30
+                                        
+                                if not seed_artist_query:
+                                    if any(_normalize_text(kw) in db_a_lower for kw in DERIVATIVE_ARTISTS):
+                                        penalty_bonus -= 80
+                                        
+                                s_copy['penalty_bonus'] = penalty_bonus
                                 scored.append(s_copy)
                                 
                         if scored:
-                            # Ranking kép: Ưu tiên 1 - Độ khớp chuỗi. Ưu tiên 2 - Độ phổ biến (né rác)
-                            scored.sort(key=lambda x: (x['seed_sim_score'], float(x.get('spotify_popularity') or 0)), reverse=True)
+                            # Ranking: Tổng điểm (Độ khớp + Điểm phạt) là số 1, Độ phổ biến là số 2
+                            scored.sort(key=lambda x: (x['seed_sim_score'] + x.get('penalty_bonus', 0), float(x.get('spotify_popularity') or 0)), reverse=True)
                             seed_track = scored[0]
 
             # Kiểm tra chốt chặn cuối cùng
@@ -1755,7 +1789,6 @@ def handle_action(
             song_map = {s['spotify_track_id']: s for s in songs_data}
 
             # 5. TÁCH THỂ LOẠI THÔNG MINH
-            import re
             def parse_genres(g_str):
                 return set([g.strip() for g in re.split(r'[,/]', g_str) if g.strip()])
             

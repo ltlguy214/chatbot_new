@@ -1,5 +1,0 @@
-STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
-1,Tìm bài Bống Bống Bang Bang,SEARCH_TRACK,003iEoAGOlKmq0BgygQzjZ,Dễ,[Search Track] Title-based lookup
-2,Mở bài Một Người Đánh Mất Một Người của Olew,SEARCH_TRACK,00be0bf1yiRaJB8PMXG9uj,Dễ,[Search Track] Title + artist
-3,Tìm bài có câu lên ăn cơm vàng cơm bạc nhà ta,SEARCH_TRACK,003iEoAGOlKmq0BgygQzjZ,Dễ,[Search Track] Lyric snippet
-4,Lời bài hát cứ tan vào những êm đềm tối nay,SEARCH_TRACK,014DA3BdnmD3kI5pBogH7c,Dễ,[Search Track] Lyric snippet

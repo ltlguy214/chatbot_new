@@ -2,25 +2,63 @@
 
 # Tổng hợp từ điển mapping Intent
 MOOD_MAP = {
+    # MOOD - buồn
     "buồn": "buồn", "sad": "buồn", "suy": "buồn", "deep": "buồn", "lụy": "buồn", "luy": "buồn",
     "sầu": "buồn", "sau": "buồn", "đau": "buồn", "dau": "buồn",
-    "đau lòng": "buồn", "dau long": "buồn", "thất tình": "buồn", "that tinh": "buồn", "cô đơn": "buồn",
-    "co don": "buồn", "tâm trạng": "buồn", "tam trang": "buồn", "não nề": "buồn", "nao ne": "buồn",
+    "đau lòng": "buồn", "dau long": "buồn", "thất tình": "buồn", "that tinh": "buồn",
+    "tâm trạng": "buồn", "tam trang": "buồn", "não nề": "buồn", "nao ne": "buồn",
     "dằn vặt": "buồn", "dan vat": "buồn", "khóc": "buồn", "khoc": "buồn", "thê lương": "buồn", "the luong": "buồn",
     "sầu thảm": "buồn", "nước mắt": "buồn", "tuyệt vọng": "buồn", "bi đát": "buồn",
-    "vui": "vui", "happy": "vui", "yêu đời": "vui", "yeu doi": "vui", "tích cực": "vui", "tich cuc": "vui",
-    "ngọt ngào": "vui", "ngot ngao": "vui", "lãng mạn": "vui", "lang man": "vui", "hạnh phúc": "vui",
-    "hanh phuc": "vui", "động lực": "vui", "dong luc": "vui", "vui vẻ": "vui", "vui ve": "vui",
-    "chill": "chill", "ngủ": "chill", "ru ngủ": "chill", "thư giãn": "chill", "thu gian": "chill", 
-    "bình yên": "chill", "binh yen": "chill", "nhẹ nhàng": "chill", "nhe nhang": "chill", 
-    "healing": "chill", "chữa lành": "chill", "chua lanh": "chill", "an ủi": "chill", "an ui": "chill", 
-    "ru ngu": "chill", "thoải mái": "chill", "thoai mai": "chill",
-    "quẩy": "quẩy", "quay": "quẩy", "dance": "quẩy", "sôi động": "quẩy", "soi dong": "quẩy",
-    "bùng nổ": "quẩy", "bung no": "quẩy", "cháy": "quẩy", "chay": "quẩy", "xập xình": "quẩy", "xap xinh": "quẩy", 
-    "sung": "quẩy", "tung nóc nhà": "quẩy", "tung nóc": "quẩy", "cực cháy": "quẩy", "cuc chay": "quẩy",
-    "party": "quẩy", "club": "quẩy", "remix": "quẩy", "cháy máy": "quẩy",
-    "kịch tính": "kich tinh", "tươi mới": "tuoi moi", "da diết": "da diết", "stress": "stress", "gym": "gym",
-    "tình yêu": "tình yêu", "tinh yeu": "tình yêu", "chia tay": "chia tay",
+    
+    # MOOD - vui
+    "vui": "vui", "happy": "vui",  "tích cực": "vui", "tich cuc": "vui",
+    "phấn khởi": "vui", "năng động": "vui", "vui vẻ": "vui", "vui ve": "vui",
+    
+    # VIBE - Lãng mạn/Tình yêu ra một mood riêng (ví dụ đặt là "lãng mạn" hoặc "tình yêu")
+    "ngọt ngào": "tình yêu", "ngot ngao": "tình yêu", 
+    "lãng mạn": "tình yêu", "lang man": "tình yêu", 
+    "đáng yêu": "tình yêu", "dang yeu": "tình yêu",
+    "tình yêu": "tình yêu", "tinh yeu": "tình yêu",
+    
+    # VIBE -Yêu đời / Tươi mới ra một mood riêng (ví dụ đặt là "tươi mới") để tránh nhầm lẫn với "vui"
+    "yêu đời": "tươi mới", "yeu doi": "tươi mới",
+    "tuoi moi": "tươi mới", "tươi mới": "tươi mới", "tươi moi": "tươi mới",
+    "dong lực": "tươi mới", "dong luc": "tươi mới", "động lực": "tươi mới", "dong luc": "tươi mới",
+
+    # VIBE - bùng nổ / Sôi động
+    "gym" : "bùng nổ", "quay" : "bùng nổ", "quẩy" : "bùng nổ",
+    "party": "bùng nổ", "sung" : "bùng nổ", "chay": "bùng nổ",
+    "cháy": "bùng nổ", "soi dong": "bùng nổ", "sôi động": "bùng nổ",
+    "soi động": "bùng nổ", "bung no": "bùng nổ",
+    "xập xình": "bùng nổ", "xap xinh": "bùng nổ", 
+    "tung nóc nhà": "bùng nổ", "tung nóc": "bùng nổ", "cực cháy": "bùng nổ", "cuc chay": "bùng nổ",
+    "club": "bùng nổ", "cháy máy": "bùng nổ", "chay may": "bùng nổ",
+    
+    # VIBE - bình yên / Chữa lành
+    "ru ngủ": "bình yên", "ru ngu": "bình yên", "ngủ":"bình yên", "an ui": "bình yên", "an ủi": "bình yên",
+    "stress": "bình yên", "chill": "bình yên", "thu gian": "bình yên", "thư giãn": "bình yên",
+    "binh yen": "bình yên", "bình yen": "bình yên", "nhe nhang": "bình yên", "nhẹ nhàng": "bình yên",
+    "healing": "bình yên", "chua lanh": "bình yên", "chữa lành": "bình yên", "an ủi": "bình yên",
+    "an ui": "bình yên", "thoải mái": "bình yên", "thoai mai": "bình yên",
+    "bình yên": "bình yên",
+
+    # VIBE - sâu lắng / Thấu cảm
+    "sâu lắng": "sâu lắng",
+    "sâu lắg": "sâu lắng", "sau lang": "sâu lắng",
+    "thấu cảm": "sâu lắng",
+    
+    # VIBE - kịch tính / Da diết
+    # nhóm da diet
+    "da diết": "da diet", "dằn vặt": "da diet",
+    "dan vat": "da diet", "não nề": "da diet",
+    "nao ne": "da diet",
+    
+    # nhóm kịch tính
+    "kịch tính": "kich tinh", "cao trao": "kich tinh",
+    "cao trào": "kich tinh",
+
+    # TOPIC
+    "chia tay": "chia tay",
     "tết": "tết", "tet": "tết", "xuân": "xuân", "xuan": "xuân", "năm mới": "xuân", "nam moi": "xuân",
     "gia đình": "gia đình", "gia dinh": "gia đình", "mẹ": "gia đình", "cha": "gia đình", 
     "quê hương": "gia đình", "que huong": "gia đình",
@@ -37,11 +75,12 @@ GENRE_KEYWORDS = [
 ]
 
 POPULARITY_KEYWORDS = [
-    'hot', 'top', 'bxh', 'viral', 'trending', 'pho bien', 'thinh hanh', 
+    'hot', 'top', 'bxh', 'viral', 'trending', 'pho bien', 'thinh hanh', 'thịnh hành', 
     'hay nhat', 'nhieu view nhat', 'nghe gi nhieu nhat', 'lam mua lam gio', 
     'duoc yeu thich nhat', 'hit', 'nhieu nguoi nghe', 'quoc dan', 'leo chart',
     'noi tieng nhat', 'bang xep hang', 'dinh dam', 'sieu pham', 
-    'thong tri', 'chay nhat', 'nghe nhieu nhat', 'chart'
+    'thong tri', 'chay nhat', 'nghe nhieu nhat', 'chart', 'nổi tiếng nhất', 
+    'nổi tiếng', 'noi tieng', 'phổ biến', 'pho bien', 'thịnh hành', 'thinh hanh',
 ]
 ATTRIBUTE_KEYWORDS = [
     # tempo
@@ -49,11 +88,22 @@ ATTRIBUTE_KEYWORDS = [
     "nhip nhanh", "nhip cham", "don dap", "speed up",
     # energy
     "manh", "cang", "nhe",
-    "nang luong", "uy luc", "cuc manh",
+    "uy luc", "cuc manh",
     # numeric
     "bpm", "tempo"
 ]
 TEENCODE_MAP = {
+    "bot": "bot", 
+    "ad": "admin", 
+    "admin": "admin",
+    "mìn": "mình",
+    "balat": "ballad",
+    "balad": "ballad",
+    "ballat": "ballad",
+    "rcm bài": "gợi ý nhạc",
+    "rcm": "gợi ý",
+    "bùn": "buồn",
+    "balad": "ballad",
     "rcm": "goi y",
     "recomend": "goi y",
     "recommend": "goi y",

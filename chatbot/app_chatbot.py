@@ -267,23 +267,31 @@ try:
         genres = technical_meta.get('genres', 'N/A')
 
         return (
-            "Bạn là một Music Producer chuyên nghiệp, dày dạn kinh nghiệm tại thị trường V-Pop. "
-            "Nhiệm vụ của bạn là đưa ra nhận xét chuyên môn dựa trên dữ liệu định lượng nhưng phải diễn đạt bằng ngôn ngữ âm nhạc tự nhiên.\n\n"
-        
-            "⚠️ QUY TẮC CỐT LÕI:\n"
-            "1. TUYỆT ĐỐI KHÔNG liệt kê tên biến kỹ thuật (như mfcc, chroma, centroid...). Hãy dịch chúng sang thuật ngữ âm nhạc (ví dụ: độ sáng, độ dày, âm sắc, sự bùng nổ).\n"
-            "2. KHÔNG đưa các con số phần trăm (%) lẻ tẻ từ SHAP vào bài viết. Chỉ dùng con số Hit Probability tổng quát.\n"
-            "3. Văn phong: Chuyên nghiệp, truyền cảm hứng, như một người đàn anh đang hướng dẫn đàn em trong phòng thu.\n\n"
-
-            "NHIỆM VỤ CỦA BẠN:\n"
-            "1. LỜI CHÀO & TỔNG QUAN: Nhận xét ngắn gọn về bản demo dựa trên: "
-            f"Tempo {technical_meta['tempo']} BPM, Năng lượng {technical_meta['energy']}, Thời lượng {technical_meta['duration']}s, "
-            f"Độ đa dạng từ {technical_meta['lexical']}, Phong cách {technical_meta['style']}, Cảm xúc {technical_meta['emotion']}, Thể loại {technical_meta['genres']}.\n"
-            f"2. ĐÁNH GIÁ TIỀM NĂNG: Nhận xét về con số {hit_probability} xác suất thành Hit một cách thực tế.\n"
-            "3. PHÂN TÍCH ƯU/NHƯỢC ĐIỂM: Dựa vào SHAP_JSON, hãy nói về các yếu tố giúp bài hát bắt tai hoặc các phần làm bài hát bị rời rạc (Dùng ngôn ngữ producer: mix, arrangement, vocal).\n"
-            "4. HÀNH ĐỘNG CẢI THIỆN: Đề xuất 3 thay đổi cụ thể để đẩy bài hát lên tầm cao mới.\n\n"
+            "Bạn là trợ lý âm nhạc V-Pop và cũng là một Music Producer chuyên nghiệp. "
+            "Nhiệm vụ của bạn là đưa ra nhận xét chuyên môn dựa trên dữ liệu định lượng (SHAP_JSON) nhưng phải diễn đạt bằng ngôn ngữ âm nhạc tự nhiên, GIỐNG HỆT CẤU TRÚC MẪU DƯỚI ĐÂY.\n\n"
             
-            f"DỮ LIỆU ĐẦU VÀO (DÙNG ĐỂ PHÂN TÍCH, KHÔNG ĐƯỢC CHÉP NGUYÊN XI): {shap_json}"
+            "⚠️ QUY TẮC CỐT LÕI (CỰC KỲ QUAN TRỌNG):\n"
+            "1. TUYỆT ĐỐI KHÔNG dùng dấu nháy đơn ('), dấu nháy kép (\") hay dấu nháy ngược (`) để bọc bất kỳ từ ngữ nào. Ví dụ: viết là kéo xuống, không viết là 'kéo xuống'.\n"
+            "2. TUYỆT ĐỐI KHÔNG liệt kê tên biến kỹ thuật nguyên bản (mfcc, chroma...). BẮT BUỘC dịch chúng sang tiếng Việt mượt mà (Độ tương phản phổ, Sự đa dạng âm sắc...).\n"
+            "3. KHÔNG đưa các con số phần trăm lẻ tẻ từ SHAP_JSON vào bài viết.\n"
+            "4. Văn phong: Chuyên nghiệp, truyền cảm hứng, như một người đàn anh trong phòng thu.\n\n"
+
+            "BẮT BUỘC TRẢ LỜI THEO ĐÚNG CẤU TRÚC SAU:\n"
+            f"Chào bạn, mình là trợ lý âm nhạc V-Pop và cũng là một Music Producer đây! Mình đã phân tích bản demo của bạn và đây là các thông số định lượng mình thu thập được: Tempo {technical_meta.get('tempo', 'N/A')} BPM, RMS Energy {technical_meta.get('energy', 'N/A')}, Phong cách {technical_meta.get('style', 'N/A')}, Cảm xúc {technical_meta.get('emotion', 'N/A')}, Thể loại {technical_meta.get('genres', 'N/A')}, Thời lượng {technical_meta.get('duration', 'N/A')} giây, Độ đa dạng từ vựng {technical_meta.get('lexical', 'N/A')}.\n"
+            "[1 câu nhận xét tổng quan kết nối phong cách và cảm xúc].\n"
+            f"Dựa trên phân tích, khả năng bản demo trở thành hit là {hit_probability}.\n"
+            "Để giúp bản demo bùng nổ hơn nữa, đây là các yếu tố đang tác động đến tiềm năng hit của bài hát:\n"
+            "Các yếu tố đang đẩy lên tiềm năng hit:\n"
+            "- [Tên yếu tố 1 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác dụng]\n"
+            "- [Tên yếu tố 2 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác dụng]\n"
+            "Các yếu tố đang kéo xuống tiềm năng hit:\n"
+            "- [Tên yếu tố 3 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác hại]\n"
+            "Để tối ưu hóa bản demo, bạn có thể tham khảo 3 gợi ý sau:\n"
+            "1. Lời bài hát: [Gợi ý cải thiện]\n"
+            "2. Phối khí/Mix: [Gợi ý cải thiện]\n"
+            "3. Thiết kế âm thanh/Mix: [Gợi ý cải thiện]\n\n"
+            
+            f"DỮ LIỆU ĐẦU VÀO ĐỂ PHÂN TÍCH: {shap_json}"
         )
 except Exception:
     # Fallback lightweight analyzers so app never breaks.
@@ -353,10 +361,6 @@ try:
     MUTAGEN_AVAILABLE = True
 except ImportError:
     MUTAGEN_AVAILABLE = False
-
-# =============================================================================
-# 2. COMPATIBILITY SHIMS CHO MODEL PICKLE CŨ
-# =============================================================================
 try:
     import sklearn._loss as _sklearn_loss
 
@@ -990,169 +994,6 @@ def warmup_system():
 
 # Kích hoạt khởi động nóng ngay lập tức!
 warmup_system()
-
-# =============================================================================
-# 4. SIDEBAR - LOAD MODELS (Cho cả 5 bài toán)
-# =============================================================================
-P2_NUMERIC_FEATS = []
-pipeline_task1 = None
-selected_model_name = ""
-p1_data = None
-p2_data = None
-p3_data = None
-p4_data = None
-
-if 'app_mode' not in st.session_state:
-    st.session_state.app_mode = None
-
-with st.sidebar:
-    st.title("Models")
-
-    with st.expander('Trạng thái models (P0–P4)', expanded=False):
-        # Help debug the common issue: running Streamlit with the wrong Python env.
-        try:
-            st.caption(f"Python: {sys.executable}")
-            venv = str(os.getenv('VIRTUAL_ENV') or '').strip()
-            if venv:
-                st.caption(f"Venv: {venv}")
-        except Exception:
-            pass
-
-        # Quick dependency checks (no secrets) for the 2 most frequent failures.
-        try:
-            try:
-                from google import genai as _genai  # type: ignore
-
-                _ = _genai  # silence linters
-                st.caption("✅ Gemini SDK: google-genai OK")
-            except Exception as ex:
-                st.warning(f"⚠️ Gemini SDK chưa sẵn sàng ({type(ex).__name__}: {str(ex)[:120]})")
-        except Exception:
-            pass
-
-        try:
-            try:
-                import sentence_transformers as _stx  # type: ignore
-
-                _ = _stx
-                st.caption("✅ Embedding: sentence-transformers OK")
-            except Exception as ex:
-                st.warning(f"⚠️ Embedding chưa sẵn sàng ({type(ex).__name__}: {str(ex)[:120]})")
-        except Exception:
-            pass
-
-        try:
-            expected_py = os.path.join(_REPO_ROOT, '.venv312', 'Scripts', 'python.exe')
-            if os.path.exists(expected_py):
-                st.code(f"{expected_py} -m streamlit run chatbot\\app_chatbot.py", language='text')
-        except Exception:
-            pass
-
-        resolved = {}
-        resolve_report: dict[str, str] = {}
-        try:
-            resolved = resolve_model_paths(
-                allow_download=True,
-                report=resolve_report,
-                tasks=["P0", "P2", "P3", "P4"],
-            )
-        except Exception:
-            resolved = {}
-
-        # Quick visibility into env resolution (no secrets).
-        dotenv_used = str(os.getenv('DOTENV_PATH_USED') or '').strip()
-        if dotenv_used:
-            st.caption(f".env: {dotenv_used}")
-
-        # If a model is missing, show why (download/config errors).
-        for key in ['P0', 'P2', 'P3', 'P4']:
-            if key not in resolved:
-                note = str(resolve_report.get(key) or 'missing').strip()
-                st.warning(f"⚠️ {key} chưa sẵn sàng ({note})")
-
-        # P1 is intentionally disabled in this build.
-        st.caption("ℹ️ P1 (Popularity) đang tắt: SHAP chỉ chạy P0, không dự đoán P1.")
-
-        # Load P0 (Hit)
-        p0_path = str(resolved.get('P0') or '')
-        if p0_path and os.path.exists(p0_path):
-            try:
-                data = _cached_joblib_load(p0_path)
-                pipeline_task1 = data['pipeline']
-                selected_model_name = data.get('model_name', 'Best Model')
-                st.markdown("✅ **P0 (Hit):** Sẵn sàng")
-            except Exception as ex:
-                st.error(f"❌ Lỗi load P0: {ex}")
-
-        # Load P1 (Popularity)
-        p1_path = str(resolved.get('P1') or '')
-        if p1_path and os.path.exists(p1_path):
-            try:
-                # Avoid caching P1: it can be large and caching may increase RAM usage.
-                p1_candidates = [
-                    p1_path,
-                ]
-                p1_loaded_from = ''
-                last_ex = None
-                for cand in p1_candidates:
-                    cand = str(cand or '').strip()
-                    if not cand or not os.path.exists(cand):
-                        continue
-                    try:
-                        # Try normal load first; mmap_mode is not supported for some compressed joblib files.
-                        p1_data = joblib.load(cand)
-                        p1_loaded_from = cand
-                        last_ex = None
-                        break
-                    except Exception as ex:
-                        last_ex = ex
-                        # Retry with mmap_mode for large numpy payloads (best-effort).
-                        try:
-                            p1_data = joblib.load(cand, mmap_mode='r')
-                            p1_loaded_from = cand
-                            last_ex = None
-                            break
-                        except Exception as ex2:
-                            last_ex = ex2
-                            continue
-
-                if p1_data is None:
-                    raise last_ex or Exception('Unknown error')
-                st.markdown("✅ **P1 (Phổ biến):** Sẵn sàng")
-                if p1_loaded_from and p1_loaded_from != p1_path:
-                    st.caption(f"P1 loaded from: {p1_loaded_from}")
-            except Exception as ex:
-                st.error(f"❌ Lỗi load P1: {type(ex).__name__}: {ex}")
-
-        # Load P2 (Clustering)
-        p2_path = str(resolved.get('P2') or '')
-        if p2_path and os.path.exists(p2_path):
-            try:
-                p2_data = _cached_joblib_load(p2_path)
-                P2_NUMERIC_FEATS = p2_data.get('numeric_features', [])
-                st.markdown("✅ **P2 (Cụm):** Sẵn sàng")
-            except Exception as ex:
-                st.error(f"❌ Lỗi load P2: {ex}")
-
-        # Load P3 (Emotion)
-        p3_path = str(resolved.get('P3') or '')
-        if p3_path and os.path.exists(p3_path):
-            try:
-                p3_data = _cached_joblib_load(p3_path)
-                st.markdown("✅ **P3 (Cảm xúc):** Sẵn sàng")
-            except Exception as ex:
-                st.error(f"❌ Lỗi load P3: {ex}")
-
-        # Load P4 (Genre)
-        p4_path = str(resolved.get('P4') or '')
-        if p4_path and os.path.exists(p4_path):
-            try:
-                p4_data = _cached_joblib_load(p4_path)
-                st.markdown("✅ **P4 (Thể loại):** Sẵn sàng")
-            except Exception as ex:
-                st.error(f"❌ Lỗi load P4: {ex}")
-
-
 # =============================================================================
 # HÀM ĐÁNH GIÁ KẾT QUẢ TEST (GHI LOG CHO MỖI LẦN TEST VỚI QUERY VÀ KẾT QUẢ TƯƠNG ỨNG)
 # =============================================================================
@@ -1205,113 +1046,6 @@ def _is_truthy_env(name: str, default: str = '0') -> bool:
     return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
-def _asr_transcribe_lyrics_from_audio(audio_path: str, audio_bytes: bytes | None = None):
-    """Best-effort ASR: returns (lyrics_text, meta_dict). Never raises."""
-    if not _is_truthy_env('ASR_ENABLED', default='0'):
-        return '', {'source': 'asr-disabled', 'error': None}
-
-    try:
-        from faster_whisper import WhisperModel  # pyright: ignore[reportMissingImports]
-    except Exception as ex:
-        return '', {'source': 'asr-missing-dependency', 'error': str(ex)}
-
-    try:
-        model_size = os.getenv('ASR_MODEL_SIZE', 'small')
-        language = os.getenv('ASR_LANGUAGE', 'vi')
-        compute_type = os.getenv('ASR_COMPUTE_TYPE', 'int8')
-        device = os.getenv('ASR_DEVICE', 'cpu')
-
-        # Cache by audio hash within the session to avoid re-transcribing on reruns.
-        cache = st.session_state.get('asr_cache')
-        if cache is None:
-            cache = {}
-            st.session_state.asr_cache = cache
-
-        cache_key = None
-        if audio_bytes:
-            cache_key = hashlib.sha256(audio_bytes).hexdigest()
-            cached = cache.get(cache_key)
-            if isinstance(cached, str) and cached.strip():
-                return cached, {'source': 'asr-cache', 'error': None, 'model': model_size}
-
-        # Load model (kept in a lightweight session cache to reduce repeated init).
-        model_key = f'asr_model::{device}::{compute_type}::{model_size}'
-        model = st.session_state.get(model_key)
-        if model is None:
-            model = WhisperModel(model_size, device=device, compute_type=compute_type)
-            st.session_state[model_key] = model
-
-        segments, info = model.transcribe(
-            audio_path,
-            language=language or None,
-            vad_filter=True,
-            beam_size=5,
-        )
-
-        parts = []
-        for seg in segments:
-            text = getattr(seg, 'text', '')
-            if text:
-                parts.append(str(text).strip())
-
-        lyrics = re.sub(r"\s+", " ", " ".join(parts)).strip()
-        if cache_key and lyrics:
-            cache[cache_key] = lyrics
-
-        detected_lang = getattr(info, 'language', None) if info is not None else None
-        return lyrics, {
-            'source': 'asr-faster-whisper',
-            'error': None,
-            'model': model_size,
-            'language': language or detected_lang,
-        }
-    except Exception as ex:
-        return '', {'source': 'asr-error', 'error': str(ex)}
-
-
-def create_input_df(features_dict, task='P0'):
-    """Tạo DataFrame với đầy đủ các cột (kể cả dummy features) để model không báo lỗi thiếu biến"""
-    df = pd.DataFrame([features_dict])
-
-    # 1. Đảm bảo có đủ 2 cột text cho TF-IDF
-    if 'lyric' not in df.columns:
-        df['lyric'] = df.get('clean_lyric', "")
-    if 'clean_lyric' not in df.columns:
-        df['clean_lyric'] = df.get('lyric', "")
-
-    # 2. Xử lý Sentiment (Bắt buộc phải có để OneHotEncoder chạy được)
-    if 'final_sentiment' not in df.columns:
-        df['final_sentiment'] = 'neutral'
-
-    # 3. Trám các biến NLP (Nếu người dùng không nhập lời)
-    for col in ['lyric_total_words', 'lexical_diversity', 'noun_count', 'verb_count', 'adj_count']:
-        if col not in df.columns:
-            df[col] = 0.0
-
-    # 4. Tính toán các Engineered Features bắt buộc của P1
-    duration = max(df.get('duration_sec', pd.Series([1.0])).iloc[0], 1.0)
-    tempo = df.get('tempo_bpm', pd.Series([0.0])).iloc[0]
-    beat_strength = df.get('beat_strength_mean', pd.Series([0.5])).iloc[0]
-
-    if 'words_per_second' not in df.columns:
-        df['words_per_second'] = df.get('lyric_total_words', pd.Series([0])).iloc[0] / duration
-    if 'rhythmic_impact' not in df.columns:
-        df['rhythmic_impact'] = tempo * beat_strength
-
-    # contrast_range đã có từ Librosa, nếu thiếu thì mặc định 0
-    if 'contrast_range' not in df.columns:
-        df['contrast_range'] = 0.0
-    if 'sentiment_intensity' not in df.columns:
-        df['sentiment_intensity'] = 1.0
-    if 'score_lexicon' not in df.columns:
-        df['score_lexicon'] = 0.0
-
-    return df
-
-
-# =============================================================================
-# 6. HÀM KHUNG TÍCH HỢP NGOẠI VI (PLACEHOLDER)
-# =============================================================================
 def save_uploaded_file(uploaded_file, suffix=".wav"):
     """Lưu file upload tạm thời và trả về đường dẫn để các analyzer/model có thể đọc."""
     if uploaded_file is None:
@@ -2010,8 +1744,9 @@ def _format_llm_advice_output(text):
     """Chuẩn hóa output text của LLM trước khi render markdown."""
     if not text:
         return 'Chưa có lời khuyên từ LLM.'
+    text = text.replace('`', '')
+    
     return text.strip()
-
 
 def _format_recent_history_for_llm(*, module: str, limit: int = 5) -> str:
     """
@@ -2451,229 +2186,6 @@ def generate_arrangement_advice_llm(result_bundle):
 
     # Fallback khi Gemini lỗi
     return "Hệ thống đang bận phân tích, vui lòng thử lại sau giây lát."
-
-def generate_listener_recommendation_text(user_query, top_tracks):
-    """Sinh doan chat than thien cho Top 5 bai hat, fallback neu LLM khong san sang."""
-    metadata_lines = []
-    for idx, track in enumerate(top_tracks[:5], start=1):
-        metadata_lines.append(
-            f"{idx}. Ten: {track.get('title', '')}; Nghe si: {track.get('artist', '')}; "
-            f"Ly do phu hop: do tuong dong {float(track.get('score', 0.0)):.2f}"
-        )
-    top_5_songs_metadata = '\n'.join(metadata_lines)
-    prompt = build_recommendation_generation_prompt(top_5_songs_metadata, user_query)
-    llm_text = call_gemini_engine(prompt, module='listener')
-    if llm_text:
-        return _format_llm_advice_output(llm_text)
-    return 'Mình đã chọn 5 bài phù hợp nhất theo tâm trạng và phong cách bạn đang tìm.'
-
-
-# =============================================================================
-# 7. HÀM SUY LUẬN CHO 5 BÀI TOÁN (P0 -> P4)
-# =============================================================================
-P2_STYLE_LABELS = {
-    'EXPLOSIVE': 'Bùng nổ/Sôi động',
-    'DRAMATIC': 'Kịch tính/Da diết',
-    'HEALING': 'Bình yên/Chữa lành',
-    'EMPATHETIC': 'Sâu lắng/Thấu cảm',
-    'FRESH': 'Tươi mới/Yêu đời',
-}
-
-
-def _label_from_features_for_p2(full_feats):
-    """Gán nhãn phong cách theo heuristic từ tempo + energy."""
-    tempo = float(full_feats.get('tempo_bpm', 100))
-    energy = float(full_feats.get('rms_energy', 0.05))
-
-    if tempo >= 122 and energy >= 0.09:
-        return P2_STYLE_LABELS['EXPLOSIVE']
-    if tempo >= 108 and energy < 0.07:
-        return P2_STYLE_LABELS['DRAMATIC']
-    if tempo < 88 and energy < 0.05:
-        return P2_STYLE_LABELS['HEALING']
-    if tempo < 102 and energy < 0.075:
-        return P2_STYLE_LABELS['EMPATHETIC']
-    return P2_STYLE_LABELS['FRESH']
-
-
-def _map_raw_cluster_name_to_p2_style(raw_name, full_feats):
-    """Ánh xạ tên cụm thô từ model sang bộ nhãn phong cách chuẩn P2."""
-    normalized = _normalize_text(raw_name)
-
-    keyword_map = [
-        (('upbeat', 'dance', 'energetic', 'soi dong', 'bung no'), P2_STYLE_LABELS['EXPLOSIVE']),
-        (('dramatic', 'intense', 'kich tinh', 'da diet'), P2_STYLE_LABELS['DRAMATIC']),
-        (('chill', 'acoustic', 'healing', 'ballad', 'binh yen', 'chua lanh'), P2_STYLE_LABELS['HEALING']),
-        (('emotional', 'melancholy', 'deep', 'lofi', 'lo-fi', 'sau lang', 'thau cam'), P2_STYLE_LABELS['EMPATHETIC']),
-        (('fresh', 'happy', 'bright', 'tuoi moi', 'yeu doi'), P2_STYLE_LABELS['FRESH']),
-    ]
-
-    for keywords, style_label in keyword_map:
-        if any(k in normalized for k in keywords):
-            return style_label
-
-    return _label_from_features_for_p2(full_feats)
-
-
-def predict_p0(df_input, full_feats):
-    """P0 - Xác suất hit."""
-    if pipeline_task1 is not None:
-        pred = pipeline_task1.predict(df_input)[0]
-        if hasattr(pipeline_task1, 'predict_proba'):
-            proba = pipeline_task1.predict_proba(df_input)[0]
-            hit_prob = float(proba[1] * 100 if len(proba) > 1 else proba[0] * 100)
-        else:
-            hit_prob = float(100.0 if pred == 1 else 0.0)
-        return {
-            'label': 'HIT' if int(pred) == 1 else 'NON-HIT',
-            'hit_prob': max(0.0, min(100.0, hit_prob)),
-            'source': 'model',
-        }
-
-    # Placeholder khi chưa có model thực
-    tempo = float(full_feats.get('tempo_bpm', 0))
-    energy = float(full_feats.get('rms_energy', 0))
-    score = ((tempo / 180.0) * 0.45 + min(energy * 8.0, 1.0) * 0.55) * 100
-    score = max(0.0, min(100.0, score))
-    return {
-        'label': 'HIT' if score >= 50 else 'NON-HIT',
-        'hit_prob': score,
-        'source': 'placeholder',
-    }
-
-
-def predict_p1(df_input, full_feats):
-    """P1 - Điểm phổ biến."""
-    if p1_data and isinstance(p1_data, dict) and 'pipeline' in p1_data:
-        p1_model = p1_data['pipeline']
-        score = float(p1_model.predict(df_input)[0])
-        return {
-            'popularity_score': max(0.0, min(100.0, score)),
-            'source': 'model',
-        }
-
-    tempo = float(full_feats.get('tempo_bpm', 100))
-    energy = float(full_feats.get('rms_energy', 0.05))
-    lexical_div = float(full_feats.get('lexical_diversity', 0.5))
-    score = 30 + tempo * 0.15 + energy * 90 + lexical_div * 12
-    return {
-        'popularity_score': max(0.0, min(100.0, score)),
-        'source': 'placeholder',
-    }
-
-
-def predict_p2(df_input, full_feats):
-    """P2 - Cụm phong cách."""
-    if p2_data and isinstance(p2_data, dict):
-        try:
-            numeric_cols = p2_data.get('numeric_features', [])
-            if not numeric_cols:
-                raise ValueError('Thiếu numeric_features trong p2_data')
-
-            for col in numeric_cols:
-                if col not in df_input.columns:
-                    if col.startswith('sentiment_'):
-                        df_input[col] = 1.0 if 'neutral' in col else 0.0
-                    else:
-                        df_input[col] = 0.0
-
-            x_raw = df_input[numeric_cols].values
-            x_imputed = p2_data['imputer'].transform(x_raw)
-            x_scaled = p2_data['scaler'].transform(x_imputed)
-
-            # Keep inference path consistent with training artifacts:
-            # imputer -> scaler -> pca -> clusterer (no extra runtime weighting).
-            x_pca = p2_data['pca'].transform(x_scaled)
-            cluster_id = int(p2_data['clusterer'].predict(x_pca)[0])
-
-            cluster_name_map = p2_data.get('cluster_names', {})
-            c_name = cluster_name_map.get(cluster_id)
-            if c_name is None:
-                c_name = cluster_name_map.get(str(cluster_id), f'Cụm {cluster_id}')
-            c_name = _map_raw_cluster_name_to_p2_style(c_name, full_feats)
-            return {
-                'cluster_id': cluster_id,
-                'cluster_name': c_name,
-                'source': 'model',
-            }
-        except Exception as ex:
-            logging.warning('P2 clustering inference failed, fallback to heuristic: %s', ex)
-
-    cname = _label_from_features_for_p2(full_feats)
-    return {
-        'cluster_id': -1,
-        'cluster_name': cname,
-        'source': 'placeholder',
-    }
-
-
-def predict_p3(df_input, full_feats):
-    """P3 - Cảm xúc."""
-    if p3_data and isinstance(p3_data, dict) and 'pipeline' in p3_data:
-        p3_model = p3_data['pipeline']
-        pred_sent = p3_model.predict(df_input)[0]
-        sentiment_map = {0: 'Tiêu cực', 1: 'Trung tính', 2: 'Tích cực'}
-        return {
-            'emotion_label': sentiment_map.get(int(pred_sent), 'Trung tính'),
-            'source': 'model',
-        }
-
-    energy = float(full_feats.get('rms_energy', 0))
-    label = 'Tích cực' if energy > 0.08 else 'Trung tính'
-    return {
-        'emotion_label': label,
-        'source': 'placeholder',
-    }
-
-
-def predict_p4(df_input, full_feats):
-    """P4 - Thể loại."""
-    if p4_data and isinstance(p4_data, dict) and 'pipeline' in p4_data:
-        p4_model = p4_data['pipeline']
-        pred_raw = p4_model.predict(df_input)
-        if hasattr(pred_raw, 'toarray'):
-            pred_raw = pred_raw.toarray()
-        pred_row = pred_raw[0] if len(pred_raw.shape) > 1 else pred_raw
-        genre_labels = p4_data.get('classes', ['Hip-Hop', 'Indie', 'V-Pop', 'Vinahouse'])
-        detected = [genre_labels[i] for i, val in enumerate(pred_row) if val == 1 and i < len(genre_labels)]
-        if not detected:
-            detected = ['V-Pop']
-        return {
-            'genres': detected,
-            'source': 'model',
-        }
-
-    tempo = float(full_feats.get('tempo_bpm', 100))
-    energy = float(full_feats.get('rms_energy', 0.05))
-    if tempo > 120 and energy > 0.08:
-        genres = ['Dance Pop', 'Vinahouse']
-    elif tempo < 95:
-        genres = ['Ballad', 'V-Pop']
-    else:
-        genres = ['Modern V-Pop']
-    return {
-        'genres': genres,
-        'source': 'placeholder',
-    }
-
-
-def run_parallel_models(df_input, full_feats):
-    """Chạy đồng thời 5 bài toán để rút ngắn thời gian phản hồi UI."""
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        f0 = executor.submit(predict_p0, df_input.copy(), full_feats)
-        f1 = executor.submit(predict_p1, df_input.copy(), full_feats)
-        f2 = executor.submit(predict_p2, df_input.copy(), full_feats)
-        f3 = executor.submit(predict_p3, df_input.copy(), full_feats)
-        f4 = executor.submit(predict_p4, df_input.copy(), full_feats)
-        return {
-            'p0': f0.result(),
-            'p1': f1.result(),
-            'p2': f2.result(),
-            'p3': f3.result(),
-            'p4': f4.result(),
-        }
-
-
 # =============================================================================
 # 8. SHAP ANALYSIS (P0 / P1)
 # =============================================================================
@@ -2684,354 +2196,6 @@ try:
     SHAP_AVAILABLE = True
 except Exception:
     SHAP_AVAILABLE = False
-
-
-def render_shap_analysis(df_input, full_feats):
-    """Hiển thị SHAP cho P0/P1 theo đúng pipeline và gom về đặc trưng nghiệp vụ dễ đọc."""
-    st.subheader('Bước 4 - SHAP Analysis: Minh bạch hóa quyết định')
-
-    focus_features = ['tempo_bpm', 'rms_energy', 'beat_strength_mean', 'lyric_total_words', 'lexical_diversity']
-    row = []
-    for feat in focus_features:
-        row.append(float(df_input.iloc[0][feat]) if feat in df_input.columns else float(full_feats.get(feat, 0.0)))
-
-    feature_df = pd.DataFrame([row], columns=focus_features)
-
-    def _build_demo_contrib(task_name):
-        values = np.abs(feature_df.iloc[0].values.astype(float))
-        total = float(values.sum()) if values.sum() > 0 else 1.0
-        percent = values / total * 100
-        return pd.DataFrame(
-            {
-                'feature': focus_features,
-                'contribution_percent': percent,
-                'task': task_name,
-            }
-        ).sort_values('contribution_percent', ascending=False)
-
-    def _extract_pipeline_parts(model):
-        if model is None or not hasattr(model, 'named_steps'):
-            return None, None, None, None
-
-        preprocessor = model.named_steps.get('preprocessor')
-        selector = model.named_steps.get('feature_selection')
-        estimator = model.steps[-1][1] if getattr(model, 'steps', None) else None
-
-        if preprocessor is None or estimator is None:
-            return None, None, None, None
-        return preprocessor, selector, estimator, model.steps[-1][0]
-
-    def _is_tree_estimator(estimator):
-        tree_tokens = (
-            'xgb', 'randomforest', 'extratrees', 'gradientboosting',
-            'decisiontree', 'histgradientboosting', 'lightgbm', 'catboost'
-        )
-        cls_name = estimator.__class__.__name__.lower()
-        mod_name = estimator.__class__.__module__.lower()
-        return any(tok in cls_name or tok in mod_name for tok in tree_tokens)
-
-    def _build_local_background(base_df):
-        # Tạo neighborhood nhỏ quanh mẫu hiện tại để SHAP ổn định hơn với 1 sample inference.
-        rows = [base_df.iloc[0].copy()]
-        deltas = {
-            'tempo_bpm': max(abs(float(base_df.iloc[0].get('tempo_bpm', 100.0))) * 0.08, 2.0),
-            'rms_energy': max(abs(float(base_df.iloc[0].get('rms_energy', 0.05))) * 0.08, 0.003),
-            'beat_strength_mean': max(abs(float(base_df.iloc[0].get('beat_strength_mean', 0.5))) * 0.08, 0.01),
-            'lyric_total_words': max(abs(float(base_df.iloc[0].get('lyric_total_words', 0.0))) * 0.08, 5.0),
-            'lexical_diversity': max(abs(float(base_df.iloc[0].get('lexical_diversity', 0.5))) * 0.08, 0.01),
-        }
-        for feat, delta in deltas.items():
-            if feat not in base_df.columns:
-                continue
-            plus_row = base_df.iloc[0].copy()
-            minus_row = base_df.iloc[0].copy()
-            plus_row[feat] = float(plus_row[feat]) + delta
-            minus_row[feat] = float(minus_row[feat]) - delta
-            rows.append(plus_row)
-            rows.append(minus_row)
-        return pd.DataFrame(rows).reset_index(drop=True)
-
-    def _ensure_feature_names(preprocessor, transformed_count):
-        try:
-            names = preprocessor.get_feature_names_out()
-            return [str(n) for n in names]
-        except Exception:
-            return [f'feature_{i}' for i in range(transformed_count)]
-
-    def _apply_selector_if_any(x_matrix, feature_names, selector):
-        if selector is None:
-            return x_matrix, feature_names
-
-        try:
-            x_sel = selector.transform(x_matrix)
-            if hasattr(selector, 'get_support'):
-                mask = selector.get_support()
-                if len(mask) == len(feature_names):
-                    selected_names = [name for name, keep in zip(feature_names, mask) if keep]
-                else:
-                    selected_names = [f'feature_{i}' for i in range(x_sel.shape[1])]
-            else:
-                selected_names = [f'feature_{i}' for i in range(x_sel.shape[1])]
-            return x_sel, selected_names
-        except Exception:
-            return x_matrix, feature_names
-
-    def _normalize_shap_vector(shap_values, expected_len):
-        vals = getattr(shap_values, 'values', shap_values)
-        arr = np.array(vals)
-
-        if arr.ndim == 3:
-            # Binary classifier có thể trả (n_samples, n_features, n_classes)
-            arr = arr[0, :, 1 if arr.shape[2] > 1 else 0]
-        elif arr.ndim == 2:
-            arr = arr[0]
-        elif arr.ndim == 1:
-            arr = arr
-        else:
-            arr = np.array(arr).flatten()
-
-        if arr.shape[0] != expected_len:
-            arr = arr.flatten()[:expected_len]
-            if arr.shape[0] < expected_len:
-                arr = np.pad(arr, (0, expected_len - arr.shape[0]))
-
-        return arr.astype(float)
-
-    def _aggregate_to_focus_features(shap_vals, shap_feature_names, task_name):
-        rows = []
-        for feat in focus_features:
-            feat_l = feat.lower()
-            matched_idx = [
-                idx for idx, name in enumerate(shap_feature_names)
-                if feat_l in str(name).lower()
-            ]
-            if not matched_idx:
-                signed = 0.0
-                abs_val = 0.0
-            else:
-                sub = np.array([shap_vals[i] for i in matched_idx], dtype=float)
-                signed = float(sub.sum())
-                abs_val = float(np.abs(sub).sum())
-
-            rows.append(
-                {
-                    'feature': feat,
-                    'shap_value': signed,
-                    'abs_shap': abs_val,
-                    'task': task_name,
-                }
-            )
-
-        df_rows = pd.DataFrame(rows)
-        total = float(df_rows['abs_shap'].sum()) if float(df_rows['abs_shap'].sum()) > 0 else 1.0
-        df_rows['contribution_percent'] = df_rows['abs_shap'] / total * 100.0
-        return df_rows[['feature', 'shap_value', 'contribution_percent', 'task']].sort_values(
-            'contribution_percent', ascending=False
-        )
-
-    def _predict_scalar(model, sample_df, use_proba):
-        if use_proba and hasattr(model, 'predict_proba'):
-            return float(model.predict_proba(sample_df)[:, 1][0])
-        pred = model.predict(sample_df)
-        return float(pred[0]) if np.ndim(pred) > 0 else float(pred)
-
-    def _build_sensitivity_contrib(task_name, model, use_proba):
-        base_df = df_input.iloc[[0]].copy()
-        base_score = _predict_scalar(model, base_df, use_proba)
-
-        min_steps = {
-            'tempo_bpm': 3.0,
-            'rms_energy': 0.005,
-            'beat_strength_mean': 0.01,
-            'lyric_total_words': 5.0,
-            'lexical_diversity': 0.01,
-        }
-
-        impacts = []
-        for feat in focus_features:
-            if feat not in base_df.columns:
-                impacts.append(0.0)
-                continue
-
-            try:
-                base_val = float(base_df.iloc[0][feat])
-            except Exception:
-                impacts.append(0.0)
-                continue
-
-            step = max(abs(base_val) * 0.1, min_steps.get(feat, 0.01))
-
-            plus_df = base_df.copy()
-            minus_df = base_df.copy()
-            plus_df.loc[plus_df.index[0], feat] = base_val + step
-            minus_df.loc[minus_df.index[0], feat] = base_val - step
-
-            try:
-                plus_score = _predict_scalar(model, plus_df, use_proba)
-                minus_score = _predict_scalar(model, minus_df, use_proba)
-                impact = abs(plus_score - base_score) + abs(minus_score - base_score)
-            except Exception:
-                impact = 0.0
-
-            impacts.append(float(impact))
-
-        impacts = np.array(impacts, dtype=float)
-        total = float(impacts.sum()) if impacts.sum() > 0 else 1.0
-        percent = impacts / total * 100
-
-        return pd.DataFrame(
-            {
-                'feature': focus_features,
-                'shap_value': impacts,
-                'contribution_percent': percent,
-                'task': task_name,
-            }
-        ).sort_values('contribution_percent', ascending=False)
-
-    def _plot_contrib_dark(df_contrib, title):
-        fig, ax = plt.subplots(figsize=(7, 3.6))
-        fig.patch.set_facecolor('#171e44')
-        ax.set_facecolor('#111733')
-        ax.barh(
-            df_contrib['feature'][::-1],
-            df_contrib['contribution_percent'][::-1],
-            color='#7b8ef0',
-            alpha=0.92,
-        )
-        ax.set_xlabel('Contribution (%)', color='#d7e0ff')
-        ax.set_title(f'Top feature contribution - {title}', color='#eef2ff')
-        ax.tick_params(axis='x', colors='#c8d3ff')
-        ax.tick_params(axis='y', colors='#dbe4ff')
-        for spine in ax.spines.values():
-            spine.set_color('#3b477f')
-        ax.grid(axis='x', color='#3a456f', alpha=0.35)
-        return fig
-
-    def _build_true_shap_contrib(task_name, model, use_proba):
-        preprocessor, selector, estimator, _ = _extract_pipeline_parts(model)
-        if preprocessor is None or estimator is None:
-            raise ValueError('Pipeline không có preprocessor/estimator phù hợp để tính SHAP.')
-
-        base_df = df_input.iloc[[0]].copy()
-        bg_df = _build_local_background(base_df)
-
-        x_bg = preprocessor.transform(bg_df)
-        x_one = preprocessor.transform(base_df)
-
-        if hasattr(x_bg, 'toarray'):
-            x_bg = x_bg.toarray()
-        if hasattr(x_one, 'toarray'):
-            x_one = x_one.toarray()
-
-        feature_names = _ensure_feature_names(preprocessor, int(x_bg.shape[1]))
-        x_bg, feature_names = _apply_selector_if_any(x_bg, feature_names, selector)
-        x_one, _ = _apply_selector_if_any(x_one, feature_names, selector)
-
-        if _is_tree_estimator(estimator):
-            if use_proba and hasattr(estimator, 'predict_proba'):
-                explainer = shap.TreeExplainer(estimator, data=x_bg, model_output='probability')
-            else:
-                explainer = shap.TreeExplainer(estimator, data=x_bg)
-            shap_values = explainer(x_one)
-        else:
-            # Fallback generic explainer cho estimator không phải tree.
-            if use_proba and hasattr(estimator, 'predict_proba'):
-                predict_fn = lambda x: estimator.predict_proba(x)[:, 1]
-            else:
-                predict_fn = estimator.predict
-            explainer = shap.Explainer(predict_fn, x_bg, feature_names=feature_names)
-            shap_values = explainer(x_one)
-
-        shap_vec = _normalize_shap_vector(shap_values, expected_len=len(feature_names))
-        df_contrib = _aggregate_to_focus_features(shap_vec, feature_names, task_name)
-        return df_contrib
-
-    p1_model = p1_data.get('pipeline') if isinstance(p1_data, dict) and 'pipeline' in p1_data else None
-    model_specs = [
-        ('P0 - Hit Probability', pipeline_task1, True),
-        ('P1 - Popularity Score', p1_model, False),
-    ]
-
-    contrib_blocks = []
-
-    if SHAP_AVAILABLE:
-        for title, model, use_proba in model_specs:
-            if model is None:
-                contrib_blocks.append((title, _build_demo_contrib(title), False, 'model-missing', 'Model chưa được load'))
-                continue
-            try:
-                df_contrib = _build_true_shap_contrib(title, model, use_proba)
-                if float(np.abs(df_contrib['shap_value']).sum()) <= 1e-12:
-                    sens_df = _build_sensitivity_contrib(title, model, use_proba)
-                    contrib_blocks.append((title, sens_df, False, 'shap-zero', 'SHAP trả toàn 0 cho mẫu hiện tại.'))
-                else:
-                    contrib_blocks.append((title, df_contrib, True, 'ok', ''))
-            except Exception as ex:
-                err_msg = str(ex).strip() or ex.__class__.__name__
-                logging.warning('SHAP failed for %s: %s', title, err_msg)
-                contrib_blocks.append((title, _build_sensitivity_contrib(title, model, use_proba), False, 'shap-failed', err_msg))
-    else:
-        contrib_blocks = [
-            ('P0 - Hit Probability', _build_demo_contrib('P0 - Hit Probability'), False, 'shap-missing', 'Thư viện SHAP chưa cài hoặc import lỗi'),
-            ('P1 - Popularity Score', _build_demo_contrib('P1 - Popularity Score'), False, 'shap-missing', 'Thư viện SHAP chưa cài hoặc import lỗi'),
-        ]
-
-    def _df_to_prompt_records(df_contrib):
-        records = []
-        if df_contrib is None or df_contrib.empty:
-            return records
-        for row in df_contrib.to_dict(orient='records'):
-            records.append(
-                {
-                    'feature': str(row.get('feature', '')),
-                    'shap_value': float(row.get('shap_value', 0.0)),
-                    'contribution_percent': float(row.get('contribution_percent', 0.0)),
-                    'task': str(row.get('task', '')),
-                }
-            )
-        return records
-
-    shap_payload = {
-        'focus_features': list(focus_features),
-        'tasks': {},
-    }
-
-    for title, df_contrib, is_real_shap, status, detail in contrib_blocks:
-        key = title.split('-')[0].strip().lower()  # p0 / p1
-        shap_payload['tasks'][key] = {
-            'title': title,
-            'status': status,
-            'detail': detail,
-            'is_real_shap': bool(is_real_shap),
-            'contributions': _df_to_prompt_records(df_contrib),
-        }
-
-        st.markdown(f'#### {title}')
-        c_shap1, c_shap2 = st.columns([3, 2])
-        with c_shap1:
-            if is_real_shap:
-                fig = _plot_contrib_dark(df_contrib, title)
-                st.pyplot(fig, clear_figure=True)
-            else:
-                fig = _plot_contrib_dark(df_contrib, title)
-                st.pyplot(fig, clear_figure=True)
-                if status == 'model-missing':
-                    st.caption('Đang hiển thị placeholder vì model chưa được load.')
-                elif status == 'shap-failed':
-                    st.caption('SHAP lỗi ở model hiện tại, đang hiển thị sensitivity contribution.')
-                    if detail:
-                        st.caption(f'Chi tiết lỗi SHAP: {detail}')
-                elif status == 'shap-zero':
-                    st.caption('SHAP cho toàn bộ giá trị 0, đang hiển thị sensitivity contribution để dễ đọc kết quả.')
-                    if detail:
-                        st.caption(f'Chi tiết lỗi SHAP: {detail}')
-                else:
-                    st.caption('Thư viện SHAP chưa khả dụng, đang hiển thị biểu đồ placeholder.')
-        with c_shap2:
-            st.dataframe(df_contrib, use_container_width=True)
-
-    return shap_payload
-
 
 def render_shap_payload_cached(shap_payload: dict | None):
     """Render SHAP payload đã cache (không tính SHAP lại)."""
@@ -3685,8 +2849,8 @@ for message in (st.session_state.main_messages or []):
                 
             if message.get('analysis_bundle'):
                 bundle = message['analysis_bundle']
-                render_dashboard(bundle)
-                render_shap_payload_cached(bundle.get('shap_values'))
+                # render_dashboard(bundle)
+                # render_shap_payload_cached(bundle.get('shap_values'))
 
 # --- 10.4 COMPOSER (Đưa nút đính kèm vào trong, giữ nguyên logic cũ) ---
 if "chat_input_key" not in st.session_state:
@@ -3769,9 +2933,6 @@ if st.session_state.get('processing_prompt'):
             # ---------------------------------------------------------
             with st.spinner("⏳ Đang phân tích yêu cầu..."):
                 start_intent = time.perf_counter()
-                
-                # Lấy dữ liệu cần thiết
-                known_artists = _load_artist_list()
                 history_context = st.session_state.get('main_messages', [])[-3:]
                 
                 if analyze_user_intent is None:
@@ -3779,11 +2940,12 @@ if st.session_state.get('processing_prompt'):
                     st.stop()
                     
                 # GỌI HÀM: Chú ý truyền đúng tên biến
+                loaded_artists = _load_artist_list()
                 intent_data = analyze_user_intent(
                     user_input=str(p_prompt), 
                     history_context=history_context, 
                     has_file=p_has_file,
-                    known_artists=known_artists
+                    known_artists=loaded_artists
                 )
                 
                 action = intent_data.get("action", "GENERAL_CHAT")
@@ -3791,8 +2953,7 @@ if st.session_state.get('processing_prompt'):
 
                 # Middleware: UI Guardrails (Chặn lỗi nếu không up file)
                 if action in ["ANALYZE_READY", "SEARCH_AUDIO"] and not p_has_file:
-                    action = "MISSING_FILE"
-                    params = {}
+                    action = "UI_BLOCKED"
 
                 intent_ms = (time.perf_counter() - start_intent) * 1000
                 start_backend = time.perf_counter()
@@ -3948,17 +3109,13 @@ if st.session_state.get('processing_prompt'):
 
 
             # --- LUỒNG 3: GIAO TIẾP CHUNG & KIẾN THỨC (ĐÃ GOM NHÓM) ---
-            elif action == "MISSING_FILE": # (Giữ lại nhánh này vì nó xử lý lỗi UI quên up file)
-                st.warning("Vui lòng đính kèm tệp âm thanh để hệ thống có thể thực hiện phân tích.")
-                intro_text = "Bạn quên đính kèm file rồi kìa!"
-                
             elif action == "GENERAL_CHAT":
                 user_q = str(p_prompt or '').strip()
                 with st.spinner("⏳ Đang suy nghĩ..."):
                     # System Prompt động xử lý cả 4 trường hợp (Greeting, Clarify, Out of Scope, Knowledge)
                     system_prefix = (
                         "Bạn là VMusic AI, chuyên gia âm nhạc V-Pop. Hãy linh hoạt xử lý câu hỏi sau:\n"
-                        "1. Nếu là lời chào: Hãy chào lại ngắn gọn, thân thiện.\n"
+                        "1. Nếu người dùng chỉ gửi lời chào (chào, hi, alo, ê...): Hãy chào lại thật tự nhiên, ngắn gọn (dưới 15 chữ), xưng 'mình' gọi 'bạn' và hỏi xem họ muốn nghe nhạc gì. TUYỆT ĐỐI KHÔNG lặp đi lặp lại một mẫu câu rập khuôn.\n"
                         "2. Nếu là kiến thức âm nhạc/nhạc lý: Trả lời chính xác, ưu tiên 4-6 câu.\n"
                         "3. Nếu là câu hỏi ngoài lề (nấu ăn, toán học...): Từ chối khéo léo và nhắc họ bạn chỉ hỗ trợ âm nhạc.\n"
                         "4. Nếu câu hỏi mập mờ, vô nghĩa: Hỏi lại xem họ muốn tìm nhạc hay phân tích bài hát.\n"
@@ -3969,6 +3126,10 @@ if st.session_state.get('processing_prompt'):
                     
                     if not intro_text:
                         intro_text = "Mình chưa nghe rõ ý bạn lắm, bạn có thể nói lại hoặc thêm chi tiết (tên bài/ca sĩ) để mình hỗ trợ nhé!"
+            # --- LUỒNG 4: CHẶN UI (GIAO DIỆN ĐÃ XỬ LÝ TRƯỚC) ---
+            elif action == "UI_BLOCKED":
+                intro_text = "Bạn quên đính kèm file âm thanh rồi! Hãy tải file lên ở khung chat để mình xử lý nhé."
+                result = {'path': ["Level 0: UI Guardrail (Blocked)"]}
             # =========================================================
             # PHẦN 3: HIỂN THỊ LÊN MÀN HÌNH (THOÁT KHỎI TẤT CẢ SPINNER)
             # =========================================================
@@ -4062,15 +3223,10 @@ if st.session_state.get('processing_prompt'):
         "num_tracks": len(top_track_ids),
     }
     st.markdown(f'<div id="test-metadata" style="display:none;">{json.dumps(hidden_payload)}</div>', unsafe_allow_html=True)
-
-
-
     # --- [QUAN TRỌNG] CHỈ DỌN DẸP Ở CUỐI CÙNG ---
     st.session_state.global_audio_bytes = None
     st.session_state.global_audio_name = None
     st.session_state.global_lyric_text = None
     st.session_state.global_lyric_name = None
     st.session_state.chat_input_key += 1 # Reset thanh chat
-
-    # Ensure the view stays at the newest message after rerun.
     _autoscroll_to_latest_chat()

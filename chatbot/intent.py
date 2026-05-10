@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 load_env()
 
 _DEFAULT_INTENT_MODEL_CANDIDATES: list[str] = ['gemini-2.0-flash']
-ALLOWED_ACTIONS: set[str] = {"SEARCH_TRACK", "SEARCH_AUDIO", "DISCOVER_MUSIC", "ANALYZE_READY", "MISSING_FILE", "GENERAL_CHAT"}
+ALLOWED_ACTIONS: set[str] = {"SEARCH_TRACK", "SEARCH_AUDIO", "DISCOVER_MUSIC", "ANALYZE_READY", "GENERAL_CHAT"}
 _GEMINI_KEY_COOLDOWN_UNTIL: dict[str, float] = {}
 
 class IntentParams(BaseModel):
@@ -69,10 +69,14 @@ def _looks_like_quota_error(err: Exception) -> bool:
     msg = str(err).lower()
     return any(k in msg for k in ["resource_exhausted", "quota", "429", "rate limit"])
 
-def resolve_coreference(user_input: str, history_context: list) -> str:
-    """Dịch đại từ (ví dụ: anh ấy, bài này) dựa trên ngữ cảnh lịch sử."""
+def resolve_coreference(user_input: str, history_context: list, has_file: bool = False) -> str:
+    import re
+    lower_input = user_input.lower().strip()
+    if has_file:
+        return user_input
+    if re.search(r'\b(là bài gì|bài gì|nhạc gì|tên gì|nhận diện|shazam|của ai|ai hát)\b', lower_input):
+        return user_input
     
-    # Bê lại ĐỦ 100% list cũ của bạn + thêm "bài này", "bai nay"
     pronouns_list = [
         'anh ấy', 'anh ay', 'cô ấy', 'co ay', 'người đó', 'nguoi do', 
         'ca sĩ đó', 'ca si do', 'chú ấy', 'chu ay', 'nhóm đó', 'nhom do', 
@@ -81,18 +85,26 @@ def resolve_coreference(user_input: str, history_context: list) -> str:
     ]
     lower_input = user_input.lower().strip()
     
-    # Bắt trúng nếu trong câu có đại từ HOẶC user chỉ gõ đúng 1 từ (ví dụ: "ổng")
-    if not any(lower_input.startswith(p + " ") or p in lower_input or lower_input == p for p in pronouns_list):
+    # --- SỬA TẠI ĐÂY: Dùng Regex \b để bắt chính xác nguyên từ ---
+    # pattern này sẽ đảm bảo 'bả' không khớp với 'bản', 'chả' không khớp với 'chẳng'
+    pattern = r'\b(' + '|'.join(re.escape(p) for p in pronouns_list) + r')\b'
+    
+    if not re.search(pattern, lower_input):
         return user_input
+    # -----------------------------------------------------------
 
-    # Nếu có đại từ, lục lại lịch sử RAM
+    # Nếu có đại từ thực sự, lục lại lịch sử RAM
     for msg in reversed(history_context):
         if msg.get('role') == 'assistant' and msg.get('track_previews'):
             # Lấy nghệ sĩ từ bài hát được recommend gần nhất
             last_artist = msg['track_previews'][0].get('artist')
             if last_artist:
+                # Kiểm tra thêm: Nếu trong câu user gõ đã có tên nghệ sĩ khác thì không đè vào
+                # (Tránh trường hợp: "Tìm nhạc Low G cho bả" -> bị biến thành Low G của Low G)
+                if last_artist.lower() in lower_input:
+                    return user_input
+                
                 print(f"🔄 [RAM CACHE] Dịch đại từ trong: '{user_input}' -> '{last_artist}'")
-                # Gắn thêm chữ " của " vào đuôi để kích hoạt cờ is_strong_artist ở Regex bên dưới
                 return user_input + f" của {last_artist}"
                 
     return user_input
@@ -116,6 +128,7 @@ def call_gemini_intent_api(user_input: str, has_file: bool) -> dict | None:
        - Thuộc tính nhạc lý: `attributes` (VD: "nhịp 120 bpm", "nhạc nhanh", "năng lượng thấp", "vừa phải").
        - Top hit / trending: `popularity_flag=true` (có thể kèm `artist`, `genre`).
        - Mood/Genre/Artist (một hoặc nhiều tiêu chí): `mood`, `genre`, `artist`. mood: Trích xuất cảm giác/mục đích (VD: "để ngủ" -> "chill", "buồn").
+       - Nếu người dùng yêu cầu phủ định (VD: "Đừng mở nhạc buồn, đổi bài vui đi"), hãy HIỂU Ý HỌ VÀ BỎ QUA yếu tố phủ định ("buồn"), chỉ trích xuất yếu tố mong muốn ("vui") vào biến `mood`. Tuyệt đối không chọn GENERAL_CHAT cho các câu đổi nhạc.
     4. ANALYZE_READY: Phân tích file audio để dự đoán Hit/Viral.
        - LLM KHÔNG cần và KHÔNG được đoán trạng thái file.
        - Nếu user bảo "phân tích bài này", chọn action này.
@@ -162,11 +175,30 @@ def call_gemini_intent_api(user_input: str, has_file: bool) -> dict | None:
 # ====================================================================
 def analyze_user_intent(user_input: str, history_context: list, has_file: bool = False, known_artists: list = None) -> dict:
     if known_artists is None: known_artists = []
+    import re
+    import unicodedata
+    user_input = re.sub(r'["\'“”‘’]', '', user_input)
+    user_input = re.sub(r'(?i)\b(\d+|mười|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|chục|trăm)\s*k\b', r'\1 ngàn', user_input)
+    # --- [LÁ CHẮN MỚI]: Bảo vệ nghệ sĩ có 1 chữ cái đứng đầu khỏi bị dịch thành Teencode ---
+    user_input = re.sub(r'(?i)\b(b)\s+(ray)\b', r'bray', user_input)
+    user_input = re.sub(r'(?i)\b(a)\s+(mee)\b', r'amee', user_input)
+    user_input = re.sub(r'(?i)\b(g)\s+(ducky)\b', r'gducky', user_input)
+    user_input = re.sub(r'(?i)\b(t)\s+(linh)\b', r'tlinh', user_input)
+    user_input = re.sub(r'(?i)\b(k)\s+(icm)\b', r'kicm', user_input)
+    # -----------------------------------------------------------------------------------
+
     user_input = normalize_teencode(user_input)
     resolved_input = resolve_coreference(user_input, history_context)
     lower_prompt = resolved_input.lower()
     prompt_norm = normalize_text_nfd_strip_accents(resolved_input)
 
+    artist_val = ""
+    mood_val = ""
+    genre_val = ""
+    found_moods = []
+    found_genres = []
+    active_criteria = []
+    is_strong_artist = False 
     intent_data = {"action": "GENERAL_CHAT", "params": _empty_params(), "thought": "", "method": "Rule"}
 
     # HÀM _verify_artist CHÍNH XÁC NHƯ BẢN CŨ CỦA BẠN
@@ -177,7 +209,9 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             'idol', 'thần tượng', 'than tuong', 'diva', 'rapper', 'nhóm nhạc', 'nhom nhac',
             'ban nhạc', 'ban nhac', 'ông hoàng', 'ong hoang', 'nữ hoàng', 'nu hoang',
             'nhạc sĩ', 'nhac si', 'đội', 'team',
-            'bản mp3', 'ban mp3', 'mp3', 'audio', 'official', 'lyrics', 'video', 'bản'
+            'bản mp3', 'ban mp3', 'mp3', 'audio', 'official', 'lyrics', 'video', 'bản',
+            'cực gắt', 'cuc gat', 'cực mạnh', 'cuc manh', 'cực', 'cuc', 'gắt', 'gat', 
+            'cháy', 'chay', 'siêu', 'sieu', 'rất', 'rat', 'quá', 'lắm', 'lam'
         ]
         temp_name = a_name.lower().strip()
         for title in titles_to_strip:
@@ -191,8 +225,20 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             'nay', 'này', 'đó', 'kia', 'vậy', 'vừa', 'vừa phải', 'vua', 'vua phai',
             'năng lượng', 'nang luong', 'tempo', 'nhịp', 'nhip', 'luong',
             'tầm', 'khoảng', 'mức', 'nhiều', 'ít', 'chậm', 'nhanh', 'mạnh', 'nhẹ', 'uy luc', 'luc', 'lực',
-            'cao', 'thấp', 'thap', 'vừa', 'nhiều'
+            'cao', 'thấp', 'thap', 'vừa', 'nhiều', 'style',
+            'cực kỳ', 'cuc ky', 'cực kì', 'cuc ki', 'rất', 'rat', 'siêu', 'sieu', 
+            'quá', 'hơi', 'hoi', 'khá', 'kha', 'nhất', 'nhat', 'nhì', 'nhi', 'đỉnh', 'dinh', 'đám', 'dam', 'lắm', 'lam', 'quá', 'qua',
+            'có', 'co', 'nghe', 'nhạc', 'nhac', 'bài', 'bai', 'và', 'va', 'với', 'voi', 
+            'ổn định', 'on dinh', 'tâm hồn', 'tam hon',
+            'thật', 'cạn', 'thật cạn',
+            'đang', 'dang', 'thịnh hành', 'thinh hanh', 'hot', 'top', 'viral', 'trending',
+            'em', 'anh', 'tôi', 'toi', 'mình', 'minh', 'bạn', 'ban', 'nó', 'no', 'họ', 'ho',
+            'hiện tại', 'hien tai', 'giống', 'tựa', 'kiểu', 'tương tự', 'như', 'giong', 'tua', 'kieu', 'tuong tu',
+            'ngày hôm qua', 'ngay hom qua', 'quá khứ', 'qua khu', 'tương lai', 'tuong lai'
+            'bot', 'ad', 'admin', 'chatbot', 'ai', 'vmusic'
         }
+        no_accent_forbidden = {normalize_text_nfd_strip_accents(w) for w in forbidden_words}
+        forbidden_words.update(no_accent_forbidden)
         if temp_name in forbidden_words: return ""
 
         a_norm = normalize_text_nfd_strip_accents(temp_name)
@@ -209,6 +255,23 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
         contains_match = ""
         contains_score = 9999
         
+        # ==========================================
+        # QUÉT VÒNG 1: KHỚP ĐÍCH DANH 100% 
+        # ==========================================
+        for db_a in known_artists:
+            db_a_norm = normalize_text_nfd_strip_accents(db_a)
+            db_a_norm = re.sub(r'[.?!,\-&_()\[\]]', '', db_a_norm).strip()
+            
+            if a_norm == db_a_norm: 
+                return db_a # Tìm thấy người giống hệt thì thoát luôn!
+        # ==========================================
+        # QUÉT VÒNG 2: KHỚP DÍNH CHỮ & NẰM TRONG (Chỉ chạy khi Vòng 1 trượt)
+        # ==========================================
+        prefix_match = ""
+        prefix_score = 0
+        contains_match = ""
+        contains_score = 9999
+
         for db_a in known_artists:
             db_a_norm = normalize_text_nfd_strip_accents(db_a)
             db_a_norm = re.sub(r'[.?!,\-&_()\[\]]', '', db_a_norm).strip()
@@ -216,28 +279,26 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
 
             db_a_nospace = db_a_norm.replace(" ", "")
 
-            # A. KHỚP CHÍNH XÁC 100% -> Chốt đơn ngay lập tức! (Bảo vệ ca sĩ "Vũ")
-            if a_norm == db_a_norm: return db_a
-            # B. [MỚI]: KHỚP DÍNH CHỮ (Vd: "sontung" khớp "Sơn Tùng M-TP")
+            # B. KHỚP DÍNH CHỮ
             if a_nospace and db_a_nospace:
                 if a_nospace in db_a_nospace and len(a_nospace) >= len(db_a_nospace) * 0.6: return db_a
                 elif db_a_nospace in a_nospace and len(db_a_nospace) >= len(a_nospace) * 0.6: return db_a
 
-            # C. NGHỆ SĨ NẰM ĐẦU CÂU (Vd: gõ "Sơn Tùng m-tp remix" -> Bắt "Sơn Tùng M-TP")
-            # Chọn tên DB DÀI NHẤT để tránh lấy "Sơn" thay vì "Sơn Tùng"
+            # C. NGHỆ SĨ NẰM ĐẦU CÂU
             if a_norm.startswith(db_a_norm + " "):
                 if len(db_a_norm) > prefix_score:
                     prefix_score = len(db_a_norm)
                     prefix_match = db_a
-            # D. NGHỆ DANH BỊ KẸP GIỮA (Vd: gõ "MCK" -> Bắt "RPT MCK")
+                    
+            # D. NGHỆ DANH BỊ KẸP GIỮA
             elif f" {a_norm} " in f" {db_a_norm} ":
                 if len(db_a_norm) < contains_score:
                     contains_score = len(db_a_norm)
                     contains_match = db_a
-
+                    
         if prefix_match: return prefix_match
         if contains_match: return contains_match
-        
+
         # QUÉT VÒNG 2: XỬ LÝ LỖI TYPO
         best_match = ""
         best_score = 0.0 
@@ -251,6 +312,9 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             db_words = db_a_norm.split()
 
             # Tối ưu: Bỏ qua sớm nếu độ dài chênh lệch quá vô lý (lớn hơn 40% độ dài tên gốc)
+            if len(db_nospace) <= 3 and abs(len(a_nospace) - len(db_nospace)) >= 1:
+                continue
+
             if abs(len(a_nospace) - len(db_nospace)) > max(3, len(db_nospace) * 0.4):
                 continue
 
@@ -265,13 +329,20 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             db_sort = " ".join(sorted(db_words))
             ratio_sort = difflib.SequenceMatcher(None, a_sort, db_sort).ratio()
             
-            # Lấy điểm cao nhất trong 3 chiến lược
-            score = max(ratio_nospace, ratio_norm, ratio_sort)
+            # [MỚI] Chiến lược 4: Fuzzy Prefix (Dành cho nghệ danh dài có hậu tố như Sơn Tùng M-TP)
+            ratio_prefix = 0.0
+            if len(db_nospace) > len(a_nospace):
+                # Cắt phần đầu của tên chuẩn sao cho dài tương đương tên user gõ (chỉ cho phép sai số 1 ký tự)
+                prefix_db = db_nospace[:len(a_nospace) + 1]
+                ratio_prefix = difflib.SequenceMatcher(None, a_nospace, prefix_db).ratio()
+
+            # Lấy điểm cao nhất trong 4 chiến lược
+            score = max(ratio_nospace, ratio_norm, ratio_sort, ratio_prefix)
             
             # NGƯỠNG ĐỘNG (Dynamic Threshold):
             # - Tên ngắn (<= 4 ký tự) rất dễ nhận vơ (VD: "Vũ" dễ nhầm thành "Vy"), cần ngưỡng cao
             # - Tên dài (VD: "seachains" - 9 ký tự) cho phép sai số nhiều hơn.
-            threshold = 0.85 if len(a_nospace) <= 4 else 0.75
+            threshold = 0.92 if len(a_nospace) <= 4 else 0.75
             
             if score >= threshold and score > best_score:
                 best_score = score
@@ -289,49 +360,45 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     if re.search(r'\b(?:bài\s+nào|bài\s+gì|nhạc\s+gì|bài\s+chi|nhạc\s+nào)\b', lower_prompt):
         quick_match_name = None
     else:
-        quick_match_name = re.match(r'^(?:(?:tìm|tim|mở|mo|bật|bat|nghe|phát|phat|cho(?: tôi)? nghe)\s+)?(?:những\s+)?(?:bài hát|bai hat|bài|bai|ca khúc|ca khuc)\s+(.+)', lower_prompt)
+        quick_match_name = re.match(r'^(?:(?:tìm|tim|mở|mo|mơ|bật|bat|nghe|phát|phat|gợi ý|goi y)(?:\s+(?:cho|giúp|giup|mình|minh|tôi|toi|em|anh|chị|chi|các|cac|vài|vai|một|mot|những|nhung))*\s+|(?:cho(?:\s+(?:tôi|toi|mình|minh|em|anh))?\s+nghe)\s+)?(?:bài hát|bai hat|bài|bai|ca khúc|ca khuc|bản nhạc|ban nhac|đoạn nhạc|doan nhac|nhạc|nhac|playlist)\s+(.+)', lower_prompt)
     
-    quick_match_lyric = re.search(r'(?:có\s+|co\s+)?(?:lời|loi|câu|cau|đoạn|doan|chữ|chu|lyrics?)\s+(?:(?:bài\s+hát|bai hat|hát|hat|nhạc|nhac)\s+)?(?:là\s+|như\s+)?(.+)', lower_prompt)
-    
+    # [NÂNG CẤP] Bắt mọi biến thể tìm lời: "có bài có câu mà", "tìm bài có câu hát là", "có đoạn lyric như"...
+    quick_match_lyric = re.search(r'(?:tìm\s+|tim\s+|cho\s+hỏi\s+)?(?:có\s+|co\s+)?(?:bài\s+|bai\s+)?(?:có\s+|co\s+)?(?:lời|loi|câu|cau|đoạn|doan|chữ|chu|lyrics?)\s+(?:(?:bài\s+hát|bai hat|hát|hat|nhạc|nhac)\s+)?(?:là\s+|như\s+|mà\s+|hát\s+là\s+)?(.+)', lower_prompt)    
     is_analyze = has_file and bool(re.search(r'(phân tích|demo|đánh giá|chấm điểm|hit|viral)', lower_prompt))
     is_audio = has_file and (bool(re.search(r'(bài này|giai điệu|nhận diện|đây là|bài gì|tìm)', lower_prompt)) or len(lower_prompt.split()) <= 8)
 
-    found_moods = list(dict.fromkeys([MOOD_MAP[k] for k in MOOD_MAP if re.search(rf'\b{k}\b', lower_prompt)]))
-    found_genres = list(dict.fromkeys([g for g in GENRE_KEYWORDS if re.search(rf'\b{g}\b', lower_prompt)]))
     found_pops = [p for p in POPULARITY_KEYWORDS if p in prompt_norm]
     
+    clean_attr_prompt = re.sub(r'\b(nhe|nha|nhi|di|nua|thoi|ha|luon)\b', '', prompt_norm)
     found_attrs = []
     sorted_keywords = sorted(ATTRIBUTE_KEYWORDS, key=len, reverse=True)
-    temp_prompt = prompt_norm
+    temp_prompt = clean_attr_prompt
+
+    art_norm = normalize_text_nfd_strip_accents(artist_val if artist_val else "")
+
     for k in sorted_keywords:
         if re.search(rf'\b{k}\b', temp_prompt):
+            # CHỐT CHẶN: Nếu từ khóa (manh) nằm trong tên ca sĩ không dấu (phan manh quynh) -> BỎ QUA
+            if art_norm and k in art_norm:
+                continue
             found_attrs.append(k)
             temp_prompt = temp_prompt.replace(k, "")
-    found_attrs = [k for k in ATTRIBUTE_KEYWORDS if re.search(rf'\b{k}\b', prompt_norm)]
-
-    safe_no_bound = ['quẩy', 'party', 'chill', 'tết', 'xuân', 'lofi']
-    for kw in safe_no_bound:
-        if kw in lower_prompt:
-            if kw in MOOD_MAP and MOOD_MAP[kw] not in found_moods: found_moods.append(MOOD_MAP[kw])
-            if kw in GENRE_KEYWORDS and kw not in found_genres: found_genres.append(kw)
 
     is_negated_seed = bool(re.search(r'\b(không|chẳng|chả|đừng)\s+(giống|tựa|kiểu|như|style|tương tự)\b', lower_prompt))
     match_seed = None
     if not is_negated_seed:
         match_seed = re.search(r'\b(?:giống|tựa|style|kiểu|tương tự)+(?:\s+(?:như|giống|tựa|với))*\s+(?:bài hát|bài|track|ca khúc)?\s*(.+)', lower_prompt)
     
-    artist_val = ""
-    is_strong_artist = False 
     
     match_cua = re.search(
-        r"\b(?:của|of|do|ca sĩ|ca si|nghệ sĩ|nghe si)\s+(.*?)(?=\s+(?:có|co|với|nhạc|bài|đoạn|lời|câu|chữ|thể\s+loại|the\s+loai|vibe|chủ\s+đề|chu\s+de|topic|về|ve|đang|dang|hot|top|hit|bxh|viral|trending|đình|dinh|làm|lam|nào|nao)\b|\s*$|[\.\?!,])",
+        r"\b(?:của|cua|of|do|ca\s+sĩ|ca\s+si|ca\s+sỹ|ca\s+sy|nghệ\s+sĩ|nghe\s+si|nghệ\s+sỹ|nghe\s+sy)\s+(.*?)(?=\s+(?:cực|cuc|gắt|gat|cháy|chay|siêu|sieu|rất|rat|buồn|buon|vui|có|co|hát|hat|ra|mới|moi|với|nhạc|bài|đoạn|lời|câu|chữ|thể\s+loại|the\s+loai|vibe|chủ\s+đề|chu\s+de|topic|về|ve|đang|dang|hot|top|hit|bxh|viral|trending|đình|dinh|làm|lam|nào|nao)\b|\s*$|[\.\?!,])",
         lower_prompt, 
     )
     if match_cua:
         artist_val = match_cua.group(1).strip()
         is_strong_artist = True
     else:
-        match_nhac = re.search(r'\b(?:nhạc|playlist|nghe)\s+(?!bài|ca khúc)(.+)', lower_prompt)
+        match_nhac = re.search(r'\b(?:nhạc|playlist|nghe)\s+(?!bài|ca khúc|giống|tựa|kiểu|tương tự|style)(.+)', lower_prompt)
         if match_nhac:
             cand = match_nhac.group(1).strip()
             
@@ -350,8 +417,14 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
                 
             artist_val = re.sub(r'\s+', ' ', cand_norm).strip()
     
-    artist_val = re.sub(r'\s+(cho\s+tôi|nhé|đi|nha|với|luôn|chứ|hiện\s+nay|nhỉ|gì\s+nhiều\s+nhất|đang\s+thịnh\s+hành|quốc\s+dân|cực\s+mạnh|tâm\s+hồn|nhạc\s+trẻ|mới\s+nhất|hay\s+nhất).*$', '', artist_val, flags=re.IGNORECASE).strip()
-    junk_list = ['nhưng', 'và', 'thì', 'mà', 'là', 'rằng', 'tuy', 'cho', 'của', 'để', 'những', 'các', 'một', 'cái', 'lắm', 'quá', 'thật', 'nào', 'gì', 'chi', 'nhỉ', 'hả', 'nữa', 'thôi', 'luôn', 'chứ', 'đi', 'nhé', 'nha', 'thử', 'cực mạnh', 'tâm hồn', 'hiện nay', 'quốc dân', 'nhạc trẻ', 'hôm nay', 'dạo này', 'cuối tuần', 'xả', 'lúc', 'khi', 'đang', 'buổi', 'sáng', 'trưa', 'tối']
+    tail_regex = r'(?:\s|^)(cho\s+tôi|nhé|đi|nha|với|luôn|chứ|hiện\s+nay|nhỉ|gì\s+nhiều\s+nhất|đang\s+thịnh\s+hành|quốc\s+dân|cực\s+mạnh|tâm\s+hồn|nhạc\s+trẻ|mới\s+nhất|hay\s+nhất|hay\s+nhat|người\s+ta|nguoi\s+ta|nhiều\s+nhất|nhieu\s+nhat|dạo\s+này|dao\s+nay|quốc\s+dân|quoc\s+dan|hiện\s+nay|hien\s+nay|có\s+bài|co\s+bai|có\s+ca\s+khúc|co\s+ca\s+khuc|hát\s+bài|hat\s+bai|ra\s+bài|ra\s+bai|đang\s+leo\s+chart|dang\s+leo\s+chart).*$'
+    junk_list = [
+        'nhưng', 'và', 'thì', 'mà', 'là', 'rằng', 'tuy', 'cho', 'của', 'để', 'những', 'các', 'một', 'cái', 
+        'lắm', 'quá', 'thật', 'nào', 'gì', 'chi', 'nhỉ', 'hả', 'nữa', 'thôi', 'luôn', 'chứ', 'đi', 'nhé', 
+        'nha', 'thử', 'cực mạnh', 'cực gắt', 'cực', 'gắt', 'cháy', 'siêu', 'tâm hồn', 'hiện nay', 'quốc dân','quoc dan', 'hien nay',
+        'nhạc trẻ', 'hôm nay','dạo này', 'cuối tuần','xả','lúc','khi','đang','buổi','sáng',
+        'người ta', 'nguoi ta', 'người', 'nguoi', 'ai', 'gi', 'nhi', 'nhieu'
+        ]
     for junk in junk_list:
         artist_val = re.sub(rf'(?:\s|^){junk}(?:\s|$)', ' ', artist_val, flags=re.IGNORECASE).strip()
         
@@ -359,18 +432,6 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     artist_val = re.sub(r'[.?!,]', '', artist_val).strip()
     artist_val = _verify_artist(artist_val, is_strong_intent=is_strong_artist)
     
-    mood_val = ", ".join(found_moods) if found_moods else ""
-    genre_val = ", ".join(found_genres) if found_genres else ""
-    active_criteria = [x for x in [mood_val, genre_val, artist_val] if x]
-
-    # [PHẦN MỚI CHÈN LẠI]: Kiểm tra bot vừa hỏi lại người dùng (Dấu hiệu follow-up)
-    needs_ai = False
-    if len(history_context) >= 2 and history_context[-2].get('role') == 'assistant':
-        last_bot_msg = str(history_context[-2].get('content', ''))
-        if "?" in last_bot_msg or "gợi ý" in last_bot_msg.lower() or "nhé" in last_bot_msg.lower():
-            is_explicit = bool(re.search(r"\b(tim|mo|bat|phat|nghe)\s+(nhac|bai|playlist)\b", prompt_norm))
-            if not is_explicit: needs_ai = True
-
     def _looks_out_of_scope() -> bool:
         pn = str(prompt_norm or "")
         pn = pn.replace('đ', 'd').replace('Đ', 'd')
@@ -394,10 +455,10 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
         return False
 
     is_explicit_play_request = bool(
-        re.search(r"\b(tim\s+(bai|nhac)|ten\s+bai)\b", prompt_norm, flags=re.IGNORECASE)
-        or re.search(r"\b(mo|bat|phat)\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac)\b", prompt_norm, flags=re.IGNORECASE)
-        or re.search(r"\bnghe\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac)\b", prompt_norm, flags=re.IGNORECASE)
-        or re.search(r"\bgoi\s*y(?:\s+(?:cho|giup|minh|cac|vai|mot|nhung))*\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac)\b", prompt_norm, flags=re.IGNORECASE)
+        re.search(r"\b(tim\s+(bai|nhac|doan|ban)|ten\s+bai)\b", prompt_norm, flags=re.IGNORECASE)
+        or re.search(r"\b(mo|bat|phat)\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
+        or re.search(r"\bnghe\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
+        or re.search(r"\bgoi\s*y(?:\s+(?:cho|giup|minh|toi|em|anh|chi|cac|vai|mot|nhung))*\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
     )
     if re.search(r"\b(tim\s+hieu|tìm\s+hiểu)\b", lower_prompt, flags=re.IGNORECASE): is_explicit_play_request = False
 
@@ -406,12 +467,59 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
 
     looks_like_knowledge = (_has_knowledge_token() or is_list_like_knowledge) and (not is_explicit_play_request)
     is_negative_action = bool(re.search(r'\b(đừng|không|kh|ko|thôi|trừ|bỏ|chẳng|chả)\s+(mở|bật|nghe|muốn|tìm|thích)\b', lower_prompt))
-    needs_ai = bool(re.search(r'\b(hợp âm|nhạc lý|khác nhau|nghĩa là|phân biệt|ai hát)\b', lower_prompt)) or looks_like_knowledge or is_negative_action
+    # Tìm vị trí bắt đầu của vế yêu cầu mới (Positive Intent)
+    # Danh sách các từ khóa đánh dấu sự bắt đầu của yêu cầu mới
+    positive_triggers = [
+        r'\bbật\b', r'\bbat\b', 
+        r'\bmở\b', r'\bmo\b', 
+        r'\bphát\b', r'\bphat\b', 
+        r'\bnghe\b', 
+        r'\btìm\b', r'\btim\b', 
+        r'\bcho\b'
+    ]
+
+    clean_for_kw = lower_prompt
+
+    if is_negative_action:
+        # Tìm xem trong câu có động từ hành động nào xuất hiện sau từ phủ định không
+        # Ví dụ: "đừng mở nhạc buồn nữa BẬT bài vui đi"
+        matches = list(re.finditer('|'.join(positive_triggers), lower_prompt))
+        
+        if len(matches) > 0:
+            # Lấy vị trí của động từ cuối cùng (thường là vế yêu cầu mới)
+            last_match_start = matches[-1].start()
+            # Chỉ lấy phần văn bản từ động từ đó trở đi để quét mood
+            clean_for_kw = lower_prompt[last_match_start:]
+        else:
+            # Nếu không có động từ mới, ta xóa vế phủ định đi theo cách cũ
+            clean_for_kw = re.sub(r'\b(đừng|không|thôi|bỏ)\s+(mở|bật|nghe|hát).*?(nữa|đi|$)', '', lower_prompt)
+
+    # Sau đó mới quét found_moods trên clean_for_kw
+    prefix_pattern = r'(?:\b|nhạc|bài|bật|mở|nghe|tìm|list|cho)'
+    suffix_pattern = r'(?:\b|đi|nhé|nha|luôn|chứ|nữa|rồi)'
+
+    found_moods = list(set([
+        MOOD_MAP[k] for k in MOOD_MAP 
+        if re.search(rf'{prefix_pattern}{k}{suffix_pattern}', clean_for_kw)
+    ]))
+
+    found_genres = list(set([
+        g for g in GENRE_KEYWORDS 
+        if re.search(rf'{prefix_pattern}{g}{suffix_pattern}', clean_for_kw)
+    ]))
+    
+    # --- CẬP NHẬT GIÁ TRỊ TẠI ĐÂY ---
+    mood_val = ", ".join(found_moods) if found_moods else ""
+    genre_val = ", ".join(found_genres) if found_genres else ""
+    active_criteria = [x for x in [mood_val, genre_val, artist_val] if x]
+    needs_ai = bool(re.search(r'\b(hợp âm|nhạc lý|khác nhau|nghĩa là|phân biệt|ai hát)\b', lower_prompt)) or looks_like_knowledge
     
     if len(history_context) >= 2 and history_context[-2].get('role') == 'assistant':
         last_bot_msg = str(history_context[-2].get('content', ''))
         if "?" in last_bot_msg or "gợi ý" in last_bot_msg.lower() or "nhé" in last_bot_msg.lower():
-            if not is_explicit_play_request: needs_ai = True
+            # [SỬA TẠI ĐÂY]: Bảo vệ các lệnh tìm kiếm trực tiếp khỏi bị đánh giá là follow-up chat mập mờ
+            if not is_explicit_play_request and not quick_match_name and not quick_match_lyric: 
+                needs_ai = True
 
     if found_pops and not _has_knowledge_token(): needs_ai = False
         
@@ -422,44 +530,56 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             is_short_search = True
 
     is_strict_analyze_intent = (
-        bool(re.search(r'\b(tiem nang|kha nang thanh hit|ti le viral|ty le viral|du doan hit|cham diem|xác suất hit|xác suất thanh hit|ban thu|feedback|len top trending|review|danh gia demo|demo|kiem tra ban phoi|kiem tra.*tiem nang|phan tich.*thanh hit|phan tich.*viral|phan tich.*tiem nang|nhac.*phan tich|phan tich.*ban phoi)\b', prompt_norm)) or
-        bool(re.search(r'\b(phan tich|danh gia|cham diem|kiem tra|nhan xet|du doan)\b.*\b(bai|ban nhac|ca khuc|file|am thanh|doan nhac|doan beat|giai dieu|bai hat)\s+(nay|sau|day|duoi day)\b', prompt_norm))
+        bool(re.search(r'\b(tiem nang|kha nang thanh hit|ti le viral|ty le viral|du doan hit|cham diem|xac suat hit|xac suat thanh hit|ban thu|feedback|len top trending|review|danh gia demo|demo|kiem tra ban phoi|kiem tra.*tiem nang|phan tich.*thanh hit|phan tich.*viral|phan tich.*tiem nang|nhac.*phan tich|phan tich.*ban phoi|danh gia.*ban phoi|check.*hit|check.*ban phoi)\b', prompt_norm)) or
+        bool(re.search(r'\b(phan tich|danh gia|cham diem|kiem tra|nhan xet|du doan|check|gop y|nghe thu|xem giup)\b.*\b(bai|ban nhac|ca khuc|file|am thanh|doan nhac|doan beat|giai dieu|bai hat|ban phoi|ban thu|track|mix|master)\s+(nay|sau|day|duoi day|cho minh|giup minh|moi)\b', prompt_norm)) or
+        bool(re.search(r'\b(bai|ban nhac|ca khuc|file|am thanh|doan nhac|giai dieu|bai hat|ban phoi|ban thu|track|mix|master)\s+(nay|moi|cua minh|cua toi|cua e|cua em)\b.*\b(phan tich|danh gia|cham diem|kiem tra|nhan xet|du doan|check|gop y)\b', prompt_norm)) or
+        bool(re.search(r'\b(phan tich|danh gia|cham diem|kiem tra|nhan xet|du doan|check|gop y|nghe thu)\s+(giup|ho|cho minh|gium|nhe|di|thu|voi|xem|dum)\b', prompt_norm)) or
+        bool(re.search(r'\b(nho|xin)\s+(ad|admin|bot|vmusic|ai)?\s*(phan tich|danh gia|cham diem|kiem tra|nhan xet|du doan|check|gop y)\b', prompt_norm))
     )
+
     is_strict_audio_search = (
-        bool(re.search(r'^(bai|nhac|doan|doan beat|doan nhac|giai dieu|beat|file|audio|ca khuc|day)\s+(nay|dang phat|vua roi|day|duoi day)?\s*(la\s+)?(bai|nhac|bai hat|ca khuc)?\s*(gi|ten gi|gi vay|gi z|gi v|gi ta|cua ai|nao)\b', prompt_norm)) or
+        bool(re.search(r'\b(bai|nhac|doan|doan beat|doan nhac|giai dieu|beat|file|audio|ca khuc|day)\s+(nay|dang phat|vua roi|day|duoi day)\s*(la\s+)?(bai|nhac|bai hat|ca khuc)?\s*(gi|ten gi|gi vay|gi z|gi v|gi ta|cua ai|nao)\b', prompt_norm)) or
         bool(re.search(r'\b(nhan dien|tim ten|cho hoi ten|cho biet ten|shazam)\s+(bai|nhac|doan|beat|giai dieu|file|am thanh)\s+(nay|dang phat|day|duoi day)\b', prompt_norm)) or
-        bool(re.search(r'^(bai gi day|bai nay ten gi|nhac gi day|day la bai gi|ten bai nay|bai nay la bai gi|bai nay bai gi|tim giup bai nay|bai nay a|bai nay gi vay)\b', prompt_norm)) or
+        bool(re.search(r'\b(bai gi day|bai nay ten gi|nhac gi day|day la bai gi|ten bai nay|bai nay la bai gi|bai nay bai gi|tim giup bai nay|bai nay a|bai nay gi vay|bai gi vay|bai gi z|bai gi ta|bai gi the)\b', prompt_norm)) or
         bool(re.search(r'\b(tim.*bang am thanh|tim.*qua am thanh|nhan dien.*am thanh)\b', prompt_norm))
     )
     if found_attrs: is_strict_audio_search = False
 
     is_greeting = bool(re.match(r'^(chao|hello|hi|alo|helo|hey|e|xin chao|yo)\b', prompt_norm)) and len(prompt_norm.split()) <= 5
-    if is_greeting and re.search(r'\b(tim|mo|bat|phat|nghe|nhac|bai|goi y)\b', prompt_norm): is_greeting = False
+    if is_greeting and re.search(r'\b(tim|mo|bat|phat|nghe|nhac|bai|goi y|rcm)\b', prompt_norm): is_greeting = False
 
     start_pattern = r'^(bat dau|let\'s go|lets go)(?:\s+(thoi|nao|di|luon|ngay))?\s*$'
     is_start = bool(re.fullmatch(start_pattern, prompt_norm))
 
-    if (found_moods or found_attrs or found_genres) and not has_file:
-    
+    is_exact_track_command = bool(re.match(r'^(bat|mo|phat|nghe|tim|play|search)(?:\s+(?:cho|giup|minh|toi|em|anh|chi|a|e|c|cac|vai|mot|nhung))*\s+(bai|nhac|ca khuc|track|doan|ban)\b', prompt_norm))
+    if (found_moods or found_attrs or found_genres or found_pops) and not has_file and not is_strict_analyze_intent and not is_strict_audio_search and not is_exact_track_command and not quick_match_lyric and not match_seed and not _looks_out_of_scope() and not needs_ai:
+
         raw_text = normalize_text_nfd_strip_accents(resolved_input)
         num_match = re.search(r'\b(\d{2,3})\b', raw_text)
 
-        attr_str = ", ".join(found_attrs)
+        # CHỐT CHẶN 2: Lọc lại attributes một lần nữa cho chắc chắn
+        art_norm = normalize_text_nfd_strip_accents(artist_val)
+        final_attrs = [a for a in found_attrs if not (art_norm and a.lower() in art_norm)]
+        attr_str = ", ".join(final_attrs)
 
         if num_match:
-            attr_str += f" {num_match.group(1)}"
-
+            val = int(num_match.group(1))
+            has_music_kw = bool(re.search(r'\b(bpm|tempo)\b', raw_text, re.IGNORECASE))
+            
+            if val >= 40 or has_music_kw:
+                attr_str += f" {val}"
         intent_data["action"] = "DISCOVER_MUSIC"
         intent_data["params"] = {
             "mood": mood_val,
             "genre": genre_val,
             "artist": artist_val,
-            "attributes": attr_str.strip()
+            "attributes": attr_str.strip(),
+            "popularity_flag": bool(found_pops)
         }
         return intent_data
-
-    junk_filter = r'\b(tìm|tim|mở|mo|bật|bat|nghe|phát|phat|gợi ý|goi y|cho|tôi|toi|mình|minh|xin|một|mot|vài|vai|những|nhung|bạn|ban|có|co|thể|the|không|khong|ko|cần|can|muốn|muon|giúp|giup|hộ|ho|này|nay|kia|đó|do|của|cua|ca sĩ|ca si|nhạc sĩ|nhac si|nghệ sĩ|nghe si|bài hát|bai hat|bài|bai|ca khúc|ca khuc|nhạc|nhac|playlist|list|đi|nhé|nha|với|voi|luôn|luon|chứ|chu|nữa|nua|thử|thu|nào|nao|nhỉ|nhi|hả|ha|vậy|vay|giùm|gium|được|duoc|chưa|chua|thì|thi|vào|vao|đây|day|trong|ngoài|ngoai|do|làm|lam|để|de|ngay|luôn)\b'
-
+    
+    # Chat chào hỏi / Kiến thức / Ngoài phạm vi
+    junk_filter = r'\b(tên|tên\s+là|tìm|tim|mở|mo|bật|bat|nghe|phát|phat|gợi ý|goi y|cho|tôi|toi|mình|minh|xin|một|mot|vài|vai|những|nhung|bạn|ban|có|co|thể|the|không|khong|ko|cần|can|muốn|muon|giúp|giup|hộ|ho|này|nay|kia|đó|do|của|cua|ca sĩ|ca si|nhạc sĩ|nhac si|nghệ sĩ|nghe si|bài hát|bai hat|bài|bai|ca khúc|ca khuc|nhạc|nhac|playlist|list|đi|nhé|nha|với|voi|luôn|luon|chứ|chu|nữa|nua|thử|thu|nào|nao|nhỉ|nhi|hả|ha|vậy|vay|giùm|gium|được|duoc|chưa|chua|thì|thi|vào|vao|đây|day|trong|ngoài|ngoai|do|làm|lam|để|de|ngay|luôn|thịnh\s+hành|thinh\s+hanh|hot|trending|viral|đang|dang)\b'
 
     if is_greeting or is_start or _looks_out_of_scope() or (looks_like_knowledge and not has_file):
         intent_data["action"] = "GENERAL_CHAT"
@@ -473,67 +593,46 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
         else: intent_data["action"] = "SEARCH_AUDIO"
     
     elif match_seed and not has_file:
-        seed_name = re.sub(r'\s+(không|nhỉ|vậy|đi|nha|với|nhất|chứ|nhé|nữa|xem|chatbot).*$', '', match_seed.group(1).strip()).strip()
+        raw_seed = match_seed.group(1).strip()
+        # 1. Gọt sạch rác phần đuôi (nhỉ, nhé, đi...)
+        seed_content = re.sub(r'\s+(không|nhỉ|vậy|đi|nha|với|nhất|chứ|nhé|nữa|xem|chatbot).*$', '', raw_seed).strip()
+        
+        # 2. Gọt sạch rác phần đầu (nhạc của, bài của...) giúp xóa chữ "nhạc của" lọt vào seed_name
+        seed_content = re.sub(r'^(nhạc\s+của|nhac\s+cua|bài\s+của|bai\s+cua|ca\s+khúc\s+của|ca\s+khuc\s+cua|bài|bai|nhạc|nhac|ca\s+khúc|ca\s+khuc)\s+', '', seed_content, flags=re.IGNORECASE).strip()
+        
+        final_seed_name = seed_content
+        final_seed_artist = artist_val 
+
+        # 3. [MỚI] Xử lý bóc tách Artist thông minh bên trong Seed
+        if " của " in f" {seed_content.lower()} " or " cua " in f" {seed_content.lower()} ":
+            parts = re.split(r'\s+(?:của|cua)\s+', seed_content, flags=re.IGNORECASE)
+            if len(parts) >= 2:
+                potential_artist = parts[-1].strip()
+                # CHỐT CHẶN: Nếu vế sau là "ngày hôm qua" hoặc "hiện tại", tuyệt đối KHÔNG coi là ca sĩ
+                if not re.search(r'\b(ngay\s+hom\s+qua|hien\s+tai)\b', normalize_text_nfd_strip_accents(potential_artist)):
+                    verified_art = _verify_artist(potential_artist, is_strong_intent=True)
+                    if verified_art:
+                        final_seed_name = " ".join(parts[:-1]).strip()
+                        final_seed_artist = verified_art
+                    else:
+                        # Nếu ko phải ca sĩ thật, trả lại cả cụm cho seed_name và xóa artist rác
+                        final_seed_name = seed_content
+                        final_seed_artist = ""
+                else:
+                    # Là từ chỉ thời gian -> Giữ nguyên cả cụm làm tên bài
+                    final_seed_name = seed_content
+                    final_seed_artist = ""
+        
         intent_data["action"] = "DISCOVER_MUSIC"
-        intent_data["params"] = {"seed_name": seed_name, "artist": artist_val}
-    
-    elif len(found_attrs) >= 1 and not has_file and not needs_ai and not (
-        quick_match_name and len(
-            re.sub(
-                r'\d+', '',
-                re.sub(
-                    r'\b(' + '|'.join(
-                        found_attrs + found_moods + found_genres + found_pops + [
-                            'có','co','không','khong','bài','bai','nhạc','nhac',
-                            'và','va','nào','nao','cho','tôi','toi','những','nhung',
-                            'một','mot','các','cac','cái','cai'
-                        ]
-                    ) + r')\b',
-                    '',
-                    normalize_text_nfd_strip_accents(quick_match_name.group(1))
-                )
-            ).replace(" ", "")
-        ) > 5
-    ):
-
-        raw_text = normalize_text_nfd_strip_accents(resolved_input)
-        num_match = re.search(r'\b(\d{2,3})\b', raw_text)
-
-        attr_str = ", ".join(found_attrs)
-
-        if num_match:
-            attr_str += f" {num_match.group(1)}"
-
-        params_dm = {
-            "attributes": attr_str.strip(),
-            "song_title": "",
-            "artist": artist_val,
+        intent_data["params"] = {
+            "seed_name": final_seed_name, 
+            "artist": final_seed_artist,
             "mood": mood_val,
-            "genre": genre_val
+            "genre": genre_val,
+            "popularity_flag": bool(found_pops),
+            "attributes": ", ".join(found_attrs) if found_attrs else ""
         }
-
-        if found_pops:
-            params_dm["popularity_flag"] = True
-
-        intent_data["action"] = "DISCOVER_MUSIC"
-        intent_data["params"] = params_dm
-
-    elif found_pops and not has_file and not needs_ai:
-        is_safe_to_route = True
-        if quick_match_name:
-            title_check = normalize_text_nfd_strip_accents(quick_match_name.group(1))
-            for k in found_pops: title_check = re.sub(rf'\b{k}\b', '', title_check).strip()
-            title_check = re.sub(r'\b(vay|nhi|da|do|nha|nhe|di|thoi|a|nao|the|vay\?|nhi\?|the\?|nao\?|dang|ca|khuc)\b\s*\??', '', title_check).strip()
-            title_check = re.sub(r'[.?!,]+$', '', title_check).strip()
-            if len(title_check) > 5 and not artist_val: is_safe_to_route = False
-        if is_safe_to_route:
-            intent_data["action"] = "DISCOVER_MUSIC"
-            intent_data["params"] = {"artist": artist_val, "genre": genre_val, "mood": mood_val, "popularity_flag": True}
-        else:
-            s_title = quick_match_name.group(1).strip() if quick_match_name else str(user_input)
-            intent_data["action"] = "SEARCH_TRACK"
-            intent_data["params"] = {"song_title": s_title, "artist": artist_val}
-    
+        
     elif quick_match_lyric and not has_file and not needs_ai:
         snippet = quick_match_lyric.group(1).strip()
         snippet = re.sub(r'^(là\s+|chữ\s+|có\s+|co\s+)', '', snippet).strip('"\'')
@@ -551,46 +650,106 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
         raw_query = re.sub(r'[.?!,]+$', '', raw_query).strip()
         raw_query = re.sub(r'\s+(đi|nhé|nha|với|luôn|nào|thử)$', '', raw_query, flags=re.IGNORECASE).strip()
         raw_query = re.sub(r'[.?!,]+$', '', raw_query).strip()
+        
         if re.match(r'^(?:của|do|for)\s+', raw_query, re.IGNORECASE):
             s_title = ""
             s_artist = _verify_artist(re.sub(r'^(?:của|do|for)\s+', '', raw_query, flags=re.IGNORECASE).strip(), True)
         else:
-            split_match = re.search(r'(.*?)\s+(?:của|do|for)\s+(.+)', raw_query)
+            # [SỬA]: Dùng tham lam (.*) để lấy chữ "của" CUỐI CÙNG
+            split_match = re.search(r'(.*)\s+(?:của|do|for)\s+(.+)', raw_query, re.IGNORECASE)
             if split_match:
-                s_title = split_match.group(1).strip()
-                s_artist = _verify_artist(split_match.group(2).strip(), True)
+                pot_title = split_match.group(1).strip()
+                pot_artist = split_match.group(2).strip()
+                
+                # CHỐT CHẶN: Không bóc ca sĩ nếu vế sau là đại từ hoặc từ chỉ thời gian
+                if pot_artist.lower() in ['em', 'anh', 'tôi', 'toi', 'mình', 'minh', 'bạn', 'ban', 'nó', 'no'] or \
+                   re.search(r'\b(ngay\s+hom\s+qua|hien\s+tai|qua\s+khu|tuong\s+lai)\b', normalize_text_nfd_strip_accents(pot_artist)):
+                    s_title = raw_query
+                    s_artist = ""
+                else:
+                    verified = _verify_artist(pot_artist, is_strong_intent=True)
+                    if verified:
+                        s_title = pot_title
+                        s_artist = verified
+                    else:
+                        s_title = raw_query
+                        s_artist = ""
             else:
                 s_title = raw_query
                 s_artist = ""
         check_intent_title = re.sub(r'\b(đi|nhé|nha|với|luôn|nào|thử)\b', '', s_title, flags=re.IGNORECASE)
         check_intent_title = re.sub(r'[.?!,]', '', check_intent_title).strip()
-        title_core = check_intent_title
-        for kw in found_moods + found_genres: title_core = re.sub(rf'\b{kw}\b', '', title_core, flags=re.IGNORECASE).strip()
+        
+        title_core = check_intent_title.lower()
+        
+        all_trigger_words = list(MOOD_MAP.keys()) + GENRE_KEYWORDS + ATTRIBUTE_KEYWORDS + POPULARITY_KEYWORDS + junk_list
+        all_trigger_words.sort(key=len, reverse=True)
+        for kw in all_trigger_words:
+            title_core = re.sub(rf'\b{kw}\b', '', title_core, flags=re.IGNORECASE).strip()
+            
+        title_core = re.sub(r'[\W_]+', '', title_core).strip()
+        
         check_empty_name = re.sub(junk_filter, '', check_intent_title, flags=re.IGNORECASE)
         check_empty_name = re.sub(r'[\W_]+', '', check_empty_name).strip()
+        
+        # Bơm đầy đủ tham số để không bị rơi rớt "cực gắt" hay "tâm trạng"
+        final_artist = s_artist if s_artist else artist_val
+        # Lọc sạch rác: Chỉ lấy attribute nếu nó KHÔNG nằm trong tên ca sĩ (so sánh KHÔNG DẤU)
+        art_norm = normalize_text_nfd_strip_accents(final_artist)
+        valid_attrs = [a for a in found_attrs if not (art_norm and a.lower() in art_norm)]
+        attr_str = ", ".join(valid_attrs) if valid_attrs else ""
+        
+        params_dm = {
+            "artist": final_artist, 
+            "mood": mood_val, 
+            "genre": genre_val, 
+            "attributes": attr_str,
+            "popularity_flag": bool(found_pops)
+        }
+
+        # Phân luồng
         if not check_empty_name:
-            intent_data["action"] = "DISCOVER_MUSIC" if s_artist else "GENERAL_CHAT"
-            intent_data["params"] = {"artist": s_artist} if s_artist else {}
-        elif len(title_core) < 2 and len(active_criteria) >= 1:
+            intent_data["action"] = "DISCOVER_MUSIC" if (final_artist or attr_str or len(active_criteria) > 0 or found_pops) else "GENERAL_CHAT"
+            intent_data["params"] = params_dm
+        elif len(title_core) <= 2 and (len(active_criteria) >= 1 or len(found_attrs) >= 1 or found_pops):
+            # Nếu gọt sạch từ khóa (vui vẻ, yêu đời...) mà không còn chữ gì -> Chắc chắn là Gợi ý nhạc
             intent_data["action"] = "DISCOVER_MUSIC"
-            intent_data["params"] = {"mood": mood_val, "genre": genre_val, "artist": artist_val}
-        elif check_intent_title in GENRE_KEYWORDS:
+            intent_data["params"] = params_dm
+        elif check_intent_title in GENRE_KEYWORDS or check_intent_title in MOOD_MAP:
             intent_data["action"] = "DISCOVER_MUSIC"
-            intent_data["params"] = {"genre": check_intent_title}
-        elif check_intent_title in MOOD_MAP:
+            intent_data["params"] = params_dm
+        elif final_artist and not s_title: 
             intent_data["action"] = "DISCOVER_MUSIC"
-            intent_data["params"] = {"mood": MOOD_MAP[check_intent_title]}
-        elif s_artist and not s_title: 
+            intent_data["params"] = params_dm
+            
+        # --- [CHỐT CHẶN BẢO VỆ MOOD/GENRE] ---
+        elif len(active_criteria) >= 1 and not re.search(r'\b(bài|bài hát|ca khúc|bai|bai hat|ca khuc|track)\b', prompt_norm):
+            # Nếu KHÔNG gọi đích danh "bài hát" cụ thể, nhưng có Mood/Genre -> Chắc chắn là Gợi ý nhạc
             intent_data["action"] = "DISCOVER_MUSIC"
-            intent_data["params"] = {"artist": s_artist}
+            intent_data["params"] = params_dm
+        # ------------------------------------
+        
         else:
             intent_data["action"] = "SEARCH_TRACK"
-            intent_data["params"] = {"song_title": s_title, "artist": s_artist}
+            intent_data["params"] = {"song_title": s_title, "artist": final_artist}
+    
     elif is_short_search:
-        split_match = re.search(r'(.*?)\s+(?:của|do)\s+(.+)', lower_prompt)
+        split_match = re.search(r'(.*)\s+(?:của|do)\s+(.+)', lower_prompt, re.IGNORECASE)
         if split_match:
-            s_title = split_match.group(1).strip()
-            s_artist = _verify_artist(split_match.group(2).strip(), True)
+            pot_title = split_match.group(1).strip()
+            pot_artist = split_match.group(2).strip()
+            
+            if re.search(r'\b(ngay\s+hom\s+qua|hien\s+tai|qua\s+khu|tuong\s+lai)\b', normalize_text_nfd_strip_accents(pot_artist)):
+                s_title = lower_prompt
+                s_artist = ""
+            else:
+                verified = _verify_artist(pot_artist, True)
+                if verified:
+                    s_title = pot_title
+                    s_artist = verified
+                else:
+                    s_title = lower_prompt
+                    s_artist = ""
         else:
             s_title = lower_prompt
             s_artist = ""
@@ -605,6 +764,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             if not clean_s_title: clean_s_title = s_title
             intent_data["action"] = "SEARCH_TRACK"
             intent_data["params"] = {"song_title": clean_s_title, "artist": s_artist}
+
     elif len(active_criteria) >= 1 and not needs_ai:
         intent_data["action"] = "DISCOVER_MUSIC"
         intent_data["params"] = {"mood": mood_val, "genre": genre_val, "artist": artist_val}

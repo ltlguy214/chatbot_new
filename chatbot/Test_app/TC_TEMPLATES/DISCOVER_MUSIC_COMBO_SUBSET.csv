@@ -1,5 +1,0 @@
-STT,Query,Expected_Action,Expected_Result_ID,Độ khó,Mục đích test
-1,Gợi ý nhạc ballad buồn tempo 100,DISCOVER_MUSIC,N/A,Trung bình,[Combo] Mood+Genre+Attributes (tempo)
-2,Nhạc buồn đang trending,DISCOVER_MUSIC,N/A,Dễ,[Combo] Mood+Popularity
-3,Gợi ý nhạc rap nhanh 140 bpm,DISCOVER_MUSIC,N/A,Dễ,[Combo] Genre+Attributes (tempo)
-4,Nhạc giống bài Bống Bống Bang Bang,DISCOVER_MUSIC,N/A,Dễ,[Seed Separate] Seed branch should trigger
