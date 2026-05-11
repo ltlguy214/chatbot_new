@@ -124,6 +124,7 @@ def call_gemini_intent_api(user_input: str, has_file: bool) -> dict | None:
        - LLM KHÔNG cần và KHÔNG được đoán trạng thái file.
        - Nếu user hỏi "Bài này là bài gì?" / "Nhạc gì đây?" thì chọn action này.
     3. DISCOVER_MUSIC: Khám phá & gợi ý nhạc (trích xuất TẤT CẢ thông tin vào params tương ứng):
+       - NẾU người dùng hỏi dạng nghi vấn (VD: "Có bài nào của A không?", "Nhạc gì buồn vậy?"): ĐÂY VẪN LÀ LỆNH TÌM NHẠC. Bắt buộc chọn DISCOVER_MUSIC, TUYỆT ĐỐI KHÔNG chọn GENERAL_CHAT.
        - Bài mẫu: `seed_name` (VD: "Tìm bài giống bài Suýt Nữa Thì").
        - Thuộc tính nhạc lý: `attributes` (VD: "nhịp 120 bpm", "nhạc nhanh", "năng lượng thấp", "vừa phải").
        - Top hit / trending: `popularity_flag=true` (có thể kèm `artist`, `genre`).
@@ -179,6 +180,9 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     import unicodedata
     user_input = re.sub(r'["\'“”‘’]', '', user_input)
     user_input = re.sub(r'(?i)\b(\d+|mười|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|chục|trăm)\s*k\b', r'\1 ngàn', user_input)
+    user_input = re.sub(r'(?i)\b(nhac|bai|ca|loi|hat|list|quay|bungno|chill|buon|vui|remix)\b(?=[a-z])', r'\1 ', user_input)
+    user_input = re.sub(r'(?i)(?<=[a-z])(nhac|bai|ca|loi|hat|quay|party|remix|hit|hot)\b', r' \1', user_input)
+    user_input = user_input.replace('nhacquay', 'nhạc quẩy').replace('quayparty', 'quẩy party')
     # --- [LÁ CHẮN MỚI]: Bảo vệ nghệ sĩ có 1 chữ cái đứng đầu khỏi bị dịch thành Teencode ---
     user_input = re.sub(r'(?i)\b(b)\s+(ray)\b', r'bray', user_input)
     user_input = re.sub(r'(?i)\b(a)\s+(mee)\b', r'amee', user_input)
@@ -391,7 +395,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     
     
     match_cua = re.search(
-        r"\b(?:của|cua|of|do|ca\s+sĩ|ca\s+si|ca\s+sỹ|ca\s+sy|nghệ\s+sĩ|nghe\s+si|nghệ\s+sỹ|nghe\s+sy)\s+(.*?)(?=\s+(?:cực|cuc|gắt|gat|cháy|chay|siêu|sieu|rất|rat|buồn|buon|vui|có|co|hát|hat|ra|mới|moi|với|nhạc|bài|đoạn|lời|câu|chữ|thể\s+loại|the\s+loai|vibe|chủ\s+đề|chu\s+de|topic|về|ve|đang|dang|hot|top|hit|bxh|viral|trending|đình|dinh|làm|lam|nào|nao)\b|\s*$|[\.\?!,])",
+        r"\b(?:của|cua|of|do|ca\s+sĩ|ca\s+si|ca\s+sỹ|ca\s+sy|nghệ\s+sĩ|nghe\s+si|nghệ\s+sỹ|nghe\s+sy)\s+(.*?)(?=\s+(?:cực|cuc|gắt|gat|cháy|chay|siêu|sieu|rất|rat|buồn|buon|vui|có|co|hát|hat|ra|mới|moi|với|nhạc|bài|đoạn|lời|câu|chữ|thể\s+loại|the\s+loai|vibe|chủ\s+đề|chu\s+de|topic|về|ve|đang|dang|hot|top|hit|bxh|viral|trending|đình|dinh|làm|lam|nào|nao|hiện\s+tại|hien\s+tai|mà|ma|không|khong|chưa|chua)\b|\s*$|[\.\?!,])",
         lower_prompt, 
     )
     if match_cua:
@@ -455,7 +459,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
         return False
 
     is_explicit_play_request = bool(
-        re.search(r"\b(tim\s+(bai|nhac|doan|ban)|ten\s+bai)\b", prompt_norm, flags=re.IGNORECASE)
+        re.search(r"\b(tim\s+(bai|nhac|doan|ban)|kiem\s+(bai|nhac)|ten\s+bai|co\s+(bai|nhac)\s+nao|bai\s+nao|nhac\s+nao)\b", prompt_norm, flags=re.IGNORECASE)
         or re.search(r"\b(mo|bat|phat)\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
         or re.search(r"\bnghe\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
         or re.search(r"\bgoi\s*y(?:\s+(?:cho|giup|minh|toi|em|anh|chi|cac|vai|mot|nhung))*\s+(nhac|bai(\s+hat)?|playlist|list\s+nhac|doan|ban)\b", prompt_norm, flags=re.IGNORECASE)
@@ -517,8 +521,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     if len(history_context) >= 2 and history_context[-2].get('role') == 'assistant':
         last_bot_msg = str(history_context[-2].get('content', ''))
         if "?" in last_bot_msg or "gợi ý" in last_bot_msg.lower() or "nhé" in last_bot_msg.lower():
-            # [SỬA TẠI ĐÂY]: Bảo vệ các lệnh tìm kiếm trực tiếp khỏi bị đánh giá là follow-up chat mập mờ
-            if not is_explicit_play_request and not quick_match_name and not quick_match_lyric: 
+            if not is_explicit_play_request and not quick_match_name and not quick_match_lyric and len(active_criteria) == 0: 
                 needs_ai = True
 
     if found_pops and not _has_knowledge_token(): needs_ai = False

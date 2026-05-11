@@ -192,7 +192,8 @@ SHOW_OPTUNA_PROGRESS_BAR = os.getenv('OPTUNA_PROGRESS_BAR', '0') == '1'
 
 # Reuse cached Optuna best_params if present (do not rerun trials).
 # Default: enabled, aligned with other tasks.
-OPTUNA_REUSE = os.getenv('OPTUNA_REUSE', '1') == '1'
+# OPTUNA_REUSE = os.getenv('OPTUNA_REUSE', '1') == '1'
+OPTUNA_REUSE = False
 
 # Print per-trial logs like Optuna INFO output (requested).
 # Note: we keep Optuna's own INFO logs silenced and print equivalent lines ourselves.
@@ -205,10 +206,11 @@ APPLY_FEATURE_WEIGHTS = os.getenv('P2_APPLY_FEATURE_WEIGHTS', '1') == '1'
 P2_OPTIMIZE_FEATURE_WEIGHTS = os.getenv('P2_OPTIMIZE_FEATURE_WEIGHTS', '1') == '1'
 P2_WEIGHT_OPT_TRIALS = int(os.getenv('P2_WEIGHT_OPT_TRIALS', str(OPTUNA_TRIALS)))
 P2_WEIGHT_BOUNDS_LOW = float(os.getenv('P2_WEIGHT_BOUNDS_LOW', '0.6'))
-P2_WEIGHT_BOUNDS_HIGH = float(os.getenv('P2_WEIGHT_BOUNDS_HIGH', '2.2'))
+P2_WEIGHT_BOUNDS_HIGH = float(os.getenv('P2_WEIGHT_BOUNDS_HIGH', '3.5')) #3.2 (done 3.1, 2.8 kh đạt)
 
 # Consensus clustering (ensemble) (requested)
-P2_CONSENSUS_CLUSTERING = os.getenv('P2_CONSENSUS_CLUSTERING', '1') == '1'
+# P2_CONSENSUS_CLUSTERING = os.getenv('P2_CONSENSUS_CLUSTERING', '1') == '1'
+P2_CONSENSUS_CLUSTERING = False
 P2_CONSENSUS_TOP_K = int(os.getenv('P2_CONSENSUS_TOP_K', '3'))
 
 # Stability validation (bootstrap) (requested)
@@ -219,10 +221,10 @@ P2_BOOTSTRAP_SAMPLE_FRAC = float(os.getenv('P2_BOOTSTRAP_SAMPLE_FRAC', '0.90'))
 # Optimize ideal vectors for vibe mapping (requested)
 P2_OPTIMIZE_IDEAL_VECTORS = os.getenv('P2_OPTIMIZE_IDEAL_VECTORS', '1') == '1'
 P2_IDEAL_OPT_TRIALS = int(os.getenv('P2_IDEAL_OPT_TRIALS', '30'))
-P2_IDEAL_DELTA = float(os.getenv('P2_IDEAL_DELTA', '0.25'))
+P2_IDEAL_DELTA = float(os.getenv('P2_IDEAL_DELTA', '0.4')) # cũ 0.25
 
 # PCA variance threshold (requested: 0.60)
-P2_PCA_N_COMPONENTS = float(os.getenv('P2_PCA_N_COMPONENTS', '0.60'))
+P2_PCA_N_COMPONENTS = float(os.getenv('P2_PCA_N_COMPONENTS', '0.50'))
 
 # Toggle Optuna history images
 SAVE_OPTUNA_PLOTS = os.getenv('P2_SAVE_OPTUNA_PLOTS', '1') == '1'
@@ -463,10 +465,18 @@ def preprocess_data(df: pd.DataFrame):
     df_proc = _ensure_sentiment_ohe(df)
     sentiment_cols = ['sentiment_negative', 'sentiment_neutral', 'sentiment_positive']
 
+    acoustic_noise_cols = [
+        c for c in df_proc.columns 
+        if c.startswith((
+            'mfcc', 'chroma', 'tonnetz', 'spectral', 
+            'zero_crossing', 'onset', 'rolloff', 'centroid', 'poly_features'
+        ))
+    ]
+
     drop_cols = [
         'spotify_track_id', 'title', 'artists', 'spotify_release_date', 'genres',
         'is_hit', 'target', 'final_sentiment',
-    ]
+    ] + acoustic_noise_cols
 
     X_raw = df_proc.drop(columns=drop_cols, errors='ignore')
     feature_cols = X_raw.select_dtypes(include=[np.number]).columns.tolist()
@@ -964,6 +974,9 @@ def optimize_ideal_vibes(
 
         # Regularize: keep ideals separated to avoid degenerate solutions.
         vecs = np.vstack([ideals[vn] for vn in vibe_names])
+        vibe_counts = pd.Series(ref_vibes).value_counts()
+        if len(vibe_counts) < 5 or vibe_counts.min() < 20:
+            return -1.0
         pen = 0.0
         for i in range(len(vibe_names)):
             for j in range(i + 1, len(vibe_names)):
@@ -1051,23 +1064,22 @@ def assign_5_vibes_with_ideals(
 
     df['vibe'] = df[cluster_col].map(mapping)
     return df['vibe'], mapping
-def _safe_silhouette(X: np.ndarray, labels: np.ndarray) -> float:
-    """Silhouette with guards for degenerate clustering and heavy noise."""
-    labels = np.asarray(labels)
-    unique = set(labels.tolist())
-    if len(unique) <= 1:
-        return -1.0
 
-    # If there is noise label -1, compute silhouette only on non-noise points when possible.
+
+def _safe_silhouette(X: np.ndarray, labels: np.ndarray) -> float:
+    labels = np.asarray(labels)
+    unique, counts = np.unique(labels, return_counts=True)
+    if len(unique) <= 1: return -1.0
+    
+    # PHẠT: Nếu có cụm nào < 50 bài, coi như phân cụm thất bại
+    if counts.min() < 50: return -1.0
+
     if -1 in unique:
         mask = labels != -1
-        if mask.sum() < 10:
-            return -1.0
+        if mask.sum() < 10: return -1.0
         labels_n = labels[mask]
-        if len(set(labels_n.tolist())) <= 1:
-            return -1.0
+        if len(np.unique(labels_n)) <= 1: return -1.0
         return float(silhouette_score(X[mask], labels_n))
-
     return float(silhouette_score(X, labels))
 
 
@@ -1800,6 +1812,11 @@ def main():
     print("BƯỚC 1: TẢI & PREPROCESS")
     print("=" * 80)
     df = pd.read_csv(os.path.join(PROJECT_ROOT, 'final_data', 'data_prepared_for_ML.csv'))
+    # --- CHÈN ĐOẠN NÀY VÀO ---
+    initial_count = len(df)
+    df = df[df['rms_energy'] > 0.001].copy() # Loại bỏ bài có energy quá thấp
+    print(f"🔥 Đã 'trảm' {initial_count - len(df)} bài hát nhiễu. Số lượng còn lại: {len(df)}")
+    # -------------------------
     df_proc, numeric_cols, X_scaled, X_weighted, preproc_artifacts = preprocess_data(df)
 
     weight_opt_params: dict | None = None
@@ -2060,6 +2077,7 @@ def main():
     print(f"   • Best model:        {_show_path(MODEL_PATH)}")
     print(f"   • Feature names:     {_show_path(FEATURE_NAMES_PATH)}")
     print(f"   • Final CSV:         {_show_path(FINAL_CSV_PATH)}\n")
+    print(df_proc['vibe'].value_counts())
 
 if __name__ == "__main__":
     main()

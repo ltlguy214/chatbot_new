@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report, accuracy_score
 
 # 1. ĐỌC VÀ TIỀN XỬ LÝ DỮ LIỆU
-df = pd.read_csv('final_thesis_evaluation_report.csv')
+df = pd.read_csv(r'scripts\test_case_evalution\final_thesis_evaluation_report.csv')
 
 # Gộp category bị trùng tên
 df['Category'] = df['Category'].replace('Edge Case', 'Edge Cases')

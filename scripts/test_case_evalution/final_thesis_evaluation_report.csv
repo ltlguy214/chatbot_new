@@ -25,33 +25,33 @@ TC23,Gợi ý nhạc uy lực và nhanh,Variation & Paraphrasing,DISCOVER_MUSIC,
 TC24,Có bài hát nào tempo 100 không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,attributes=tempo 100,Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),6GM4ZOBDcDroldUxI8GZ2B,6GM4ZOBDcDroldUxI8GZ2B,PASS,18.53,3249.38,3269.91,DONE
 TC25,Bat nahc nhah va cag,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,"attributes=nhanh, cang",Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),6vSyybihp3S6rof4kIMuak,6vSyybihp3S6rof4kIMuak,PASS,18.78,1117.27,1138.53,DONE
 TC26,Tìm nhạc Indie của SIVAN có vibe sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=sâu lắng; genre=indie; artist=SIVAN,Level 1: Unified Discover Engine,62mlUw73UwVXuNjHMWFyuh,62mlUw73UwVXuNjHMWFyuh,PASS,19.62,4889.63,4911.3,DONE
-TC27,Có bài nào của Trịnh Thăng Bình mà buồn không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; artist=Trịnh Thăng Bình,Level 1: Unified Discover Engine,1Szl9lPaJ750Hn2hRX9QI0,1Szl9lPaJ750Hn2hRX9QI0,PASS,146.8,2100.43,2283.72,DONE
-TC28,Những bài Pop của Miu Lê có giai điệu kịch tính,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=kich tinh; genre=pop; artist=Miu Lê,Level 1: Unified Discover Engine,7GPlwRnUdLIH2dqe5xpnyZ,7GPlwRnUdLIH2dqe5xpnyZ,PASS,32.85,853.04,887.43,DONE
-TC29,tim nhac rap cua tlinh vibe binh yen,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=chill; genre=rap; artist=tlinh,Level 1: Unified Discover Engine,5ouxRyInSdRBQubu3KTd97,5ouxRyInSdRBQubu3KTd97,PASS,23.26,3090.11,3114.72,DONE
-TC30,Cho mình nghe nhạc của Tùng Dương thể loại Indie yêu đời,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=vui; genre=indie; artist=Tùng Dương,Level 1: Unified Discover Engine,6ow5JZLwTeMlky1r0C1GcZ,6ow5JZLwTeMlky1r0C1GcZ,PASS,25.87,1227.03,1255.63,DONE
-TC31,Nhạc của BIG WIND về chủ đề tình yêu lãng mạn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tình yêu; artist=BIG WIND,Level 1: Unified Discover Engine,3mP6obvDBm2OEAMuGK7EQ8,3mP6obvDBm2OEAMuGK7EQ8,PASS,18.08,1943.25,1963.03,DONE
-TC32,rcm bài bùn của MiiNa dòng Balad,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=ballad; artist=MiiNa,Level 1: Unified Discover Engine,0iqM1sFRGxdmU59D0ZFSiV,0iqM1sFRGxdmU59D0ZFSiV,PASS,26.06,1071.97,1099.61,DONE
-TC33,Có bài nào của Văn Mai Hương vibe da diết không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diết; artist=Văn Mai Hương,Level 1: Unified Discover Engine,05X3a0YGmS1rbH50aL8lGF,05X3a0YGmS1rbH50aL8lGF,PASS,33.59,1046.92,1082.62,DONE
+TC27,Có bài nào của Trịnh Thăng Bình mà buồn không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; artist=Trịnh Thăng Bình,Level 1: Unified Discover Engine,1Szl9lPaJ750Hn2hRX9QI0,1Szl9lPaJ750Hn2hRX9QI0,PASS,52.96,1959.44,2016.08,DONE
+TC28,Những bài Pop của Miu Lê vibe bình yên đi.,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên; genre=pop; artist=Miu Lê,Level 1: Unified Discover Engine,40WWz4Bgcctudaw1FpQJer,40WWz4Bgcctudaw1FpQJer,PASS,49.77,2302.65,2366.94,DONE
+TC29,tim nhac rap cua tlinh vibe binh yen,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=tlinh; mood=bình yên; genre=rap,Level 1: Unified Discover Engine,5ouxRyInSdRBQubu3KTd97,5ouxRyInSdRBQubu3KTd97,PASS,88.33,1148.58,1244.42,DONE
+TC30,Cho mình nghe nhạc của Tùng Dương thể loại Indie yêu đời,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; genre=indie; artist=Tùng Dương,Level 1: Unified Discover Engine,11uL6Zms1vhyUwakXSpBPO,11uL6Zms1vhyUwakXSpBPO,PASS,71.48,851.11,927.65,DONE
+TC31,Nhạc của BIG WIND về chủ đề tình yêu lãng mạn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tình yêu; artist=BIG WIND,Level 1: Unified Discover Engine,3mP6obvDBm2OEAMuGK7EQ8,3mP6obvDBm2OEAMuGK7EQ8,PASS,39.51,1984.76,2025.91,DONE
+TC32,rcm bài bùn của MiiNa dòng Balad,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=ballad; artist=MiiNa,Level 1: Unified Discover Engine,0iqM1sFRGxdmU59D0ZFSiV,0iqM1sFRGxdmU59D0ZFSiV,PASS,45.45,622.46,669.57,DONE
+TC33,Có bài nào sâu lắng của Văn Mai Hương không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=sâu lắng; artist=Văn Mai Hương,Level 1: Unified Discover Engine,05X3a0YGmS1rbH50aL8lGF,05X3a0YGmS1rbH50aL8lGF,PASS,65.04,1791.0,1860.62,DONE
 TC34,Nhạc của Rayo thể loại Ballad sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=sâu lắng; genre=ballad; artist=Rayo,Level 1: Unified Discover Engine,6wCgG637sXqVObsbCoHz0S,6wCgG637sXqVObsbCoHz0S,PASS,31.09,2062.2,2095.08,DONE
-TC35,Nhạc Pop buồn của Vicky Nhung,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=pop; artist=Vicky Nhung,Level 1: Unified Discover Engine,1gZi8QJepq23St5aCe9ws1,1gZi8QJepq23St5aCe9ws1,PASS,18.94,901.24,922.43,DONE
-TC36,Tìm nhạc Indie Pop chill chill của SIVAN,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=chill; genre=indie, pop; artist=SIVAN",Level 1: Unified Discover Engine,7FvtXQhi9UcSmHuUisbdzN,7FvtXQhi9UcSmHuUisbdzN,PASS,17.04,1985.38,2004.12,DONE
-TC37,Bài nào của tlinh có vibe chữa lành không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=chill; artist=tlinh,Level 1: Unified Discover Engine,5ouxRyInSdRBQubu3KTd97,5ouxRyInSdRBQubu3KTd97,PASS,29.96,1625.74,1658.78,DONE
+TC35,Nhạc Pop buồn của Vicky Nhung,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=pop; artist=Vicky Nhung,Level 1: Unified Discover Engine,1gZi8QJepq23St5aCe9ws1,1gZi8QJepq23St5aCe9ws1,PASS,44.66,2244.61,2291.92,DONE
+TC36,Tìm nhạc Indie Pop chill chill của SIVAN,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"artist=SIVAN; mood=bình yên; genre=indie, pop",Level 1: Unified Discover Engine,7FvtXQhi9UcSmHuUisbdzN,7FvtXQhi9UcSmHuUisbdzN,PASS,90.09,1169.88,1263.05,DONE
+TC37,Bài nào của tlinh có vibe chữa lành không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên; artist=tlinh,Level 1: Unified Discover Engine,5ouxRyInSdRBQubu3KTd97,5ouxRyInSdRBQubu3KTd97,PASS,56.57,588.39,649.15,DONE
 TC38,tìm nhạc ráp gai gók của seachain,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=rap; artist=Seachains,Level 1: Unified Discover Engine,1xmkZ0eO7DPKVgfemDpdz7,1xmkZ0eO7DPKVgfemDpdz7,PASS,42.66,916.26,961.0,DONE
-TC39,Có bản Pop nào kịch tính của Châu Khải Phong không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=kich tinh; genre=pop; artist=Châu Khải Phong,Level 1: Unified Discover Engine,5gumifavkLqYWlgjJbK2Kt,5gumifavkLqYWlgjJbK2Kt,PASS,32.36,1127.22,1163.89,DONE
-TC40,Nhạc của Mỹ Mỹ có vibe tươi mới yêu đời,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=vui, tuoi moi; artist=Mỹ Mỹ",Level 1: Unified Discover Engine,7MOp520AxTl0h1n50HHnIE,7MOp520AxTl0h1n50HHnIE,PASS,23.35,1984.32,2009.25,DONE
-TC41,Tìm bài hát của Coldzy thể loại Rap buồn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=rap; artist=Coldzy,Level 1: Unified Discover Engine,6sIWcLjuMvOcxAfMOx1kbB,6sIWcLjuMvOcxAfMOx1kbB,PASS,90.11,1056.78,1200.45,DONE
-TC42,Nhạc của NAOMI vibe da diết sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=sâu lắng, da diết; artist=NAOMI",Level 1: Unified Discover Engine,4tV5GlNWSE0bajdrDOzCQP,4tV5GlNWSE0bajdrDOzCQP,PASS,30.84,1016.3,1049.3,DONE
-TC43,Tìm nhạc của Miu Lê chủ đề kỷ niệm hoài niệm,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=kỷ niệm; artist=Miu Lê,Level 1: Unified Discover Engine,7GPlwRnUdLIH2dqe5xpnyZ,7GPlwRnUdLIH2dqe5xpnyZ,PASS,53.16,2414.6,2471.29,DONE
-TC44,Cho mình nhạc của JSOL yêu đời,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; artist=JSOL,Level 1: Unified Discover Engine,2kDSmCn0vv4zQydj9UCAZO,2kDSmCn0vv4zQydj9UCAZO,PASS,29.26,4605.27,4639.78,DONE
+TC39,Có bản Pop nào thất tình của Châu Khải Phong không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=pop; artist=Châu Khải Phong,Level 1: Unified Discover Engine,5gumifavkLqYWlgjJbK2Kt,5gumifavkLqYWlgjJbK2Kt,PASS,39.18,923.68,964.87,DONE
+TC40,Nhạc của Mỹ Mỹ có vibe tươi mới yêu đời,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; artist=Mỹ Mỹ,Level 1: Unified Discover Engine,5xDzB1RyS5ZihKraJkUKyi,5xDzB1RyS5ZihKraJkUKyi,PASS,39.46,1268.41,1310.43,DONE
+TC41,Tìm bài hát của Coldzy thể loại Rap buồn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Coldzy; mood=buồn; genre=rap,Level 1: Unified Discover Engine,6sIWcLjuMvOcxAfMOx1kbB,6sIWcLjuMvOcxAfMOx1kbB,PASS,54.19,743.68,799.59,DONE
+TC42,Nhạc của NAOMI vibe da diết sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=da diet, sâu lắng; artist=NAOMI",Level 1: Unified Discover Engine,4tV5GlNWSE0bajdrDOzCQP,4tV5GlNWSE0bajdrDOzCQP,PASS,54.42,656.12,716.22,DONE
+TC43,Tìm nhạc của Miu Lê chủ đề kỷ niệm hoài niệm,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Miu Lê; mood=kỷ niệm,Level 1: Unified Discover Engine,7GPlwRnUdLIH2dqe5xpnyZ,7GPlwRnUdLIH2dqe5xpnyZ,PASS,61.81,762.66,826.44,DONE
+TC44,Cho mình nhạc của JSOL yêu đời,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; artist=JSOL,Level 1: Unified Discover Engine,5XjP28hCtjW9eZlsm5dXqn,5XjP28hCtjW9eZlsm5dXqn,PASS,49.09,743.12,795.29,DONE
 TC45,Những bài Indie của Vũ. có vibe sâu lắng thấu cảm,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=sâu lắng; genre=indie; artist=Vũ.,Level 1: Unified Discover Engine,5Bti0azlFhMattVY76qFr9,5Bti0azlFhMattVY76qFr9,PASS,68.28,1220.26,1308.19,DONE
-TC46,Tìm bài hát của The Flob thể loại Pop buồn bã,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=pop; artist=The Flob,Level 1: Unified Discover Engine,6mGcGybclF4U7CmUWxF1QI,6mGcGybclF4U7CmUWxF1QI,PASS,16.8,2216.73,2236.15,DONE
-TC47,Có nhạc Rap nào của tlinh về tình yêu không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tình yêu; genre=rap; artist=tlinh,Level 1: Unified Discover Engine,4qJSUFwZFouto5VZUlln75,4qJSUFwZFouto5VZUlln75,PASS,18.19,1876.27,1898.22,DONE
+TC46,Tìm bài hát của The Flob thể loại Pop buồn bã,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=The Flob; mood=buồn; genre=pop,Level 1: Unified Discover Engine,6mGcGybclF4U7CmUWxF1QI,6mGcGybclF4U7CmUWxF1QI,PASS,63.7,652.83,718.21,DONE
+TC47,Có nhạc Rap nào của tlinh về tình yêu không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tình yêu; genre=rap; artist=tlinh,Level 1: Unified Discover Engine,4qJSUFwZFouto5VZUlln75,4qJSUFwZFouto5VZUlln75,PASS,63.31,695.44,760.23,DONE
 TC48,kiếm mấy bài balat sâu lắg của MiiNa đi,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=sâu lắng; genre=ballad; artist=MiiNa,Level 1: Unified Discover Engine,0iqM1sFRGxdmU59D0ZFSiV,0iqM1sFRGxdmU59D0ZFSiV,PASS,21.96,2489.21,2513.91,DONE
-TC49,Nhạc của Trịnh Thăng Bình chủ đề chia tay,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=chia tay; artist=Trịnh Thăng Bình,Level 1: Unified Discover Engine,1Szl9lPaJ750Hn2hRX9QI0,1Szl9lPaJ750Hn2hRX9QI0,PASS,23.64,2017.26,2042.97,DONE
-TC50,Tìm nhạc Indie có vibe bình yên của SIVAN,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên; genre=indie; artist=SIVAN,Level 1: Unified Discover Engine,7FvtXQhi9UcSmHuUisbdzN,7FvtXQhi9UcSmHuUisbdzN,PASS,30.84,2132.77,2171.0,DONE
-TC51,Bài nào của Rayo mà buồn sâu lắng?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, sâu lắng; artist=Rayo",Level 1: Unified Discover Engine,3Eclq19yJP8aLKQ1DaMizs,3Eclq19yJP8aLKQ1DaMizs,PASS,32.02,2462.5,2496.72,DONE
-TC52,tim nhac pop lang man cua Mymy,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Mỹ Mỹ; mood=tình yêu; genre=pop,Level 1: Unified Discover Engine,20Njl4876DOJSFGgth2dH2,20Njl4876DOJSFGgth2dH2,PASS,27.15,507.53,537.3,DONE
-TC53,Nhạc của Coldzy có vibe yêu đời tươi mới không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; artist=Coldzy,Level 1: Unified Discover Engine,1fsag6oPedN5lIrjs71xYL,1fsag6oPedN5lIrjs71xYL,PASS,19.54,2046.77,2068.85,DONE
+TC49,Nhạc của Trịnh Thăng Bình chủ đề chia tay,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=chia tay; artist=Trịnh Thăng Bình,Level 1: Unified Discover Engine,1Szl9lPaJ750Hn2hRX9QI0,1Szl9lPaJ750Hn2hRX9QI0,PASS,44.11,356.86,404.68,DONE
+TC50,Tìm nhạc Indie có vibe bình yên của SIVAN,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=SIVAN; mood=bình yên; genre=indie,Level 1: Unified Discover Engine,7FvtXQhi9UcSmHuUisbdzN,7FvtXQhi9UcSmHuUisbdzN,PASS,48.56,514.47,564.76,DONE
+TC51,Bài nào của Rayo mà buồn sâu lắng?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, sâu lắng; artist=Rayo",Level 1: Unified Discover Engine,3Eclq19yJP8aLKQ1DaMizs,3Eclq19yJP8aLKQ1DaMizs,PASS,43.09,629.19,674.93,DONE
+TC52,tim nhac pop lang man cua Mymy,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Mỹ Mỹ; mood=tình yêu; genre=pop,Level 1: Unified Discover Engine,20Njl4876DOJSFGgth2dH2,20Njl4876DOJSFGgth2dH2,PASS,71.27,711.97,785.89,DONE
+TC53,Nhạc của Coldzy có vibe yêu đời tươi mới không?,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới; artist=Coldzy,Level 1: Unified Discover Engine,04thIGYHQEKg7uYeYi4BnC,04thIGYHQEKg7uYeYi4BnC,PASS,85.35,657.4,770.62,DONE
 TC54,Phân tích bài này cho mình với,Edge Cases,UI_BLOCKED,UI_BLOCKED,,Level 0: UI Guardrail (Blocked),,UI Blocked,PASS,20.17,2335.21,2357.66,DONE
 TC55,Bản demo này nghe có ổn không bạn?,Variation & Paraphrasing,UI_BLOCKED,UI_BLOCKED,,Level 0: UI Guardrail (Blocked),,UI Blocked,PASS,100.8,668.18,772.44,DONE
 TC56,Check hộ mình xác suất thành hit của bản thu này,Variation & Paraphrasing,UI_BLOCKED,UI_BLOCKED,,Level 0: UI Guardrail (Blocked),,UI Blocked,PASS,103.42,1625.87,1733.39,DONE
@@ -174,36 +174,36 @@ TC172,tìm nhạc của vú.,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Vũ
 TC173,mở bài của tùng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=Tùng,Level 1: Unified Discover Engine,6wvOfBj1mdlebpuVihkVhL,6wvOfBj1mdlebpuVihkVhL,PASS,28.87,1839.42,1872.12,DONE
 TC174,tìm nhạc của s.t sơn thạch,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=S.T Sơn Thạch,Level 1: Unified Discover Engine,2SNAqdycHxcEg3QAvxIZ5I,2SNAqdycHxcEg3QAvxIZ5I,PASS,87.73,1352.95,1443.98,DONE
 TC175,mở playlist của b ray cực gắt,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,artist=B Ray,Level 1: Unified Discover Engine,6Zoi4ue74UdUeYmHXItXnf,6Zoi4ue74UdUeYmHXItXnf,PASS,39.66,2768.08,2813.47,DONE
-TC176,Mở nhạc vui vẻ yêu đời đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=vui, tươi mới",Level 1: Unified Discover Engine,5rSAUmbOg4giDrM29vUyHe,5rSAUmbOg4giDrM29vUyHe,PASS,46.12,4142.11,4192.4,DONE
-TC177,Nghe nhạc buồn suy,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,32.23,1224.66,1260.22,DONE
-TC178,Gợi ý những bài hát buồn sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, sâu lắng",Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,19.24,465.5,486.74,DONE
-TC179,Nhac bung no soi dong,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,21.97,2003.82,2028.04,DONE
-TC180,Nghe nhạc nhẹ nhàng bình yên,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,28.64,1310.51,1340.85,DONE
-TC181,Có bài nào kịch tính không,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=kich tinh,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,18.64,2001.69,2022.3,DONE
-TC182,Tìm nhạc tươi mới,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới,Level 1: Unified Discover Engine,29Tj2R8sZZ3fzlXZVe1OyY,29Tj2R8sZZ3fzlXZVe1OyY,PASS,27.69,519.59,549.21,DONE
-TC183,Nhạc quẩy cực mạnh,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ; attributes=cuc manh,Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),6vSyybihp3S6rof4kIMuak,6vSyybihp3S6rof4kIMuak,PASS,27.02,2668.5,2697.37,DONE
-TC184,Bật nhạc chữa lành tâm hồn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,45.52,2343.27,2391.21,DONE
-TC185,Playlist nhạc da diết,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,29.86,2136.45,2176.5,DONE
-TC186,Nhạc xả stress cuối tuần,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,136.86,560.95,700.57,DONE
-TC187,Đang thất tình muốn khóc một trận,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,23.61,625.6,652.26,DONE
-TC188,Playlist nào hợp để tập gym,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,107.48,1487.82,1596.9,DONE
-TC189,goi y nhac chill di,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,53.02,356.42,413.48,DONE
-TC190,Cần bài hát an ủi tôi lúc này,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,28.58,610.97,646.74,DONE
-TC191,Nhạc nào nghe để có động lực làm việc,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới,Level 1: Unified Discover Engine,29Tj2R8sZZ3fzlXZVe1OyY,29Tj2R8sZZ3fzlXZVe1OyY,PASS,78.89,3445.26,3530.54,DONE
-TC192,Nghe nhạc sung tung nóc nhà,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,71.22,458.45,533.17,DONE
-TC193,Nghe nhạc ru ngủ dễ đi vào giấc mộng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,118.99,4125.02,4247.84,DONE
-TC194,Nhạc dằn vặt nội tâm,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,157.46,743.79,904.81,DONE
-TC195,Nghe nhạc xập xình,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,99.45,1710.15,1830.18,DONE
-TC196,Mở nhạc não nề,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,44.56,302.08,348.21,DONE
-TC197,Nhạc buồn da diết,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, da diet",Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,34.11,1905.16,1941.0,DONE
-TC198,Nhạc vui bình yên chữa lành về tình yêu,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=vui, tình yêu, bình yên; artist=Ưng Đại Vệ",Level 1: Unified Discover Engine,2qh5qdAMaxw9CF3q8cbto1,2qh5qdAMaxw9CF3q8cbto1,PASS,58.63,973.83,1035.53,DONE
-TC199,"Đừng mở nhạc buồn nữa, bật bài nào vui vui lên",Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=vui,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,703.41,1250.55,1956.09,DONE
-TC200,Nhạc thất tình chia tay nhưng bình yên đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=chia tay, buồn, bình yên",Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,24.5,2450.61,2476.76,DONE
-TC201,"Đang chạy deadline khuya, cho xin tí nhạc edm cháy máy",Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,59.59,836.6,899.14,DONE
-TC202,Bài nào nghe thật sầu thảm khóc cạn nước mắt đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,28.73,2482.98,2514.37,DONE
-TC203,Nhạc thất tình chia tay,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=chia tay, buồn",Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,28.94,1958.74,1990.11,DONE
-TC204,Nhạc thả thính crush,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=thả thính,Level 1: Unified Discover Engine,3COYA2vgfcUhDyRlVpZy5p,3COYA2vgfcUhDyRlVpZy5p,PASS,24.12,1057.87,1084.15,DONE
-TC205,nhacquayparty,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,4yy21UkGZ7gZEGbSERllpE,4yy21UkGZ7gZEGbSERllpE,PASS,18.35,1876.92,1898.19,DONE
+TC176,Mở nhạc vui vẻ yêu đời đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=vui, tươi mới",Level 1: Unified Discover Engine,0wvpRHXXuImyrccNEPAXBo,0wvpRHXXuImyrccNEPAXBo,PASS,84.25,1961.93,2050.72,DONE
+TC177,Nghe nhạc buồn suy,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,133.75,1942.16,2087.49,DONE
+TC178,Gợi ý những bài hát buồn sâu lắng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, sâu lắng",Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,54.72,369.52,427.02,DONE
+TC179,Nhac bung no soi dong,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,63.4,1234.58,1302.33,DONE
+TC180,Nghe nhạc nhẹ nhàng bình yên,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,85.85,865.41,960.63,DONE
+TC181,Có bài nào kịch tính không,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=kich tinh,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,46.36,639.08,687.49,DONE
+TC182,Tìm nhạc tươi mới,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=tươi mới,Level 1: Unified Discover Engine,7uUuftbcr94tzGOCJSM25u,7uUuftbcr94tzGOCJSM25u,PASS,68.25,1839.16,1908.97,DONE
+TC183,Nhạc quẩy cực mạnh,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ; attributes=cuc manh,Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),6i9DeSRJl6WdY43FdyG7Si,6i9DeSRJl6WdY43FdyG7Si,PASS,49.27,1891.39,1952.09,DONE
+TC184,Bật nhạc chữa lành tâm hồn,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,77.08,1538.03,1617.23,DONE
+TC185,Playlist nhạc da diết,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,44.8,327.4,381.05,DONE
+TC186,Nhạc xả stress cuối tuần,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,153.32,659.11,816.9,DONE
+TC187,Đang thất tình muốn khóc một trận,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,84.06,1486.07,1583.84,DONE
+TC188,Playlist nào hợp để tập gym,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,131.84,459.89,600.28,DONE
+TC189,goi y nhac chill di,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,52.21,300.29,354.24,DONE
+TC190,Cần bài hát an ủi tôi lúc này,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,72.61,328.37,412.73,DONE
+TC191,Nhạc nào nghe để có động lực làm việc,Happy Path,DISCOVER_MUSIC,,,,29Tj2R8sZZ3fzlXZVe1OyY,Không tìm thấy,PASS,0.0,0.0,0.0,DONE
+TC192,Nghe nhạc sung tung nóc nhà,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,57.19,309.66,368.25,DONE
+TC193,Nghe nhạc ru ngủ dễ đi vào giấc mộng,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bình yên,Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,111.23,316.49,430.84,DONE
+TC194,Nhạc dằn vặt nội tâm,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,123.77,606.27,732.02,DONE
+TC195,Nghe nhạc xập xình,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,67.68,297.76,367.51,DONE
+TC196,Mở nhạc não nề,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=da diet,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,61.51,310.61,374.36,DONE
+TC197,Nhạc buồn da diết,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, da diet",Level 1: Unified Discover Engine,3CmacJj7VC4W6daC8BWd0h,3CmacJj7VC4W6daC8BWd0h,PASS,56.81,1611.52,1670.47,DONE
+TC198,Nhạc vui bình yên chữa lành về tình yêu,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=vui, tình yêu, bình yên; artist=Ưng Đại Vệ",Level 1: Unified Discover Engine,2qh5qdAMaxw9CF3q8cbto1,2qh5qdAMaxw9CF3q8cbto1,PASS,75.12,742.19,820.09,DONE
+TC199,"Đừng mở nhạc buồn nữa, bật bài nào vui vui lên",Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=vui,Level 1: Unified Discover Engine,6GUKRhIsWxA7VuZW8MKQLG,6GUKRhIsWxA7VuZW8MKQLG,PASS,205.52,1681.11,1919.75,DONE
+TC200,Nhạc thất tình chia tay nhưng bình yên đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, bình yên, chia tay",Level 1: Unified Discover Engine,3uT8QfoX0BE8ZJa4h98LDW,3uT8QfoX0BE8ZJa4h98LDW,PASS,80.08,1086.69,1169.47,DONE
+TC201,"Đang chạy deadline khuya, cho xin tí nhạc edm cháy máy",Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,97.29,504.5,605.24,DONE
+TC202,Bài nào nghe thật sầu thảm khóc cạn nước mắt đi,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,49.92,571.4,623.08,DONE
+TC203,Nhạc thất tình chia tay,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=buồn, chia tay",Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,175.6,1068.98,1257.63,DONE
+TC204,Nhạc thả thính crush,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=thả thính,Level 1: Unified Discover Engine,3COYA2vgfcUhDyRlVpZy5p,3COYA2vgfcUhDyRlVpZy5p,PASS,1836.37,1588.08,3427.32,DONE
+TC205,nhacquayparty,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=bùng nổ,Level 1: Unified Discover Engine,1i5SZL7Ngz0sYFaKmwieyw,1i5SZL7Ngz0sYFaKmwieyw,PASS,55.25,4384.7,4446.53,DONE
 TC206,Mở nhạc Pop,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=pop,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,42.15,2098.78,2144.51,DONE
 TC207,Gợi ý nhạc trẻ,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=nhạc trẻ,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,34.92,357.05,393.67,DONE
 TC208,Playlist Vpop,Noise & Robustness,DISCOVER_MUSIC,DISCOVER_MUSIC,genre=vpop,Level 1: Unified Discover Engine,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,22.12,1640.03,1664.58,DONE
@@ -285,69 +285,69 @@ TC283,Thời tiết Hà Nội hôm nay thế nào?,Out-of-Scope,GENERAL_CHAT,GEN
 TC284,Hướng dẫn mình cách nấu phở bò định chuẩn,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,58.2,4510.54,4587.37,DONE
 TC285,Kể cho mình một câu chuyện ma kinh dị,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,150.76,5408.81,5565.94,DONE
 TC286,Code giúp mình một con bot Telegram bằng Python,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,61.49,5094.38,5160.63,DONE
-TC287,Mẹo để ngủ ngon vào ban đêm là gì?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,7uUuftbcr94tzGOCJSM25u,No ID Needed,PASS,52.69,7003.41,7071.11,DONE
+TC287,Mẹo để ngủ ngon vào ban đêm là gì?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,7uUuftbcr94tzGOCJSM25u,No ID Needed,PASS,52.69,7003.41,7071.11,DONE
 TC288,Shop nào bán quần áo đẹp ở Sài Gòn?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,68.2,4826.48,4904.19,DONE
 TC289,Thủ đô của nước Úc là thành phố nào?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,192.6,4422.07,4622.46,DONE
 TC290,Cách nuôi chó Poodle cho người mới bắt đầu,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,89.23,4692.92,4789.87,DONE
 TC291,Hôm nay có tin tức gì mới về tình hình thế giới không?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,60.5,5905.7,5969.16,DONE
 TC292,Nên đầu tư vào Bitcoin hay Ethereum lúc này?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,58.07,4229.82,4289.63,DONE
-TC293,Cách trang điểm đi tiệc nhẹ nhàng tự nhiên,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,44.58,4506.13,4553.32,DONE
+TC293,Cách trang điểm đi tiệc nhẹ nhàng tự nhiên,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,44.58,4506.13,4553.32,DONE
 TC294,Tại sao con người lại cần phải làm việc?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,106.51,4358.44,4476.12,DONE
 TC295,Lịch âm hôm nay là ngày bao nhiêu?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,71.86,5244.89,5318.6,DONE
 TC296,Bạn có biết chơi cờ vua không? Đánh với mình một ván,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,61.39,4161.54,4232.53,DONE
-TC297,Tư vấn cho mình mua loa bluetooth Marshall tầm 5 triệu nghe nhạc Pop,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,1ApIGNgp1azc0qB61x4GzG,No ID Needed,PASS,60.91,7627.3,7691.04,DONE
+TC297,Tư vấn cho mình mua loa bluetooth Marshall tầm 5 triệu nghe nhạc Pop,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,1ApIGNgp1azc0qB61x4GzG,No ID Needed,PASS,60.91,7627.3,7691.04,DONE
 TC298,Micro thu âm condenser nào tốt nhất để hát cover tại nhà?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,94.56,6792.59,6900.85,DONE
 TC299,Cách khắc phục lỗi tai nghe AirPods bị rè một bên khi nghe nhạc,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,245.56,7687.82,7936.6,DONE
 TC300,Phần mềm nào chỉnh sửa video có ghép nhạc nền miễn phí trên điện thoại?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,148.39,5950.61,6101.19,DONE
 TC301,Card âm thanh máy tính của mình bị mất driver tải ở đâu?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,71.0,6446.66,6520.29,DONE
-TC302,Sơn Tùng M-TP và Hải Tú dạo này có tin đồn gì mới không?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,34.95,6043.5,6080.67,DONE
-TC303,Rapper MCK chia tay tlinh lý do thực sự là gì vậy?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,117.84,5789.26,5908.55,DONE
-TC304,Ca sĩ Mỹ Tâm hiện tại quê ở đâu và đã có gia đình chưa?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,50.25,5279.27,5331.6,DONE
-TC305,Scandal của Jack và K-ICM năm xưa ai là người có lỗi?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,90.03,4639.72,4731.11,DONE
-TC306,Review giúp mình bộ phim Nhạc Hội Nửa Đêm (Pitch Perfect) nhé,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,66.21,3146.42,3215.65,DONE
-TC307,Chương trình Anh Trai Vượt Ngàn Chông Gai tập tối qua ai bị loại?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,35.27,4489.83,4529.97,DONE
-TC308,Cho mình xin lịch chiếu rạp phim Em Và Trịnh có nhạc Trịnh Công Sơn,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,122.78,4935.48,5059.92,DONE
-TC309,Làm sao để lấy lòng nhạc phụ đại nhân trong ngày ra mắt?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,60.54,4354.19,4418.31,DONE
-TC310,Sếp mình dạo này cứ lặp lại cái điệp khúc trừ lương làm mình nản quá,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,40.91,2941.36,2984.3,DONE
-TC311,Mấy ông hàng xóm suốt ngày hát bài ca than nghèo kể khổ,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,42.43,6040.71,6085.54,DONE
-TC312,Nhạc Jazz là gì vậy bạn?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,121.32,3632.26,3755.76,DONE
-TC313,Sơn Tùng M-TP sinh năm bao nhiêu?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,41.72,4297.33,4340.55,DONE
-TC314,Hợp âm Đô trưởng gồm những nốt nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,44.14,3013.21,3059.41,DONE
-TC315,Sự khác biệt giữa Pop và Rock là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,40.5,9212.85,9255.94,DONE
-TC316,Làm thế nào để mix giọng hát cho trong trẻo?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,42.27,6885.49,6930.71,DONE
-TC317,Nguồn gốc của dòng nhạc Bolero Việt Nam,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,54.11,5876.92,5932.54,DONE
-TC318,Autotune là gì và khi nào nên dùng nó?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,56.89,6105.18,6164.41,DONE
-TC319,Tại sao nhạc Lo-fi lại giúp tập trung?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,89.24,4042.62,4137.66,DONE
-TC320,Cách sử dụng Compressor trong sản xuất nhạc,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,41.38,6765.04,6808.37,DONE
-TC321,Những nghệ sĩ Indie nổi bật tại Việt Nam hiện nay,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,73.03,3970.18,4045.76,DONE
-TC322,Nhịp 4/4 và 3/4 khác nhau thế nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,37.03,4742.9,4781.35,DONE
-TC323,Công việc chính của một Music Producer là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,103.62,7208.14,7313.14,DONE
-TC324,Làm sao để viết một đoạn điệp khúc bắt tai?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,37.78,5208.19,5247.59,DONE
-TC325,V-Pop bắt đầu phát triển từ khi nào?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,38.57,3224.63,3264.8,DONE
-TC326,Tác dụng của Reverb trong bản phối là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,114.9,3375.3,3494.11,DONE
-TC327,Sự nghiệp của nhạc sĩ Trịnh Công Sơn,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,100.82,5435.68,5538.19,DONE
-TC328,Dòng nhạc EDM có những nhánh nhỏ nào?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,81.73,3315.71,3399.91,DONE
-TC329,BPM là gì trong âm nhạc?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,44.76,5803.86,5851.44,DONE
-TC330,Làm thế nào để đăng ký bản quyền bài hát?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,36.07,3652.22,3689.89,DONE
-TC331,Sự khác nhau giữa Mixing và Mastering?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,5136.05,6618.64,11760.73,DONE
-TC332,Nhạc cụ truyền thống Việt Nam gồm những loại nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,70.49,7201.13,7274.46,DONE
-TC333,Tại sao vinyl (đĩa than) lại được ưa chuộng trở lại?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,37.09,5501.9,5540.58,DONE
-TC334,Cách tạo ra tiếng 8₀₈ bass căng và dày?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,62.1,7833.15,7896.93,DONE
-TC335,Ai là người giữ kỷ lục MV nhiều view nhất Việt Nam?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,37.36,4321.93,4361.62,DONE
-TC336,Thể loại nhạc Synthwave có đặc điểm gì?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,83.28,4602.32,4688.05,DONE
-TC337,Thang âm ngũ cung là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,41.57,3803.06,3847.12,DONE
-TC338,Nghệ sĩ thực lực và nghệ sĩ thần tượng khác nhau ra sao?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,5257.42,5248.8,10511.15,DONE
-TC339,Làm sao để cải thiện kỹ năng nghe (Ear Training)?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,123.66,7061.17,7187.32,DONE
-TC340,Tầm quan trọng của lời bài hát (Lyrics) trong Ballad,Happy Path,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,76.45,3426.89,3504.92,DONE
-TC341,Phân tích phong cách âm nhạc của Đen Vâu,Edge Cases,GENERAL_CHAT,GENERAL_CHAT,None,N/A,,No ID Needed,PASS,66.13,3840.75,3912.55,DONE
-TC342,Gợi ý nhạc ballad buồn tempo 100,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=ballad; attributes=tempo 100,Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),5cn5oHiXJTLiuthgbgfkMh,5cn5oHiXJTLiuthgbgfkMh,PASS,93.2,2422.96,2518.25,DONE
-TC343,Nhạc buồn đang trending,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; popularity_flag=True,Level 1: Unified Discover Engine -> Sub-Branch: Popularity Top-N,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,41.7,2198.96,2243.24,DONE
+TC302,Sơn Tùng M-TP và Hải Tú dạo này có tin đồn gì mới không?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,34.95,6043.5,6080.67,DONE
+TC303,Rapper MCK chia tay tlinh lý do thực sự là gì vậy?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,117.84,5789.26,5908.55,DONE
+TC304,Ca sĩ Mỹ Tâm hiện tại quê ở đâu và đã có gia đình chưa?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,50.25,5279.27,5331.6,DONE
+TC305,Scandal của Jack và K-ICM năm xưa ai là người có lỗi?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,90.03,4639.72,4731.11,DONE
+TC306,Review giúp mình bộ phim Nhạc Hội Nửa Đêm (Pitch Perfect) nhé,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,66.21,3146.42,3215.65,DONE
+TC307,Chương trình Anh Trai Vượt Ngàn Chông Gai tập tối qua ai bị loại?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,35.27,4489.83,4529.97,DONE
+TC308,Cho mình xin lịch chiếu rạp phim Em Và Trịnh có nhạc Trịnh Công Sơn,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,122.78,4935.48,5059.92,DONE
+TC309,Làm sao để lấy lòng nhạc phụ đại nhân trong ngày ra mắt?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,60.54,4354.19,4418.31,DONE
+TC310,Sếp mình dạo này cứ lặp lại cái điệp khúc trừ lương làm mình nản quá,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,40.91,2941.36,2984.3,DONE
+TC311,Mấy ông hàng xóm suốt ngày hát bài ca than nghèo kể khổ,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,42.43,6040.71,6085.54,DONE
+TC312,Nhạc Jazz là gì vậy bạn?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,121.32,3632.26,3755.76,DONE
+TC313,Sơn Tùng M-TP sinh năm bao nhiêu?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,41.72,4297.33,4340.55,DONE
+TC314,Hợp âm Đô trưởng gồm những nốt nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,44.14,3013.21,3059.41,DONE
+TC315,Sự khác biệt giữa Pop và Rock là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,40.5,9212.85,9255.94,DONE
+TC316,Làm thế nào để mix giọng hát cho trong trẻo?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,42.27,6885.49,6930.71,DONE
+TC317,Nguồn gốc của dòng nhạc Bolero Việt Nam,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,54.11,5876.92,5932.54,DONE
+TC318,Autotune là gì và khi nào nên dùng nó?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,56.89,6105.18,6164.41,DONE
+TC319,Tại sao nhạc Lo-fi lại giúp tập trung?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,89.24,4042.62,4137.66,DONE
+TC320,Cách sử dụng Compressor trong sản xuất nhạc,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,41.38,6765.04,6808.37,DONE
+TC321,Những nghệ sĩ Indie nổi bật tại Việt Nam hiện nay,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,73.03,3970.18,4045.76,DONE
+TC322,Nhịp 4/4 và 3/4 khác nhau thế nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,37.03,4742.9,4781.35,DONE
+TC323,Công việc chính của một Music Producer là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,103.62,7208.14,7313.14,DONE
+TC324,Làm sao để viết một đoạn điệp khúc bắt tai?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,37.78,5208.19,5247.59,DONE
+TC325,V-Pop bắt đầu phát triển từ khi nào?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,38.57,3224.63,3264.8,DONE
+TC326,Tác dụng của Reverb trong bản phối là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,114.9,3375.3,3494.11,DONE
+TC327,Sự nghiệp của nhạc sĩ Trịnh Công Sơn,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,100.82,5435.68,5538.19,DONE
+TC328,Dòng nhạc EDM có những nhánh nhỏ nào?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,81.73,3315.71,3399.91,DONE
+TC329,BPM là gì trong âm nhạc?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,44.76,5803.86,5851.44,DONE
+TC330,Làm thế nào để đăng ký bản quyền bài hát?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,36.07,3652.22,3689.89,DONE
+TC331,Sự khác nhau giữa Mixing và Mastering?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,5136.05,6618.64,11760.73,DONE
+TC332,Nhạc cụ truyền thống Việt Nam gồm những loại nào?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,70.49,7201.13,7274.46,DONE
+TC333,Tại sao vinyl (đĩa than) lại được ưa chuộng trở lại?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,37.09,5501.9,5540.58,DONE
+TC334,Cách tạo ra tiếng 8₀₈ bass căng và dày?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,62.1,7833.15,7896.93,DONE
+TC335,Ai là người giữ kỷ lục MV nhiều view nhất Việt Nam?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,37.36,4321.93,4361.62,DONE
+TC336,Thể loại nhạc Synthwave có đặc điểm gì?,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,83.28,4602.32,4688.05,DONE
+TC337,Thang âm ngũ cung là gì?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,41.57,3803.06,3847.12,DONE
+TC338,Nghệ sĩ thực lực và nghệ sĩ thần tượng khác nhau ra sao?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,5257.42,5248.8,10511.15,DONE
+TC339,Làm sao để cải thiện kỹ năng nghe (Ear Training)?,Variation & Paraphrasing,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,123.66,7061.17,7187.32,DONE
+TC340,Tầm quan trọng của lời bài hát (Lyrics) trong Ballad,Happy Path,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,76.45,3426.89,3504.92,DONE
+TC341,Phân tích phong cách âm nhạc của Đen Vâu,Edge Cases,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,66.13,3840.75,3912.55,DONE
+TC342,Gợi ý nhạc ballad buồn tempo 100,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; genre=ballad; attributes=tempo 100,Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),5cn5oHiXJTLiuthgbgfkMh,5cn5oHiXJTLiuthgbgfkMh,PASS,71.68,3009.78,3084.99,DONE
+TC343,Nhạc buồn đang trending,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,mood=buồn; popularity_flag=True,Level 1: Unified Discover Engine -> Sub-Branch: Popularity Top-N,1ApIGNgp1azc0qB61x4GzG,1ApIGNgp1azc0qB61x4GzG,PASS,45.91,2481.84,2529.21,DONE
 TC344,Gợi ý nhạc rap nhanh 140 bpm,Happy Path,DISCOVER_MUSIC,DISCOVER_MUSIC,"genre=rap; attributes=nhanh, bpm 140",Level 1: Unified Discover Engine -> Sub-Branch: Attributes (+Filters),6Hs2xIgB8nzyGFDvVA8lFa,6Hs2xIgB8nzyGFDvVA8lFa,PASS,111.81,771.79,887.19,DONE
 TC345,Nhạc giống bài Bống Bống Bang Bang,Variation & Paraphrasing,DISCOVER_MUSIC,DISCOVER_MUSIC,seed_name=bống bống bang bang,Level 1: Unified Discover Engine -> Sub-Branch: Seed Recommendation -> Level 1: Seed Lookup,5h5sKmDxEKlPtqZDQQtCn5,5h5sKmDxEKlPtqZDQQtCn5,PASS,62.87,2167.48,2232.35,DONE
 TC346,phân tích tiềm năng bài hát này,Happy Path,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,12.84,67082.31,67102.24,DONE
 TC347,Tỷ lệ viral của bài này cao không bot?,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,110.48,62991.06,63104.71,DONE
 TC348,phân tích tiềm năng bài hát này đi,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,3.54,53127.16,53133.92,DONE
-TC349,phân tích tiềm năng bài hát,Happy Path,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,13.10,68551.68,68572.97,DONE
+TC349,phân tích tiềm năng bài hát,Happy Path,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,13.1,68551.68,68572.97,DONE
 TC350,Bài này là bài gì?,Variation & Paraphrasing,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,6Hs2xIgB8nzyGFDvVA8lFa,6Hs2xIgB8nzyGFDvVA8lFa,PASS,55.88,20726.71,20785.39,DONE
 TC351,Giai điệu này tên gì thế?,Variation & Paraphrasing,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,5KYv3kORBKUmVEoqbRRWxt,5KYv3kORBKUmVEoqbRRWxt,PASS,50.15,11815.85,11867.74,DONE
 TC352,Đoạn nhạc này của ai?,Variation & Paraphrasing,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,6GM4ZOBDcDroldUxI8GZ2B,6GM4ZOBDcDroldUxI8GZ2B,PASS,37.22,10027.38,10066.45,DONE
@@ -358,14 +358,14 @@ TC356,Nhận diện đoạn âm thanh này giúp mình.,Variation & Paraphrasing
 TC357,Shazam file nhạc này đi.,Variation & Paraphrasing,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,5ouxRyInSdRBQubu3KTd97,5ouxRyInSdRBQubu3KTd97,PASS,54.13,11772.55,11828.35,DONE
 TC358,Tìm bài hát bằng âm thanh này.,Happy Path,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,4yVjUXGvBqnHhoP322fSZr,4yVjUXGvBqnHhoP322fSZr,PASS,34.99,11093.64,11132.46,DONE
 TC359,bài này tên j z,Noise & Robustness,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,5XfGQZA0ioQAWUjlyJRcHc,5XfGQZA0ioQAWUjlyJRcHc,PASS,62.46,8792.92,8857.45,DONE
-TC360,bài này của ai v,Noise & Robustness,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,6KgZf5gZgF1KLNxq1qZgHP,6KgZf5gZgF1KLNxq1qZgHP,PASS,42.87,9623.46,9669.20,DONE
+TC360,bài này của ai v,Noise & Robustness,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,6KgZf5gZgF1KLNxq1qZgHP,6KgZf5gZgF1KLNxq1qZgHP,PASS,42.87,9623.46,9669.2,DONE
 TC361,nhạc gì đây,Variation & Paraphrasing,SEARCH_AUDIO,SEARCH_AUDIO,,Level 1: Audio Fingerprinting,3T7XHOdRcyhKU3QCB6kZG3,3T7XHOdRcyhKU3QCB6kZG3,PASS,199.64,11685.06,11886.57,DONE
-TC362,Bản phối của mình bạn đánh giá sao?,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,105.64,61298.17,61417.50,DONE
-TC363,Đoán xem xác suất hit của bài này thế nào,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,147.83,51854.29,52006.00,DONE
-TC364,Nhờ bot phân tích dùm,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,44.57,65350.85,65397.50,DONE
+TC362,Bản phối của mình bạn đánh giá sao?,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,105.64,61298.17,61417.5,DONE
+TC363,Đoán xem xác suất hit của bài này thế nào,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,147.83,51854.29,52006.0,DONE
+TC364,Nhờ bot phân tích dùm,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,44.57,65350.85,65397.5,DONE
 TC365,Check hộ bài này xem sao,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,45.25,46163.88,46210.62,DONE
 TC366,Admin chấm điểm giúp em nha,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,35.82,44631.12,44669.56,DONE
 TC367,Góp ý bài hát này cho mình với,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,37.75,51666.45,51706.26,DONE
 TC368,phân tích tiềm năng và hát này đi,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,48.69,57583.65,57634.05,DONE
 TC369,phan tich tiem nang bai hat,Noise & Robustness,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,55.87,50516.08,50573.96,DONE
-TC370,gop y bai hat nay cho minh voi,Noise & Robustness,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,44.01,54697.70,54697.70,DONE
+TC370,gop y bai hat nay cho minh voi,Noise & Robustness,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,44.01,54697.7,54697.7,DONE

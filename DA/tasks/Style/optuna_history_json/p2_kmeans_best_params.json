@@ -1,6 +1,6 @@
 {
-  "n_init": 11,
-  "max_iter": 476,
-  "tol": 0.0009847149170529978,
-  "init": "k-means++"
+  "n_init": 10,
+  "max_iter": 574,
+  "tol": 0.0008691089486124963,
+  "init": "random"
 }

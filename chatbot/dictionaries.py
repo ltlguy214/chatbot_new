@@ -93,6 +93,14 @@ ATTRIBUTE_KEYWORDS = [
     "bpm", "tempo"
 ]
 TEENCODE_MAP = {
+    "nhacquayparty": "nhạc quẩy party",
+    "nhacquay": "nhạc quẩy",
+    "nhacparty": "nhạc party",
+    "quayparty": "quẩy party",
+    "nhacbuon": "nhạc buồn",
+    "nhacchill": "nhạc chill",
+    "nhacvui": "nhạc vui",
+    "nhachot": "nhạc hot",
     "bot": "bot", 
     "ad": "admin", 
     "admin": "admin",
