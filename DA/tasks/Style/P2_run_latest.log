@@ -1,34 +1,117 @@
 📝 Log file: DA\tasks\Style\P2_run_latest.log
-🕒 Started: 2026-04-08T23:45:18 | Script: analysis_Style_Classification.py
+🕒 Started: 2026-05-11T15:58:56 | Script: analysis_Style_Classification.py
 
 ================================================================================
 BƯỚC 1: TẢI & PREPROCESS
 ================================================================================
+🔥 Đã 'trảm' 1 bài hát nhiễu. Số lượng còn lại: 7664
 🚀 BẮT ĐẦU TIỀN XỬ LÝ DỮ LIỆU...
 
    ✅ Sentiment OHE included: ['sentiment_negative', 'sentiment_neutral', 'sentiment_positive']
-   📊 Input Features: 115 biến
-   🔎 Binary (no-scale) cols: 31 | Continuous cols: 84
+   📊 Input Features: 59 biến
+   🔎 Binary (no-scale) cols: 31 | Continuous cols: 28
    ⚖️  Feature Weights: Optuna enabled → defer weighting to optimizer
 
 ================================================================================
 BƯỚC 1B: OPTUNA FEATURE WEIGHTS
 ================================================================================
+So luong trials: 20
+[I 2026-05-11 15:58:56,981] A new study created in memory with name: p2_feature_weights_opt
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 50.2% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 51.0% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 6
+   Tổng phương sai giải thích 51.0% với 6 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 9
+   Tổng phương sai giải thích 53.0% với 9 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 5
+   Tổng phương sai giải thích 52.1% với 5 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 51.7% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 8
+   Tổng phương sai giải thích 50.7% với 8 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 51.6% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 5
+   Tổng phương sai giải thích 52.2% với 5 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 51.4% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 8
+   Tổng phương sai giải thích 52.8% với 8 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 51.7% với 3 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 52.9% với 3 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 53.7% với 3 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 54.1% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 53.1% với 3 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 4
+   Tổng phương sai giải thích 53.1% với 4 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 52.6% với 3 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 5
+   Tổng phương sai giải thích 52.1% với 5 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 7
+   Tổng phương sai giải thích 51.6% với 7 chiều
+   ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
 
 ================================================================================
-OPTUNA REUSE (skip trials): Feature Weights
+OPTUNA BEST: Feature Weights
 ================================================================================
-   ✅ Loaded: DA\tasks\Style\optuna_history_json\p2_feature_weights_best_params.json
-   ✅ Params: {'tempo': 0.6929337794691192, 'energy': 1.9858818332398962, 'sentiment': 1.561784018789134, 'beat': 1.7329161244736726, 'onset': 0.6329351908732839, 'flatness': 2.151855763459191}
+   ✅ Best SIL: 0.2698
+   ✅ Best params: {'tempo': 2.942870043257053, 'energy': 1.875217064228987, 'sentiment': 0.6645321927135971, 'beat': 3.4749227783904146, 'onset': 3.4058556596910328, 'flatness': 2.7674431431851065}
 ================================================================================
 
 
 ================================================================================
-BƯỚC 2: PCA (Dynamic 60% Variance)
+BƯỚC 2: PCA (Dynamic 50% Variance)
 ================================================================================
-   📉 PCA ANALYTICS + PCA(n_components=0.6) ...
-   📊 n_60 (>=60%): 15
-   Tổng phương sai giải thích 60.3% với 15 chiều
+   📉 PCA ANALYTICS + PCA(n_components=0.5) ...
+   📊 n_50 (>=50%): 3
+   Tổng phương sai giải thích 51.7% với 3 chiều
    ✅ Đã lưu PCA analytics tại: DA\tasks\Style\pca_analysis.png
 
 ================================================================================
@@ -38,15 +121,15 @@ BƯỚC 3: AUTO-ELBOW (kneed)
 ================================================================================
 AUTO-K MODULE: k=2..10 (KneeLocator / Elbow on inertia)
 ================================================================================
-   k= 2 | inertia=338692.74 | silhouette=0.2066
-   k= 3 | inertia=306614.82 | silhouette=0.1763
-   k= 4 | inertia=288673.28 | silhouette=0.1392
-   k= 5 | inertia=274728.49 | silhouette=0.1025
-   k= 6 | inertia=263287.71 | silhouette=0.1029
-   k= 7 | inertia=255067.15 | silhouette=0.0944
-   k= 8 | inertia=248273.25 | silhouette=0.0874
-   k= 9 | inertia=242719.43 | silhouette=0.0865
-   k=10 | inertia=237852.02 | silhouette=0.0768
+   k= 2 | inertia=126125.57 | silhouette=0.3366
+   k= 3 | inertia=94594.56 | silhouette=0.2985
+   k= 4 | inertia=78927.93 | silhouette=0.2759
+   k= 5 | inertia=68053.27 | silhouette=0.2698
+   k= 6 | inertia=60757.19 | silhouette=0.2582
+   k= 7 | inertia=54958.22 | silhouette=0.2538
+   k= 8 | inertia=51079.15 | silhouette=0.2478
+   k= 9 | inertia=47447.08 | silhouette=0.2509
+   k=10 | inertia=44173.07 | silhouette=0.2535
 
    ✅ Auto-Elbow (KneeLocator): k=5
 ✅ Đã lưu Auto-Elbow plot tại: DA\tasks\Style\k_selection_auto.png
@@ -62,13 +145,13 @@ BENCHMARK 9 THUẬT TOÁN (k=5)
 
 MODEL                          | SIL      | DB       | CH           | N_CLUST
 --------------------------------------------------------------------------------
-K-Means                        |   0.1025 |   2.1234 |      1127.86 |       5
-K-Means (Random)               |   0.1025 |   2.1234 |      1127.86 |       5
-MiniBatch KMeans               |   0.1169 |   2.2459 |      1047.30 |       5
-Bisecting KMeans               |   0.0815 |   2.4988 |      1026.85 |       5
-Agglomerative (Ward)           |   0.0992 |   1.9480 |       853.50 |       5
-Birch                          |   0.0929 |   1.8492 |       846.13 |       5
-Spectral (KNN)                 |   0.0880 |   2.3391 |      1017.77 |       5
+K-Means                        |   0.2698 |   1.0750 |      3793.42 |       5
+K-Means (Random)               |   0.2698 |   1.0749 |      3793.47 |       5
+MiniBatch KMeans               |   0.2673 |   1.1007 |      3767.79 |       5
+Bisecting KMeans               |   0.2209 |   1.3578 |      3301.93 |       5
+Agglomerative (Ward)           |   0.2093 |   1.2086 |      2795.31 |       5
+Birch                          |   0.1709 |   1.2658 |      2289.73 |       5
+Spectral (KNN)                 |   0.1811 |   1.4596 |      2595.12 |       5
 
 ================================================================================
 
@@ -77,25 +160,47 @@ Spectral (KNN)                 |   0.0880 |   2.3391 |      1017.77 |       5
 📊 BASELINE - 9 THUẬT TOÁN (k=5)
 ================================================================================
                       Silhouette  Davies-Bouldin  Calinski-Harabasz
-MiniBatch KMeans          0.1169          2.2459          1047.3043
-K-Means (Random)          0.1025          2.1234          1127.8623
-K-Means                   0.1025          2.1234          1127.8621
-Agglomerative (Ward)      0.0992          1.9480           853.5011
-Birch                     0.0929          1.8492           846.1271
-Spectral (KNN)            0.0880          2.3391          1017.7700
-Bisecting KMeans          0.0815          2.4988          1026.8470
-   🏆 Best fixed-k model (đủ điều kiện map 5 vibes): MiniBatch KMeans (Silhouette: 0.1169 | CH: 1047.30)
+K-Means                   0.2698          1.0750          3793.4227
+K-Means (Random)          0.2698          1.0749          3793.4665
+MiniBatch KMeans          0.2673          1.1007          3767.7878
+Bisecting KMeans          0.2209          1.3578          3301.9293
+Agglomerative (Ward)      0.2093          1.2086          2795.3083
+Spectral (KNN)            0.1811          1.4596          2595.1185
+Birch                     0.1709          1.2658          2289.7284
+   🏆 Best fixed-k model (đủ điều kiện map 5 vibes): K-Means (Silhouette: 0.2698 | CH: 3793.42)
 ================================================================================
-   🔥 BƯỚC 2: Bắt đầu tối ưu hóa Optuna (20 lượt) cho MiniBatch KMeans...
+   🔥 BƯỚC 2: Bắt đầu tối ưu hóa Optuna (20 lượt) cho K-Means...
+So luong trials: 20
+[I 2026-05-11 16:00:04,659] A new study created in memory with name: p2_kmeans_optimization
+[I 2026-05-11 16:00:05,801] Trial 0 finished with value: 0.2698465102709762 and parameters: {'n_init': 25, 'max_iter': 581, 'tol': 0.000291063591313307, 'init': 'k-means++'}. Best is trial 0 with value: 0.2698465102709762.
+[I 2026-05-11 16:00:07,149] Trial 1 finished with value: 0.2698807789806743 and parameters: {'n_init': 16, 'max_iter': 223, 'tol': 0.0005399484409787432, 'init': 'random'}. Best is trial 1 with value: 0.2698807789806743.
+[I 2026-05-11 16:00:08,472] Trial 2 finished with value: 0.27061877765253917 and parameters: {'n_init': 10, 'max_iter': 588, 'tol': 0.000462258900102083, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:09,804] Trial 3 finished with value: 0.26978568776895717 and parameters: {'n_init': 17, 'max_iter': 322, 'tol': 0.00011207606211860574, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:11,450] Trial 4 finished with value: 0.26978568776895717 and parameters: {'n_init': 35, 'max_iter': 255, 'tol': 3.8396292998041685e-05, 'init': 'random'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:12,954] Trial 5 finished with value: 0.26997708075587956 and parameters: {'n_init': 42, 'max_iter': 280, 'tol': 0.00010677482709481354, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:14,676] Trial 6 finished with value: 0.2698068573666308 and parameters: {'n_init': 34, 'max_iter': 268, 'tol': 1.3492834268013232e-05, 'init': 'random'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:16,106] Trial 7 finished with value: 0.2698068573666308 and parameters: {'n_init': 43, 'max_iter': 322, 'tol': 1.5679933916722995e-05, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:17,240] Trial 8 finished with value: 0.2698068573666308 and parameters: {'n_init': 15, 'max_iter': 398, 'tol': 1.1715937392307055e-05, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:18,443] Trial 9 finished with value: 0.26997708075587956 and parameters: {'n_init': 37, 'max_iter': 324, 'tol': 0.00010968217207529509, 'init': 'k-means++'}. Best is trial 2 with value: 0.27061877765253917.
+[I 2026-05-11 16:00:19,537] Trial 10 finished with value: 0.27168156116147874 and parameters: {'n_init': 10, 'max_iter': 574, 'tol': 0.0008691089486124963, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:20,652] Trial 11 finished with value: 0.27168156116147874 and parameters: {'n_init': 10, 'max_iter': 563, 'tol': 0.0009423326114108491, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:21,989] Trial 12 finished with value: 0.27168156116147874 and parameters: {'n_init': 23, 'max_iter': 517, 'tol': 0.0009810500689528938, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:23,256] Trial 13 finished with value: 0.27168156116147874 and parameters: {'n_init': 10, 'max_iter': 497, 'tol': 0.0009727738417805854, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:24,436] Trial 14 finished with value: 0.2699563169264685 and parameters: {'n_init': 23, 'max_iter': 496, 'tol': 0.0002528968415699024, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:25,560] Trial 15 finished with value: 0.2699563169264685 and parameters: {'n_init': 19, 'max_iter': 435, 'tol': 0.0002450225281899213, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:26,777] Trial 16 finished with value: 0.2698807789806743 and parameters: {'n_init': 29, 'max_iter': 545, 'tol': 0.000507525078790444, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:28,292] Trial 17 finished with value: 0.2698068573666308 and parameters: {'n_init': 49, 'max_iter': 436, 'tol': 4.002392605016865e-05, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:29,436] Trial 18 finished with value: 0.2698807789806743 and parameters: {'n_init': 12, 'max_iter': 600, 'tol': 0.0006732534117889709, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
+[I 2026-05-11 16:00:30,753] Trial 19 finished with value: 0.2698916606380926 and parameters: {'n_init': 20, 'max_iter': 544, 'tol': 0.00019532718896499884, 'init': 'random'}. Best is trial 10 with value: 0.27168156116147874.
 
 ================================================================================
-OPTUNA REUSE (skip trials): kmeans
+OPTUNA BEST: kmeans
 ================================================================================
-   ✅ Loaded best params: DA\tasks\Style\optuna_history_json\p2_kmeans_best_params.json
-   ✅ Cached SIL (re-eval): 0.1025
+   ✅ Best SIL: 0.2717
+   ✅ Best params: {'n_init': 10, 'max_iter': 574, 'tol': 0.0008691089486124963, 'init': 'random'}
 ================================================================================
 
-   ⚠️  Optuna không cải thiện (baseline_SIL=0.1169 > optuna_SIL=0.1025) → GIỮ BASELINE params
+   ✅ Optuna cải thiện/không tệ hơn baseline (SIL): 0.2698 → 0.2717 → DÙNG params Optuna
    ✅ Đã xuất ảnh lịch sử Optuna tại: DA\tasks\Style\optuna_history_image\p2_kmeans_optimization.png
 
 ================================================================================
@@ -104,14 +209,9 @@ OPTUNA REUSE (skip trials): kmeans
 ✅ Đã lưu best-model CSV tại: DA\final_data\p2_best_model_results.csv
 
 ================================================================================
-BƯỚC 4B: CONSENSUS CLUSTERING (Ensemble)
-================================================================================
-✅ Consensus built from: ['MiniBatch KMeans', 'K-Means', 'K-Means (Random)']
-
-================================================================================
 BƯỚC 4C: BOOTSTRAP STABILITY VALIDATION
 ================================================================================
-✅ Bootstrap stability: mean agreement = 0.9712
+✅ Bootstrap stability: mean agreement = 0.9736
 
 ================================================================================
 BƯỚC 5: DIRECT MAPPING 5 VIBES
@@ -122,15 +222,16 @@ BƯỚC 5B: OPTUNA IDEAL VECTORS (Vibe Mapping)
 ================================================================================
 
 ================================================================================
-OPTUNA REUSE (skip trials): Ideal Vectors
+OPTUNA BEST: Ideal Vectors
 ================================================================================
-   ✅ Loaded: DA\tasks\Style\optuna_history_json\p2_ideal_vibes_best_params.json
+   ✅ Best objective: 0.9736
+   ✅ Saved: DA\tasks\Style\optuna_history_json\p2_ideal_vibes_best_params.json
 ================================================================================
 
 📌 METRICS (FINAL 5 VIBES)
-Silhouette:      0.1024
-Davies-Bouldin:  2.1232
-Calinski-Harabasz: 1127.89
+Silhouette:      0.2717
+Davies-Bouldin:  1.0720
+Calinski-Harabasz: 3791.59
 ✅ Đã lưu radar chart tại: DA\tasks\Style\5vibes_radar.png
 ✅ Đã xuất CSV tại: DA\final_data\VPop_5_Vibes_Final.csv
 ✅ Đã lưu feature names tại: DA\models\feature_names_p2.json
@@ -141,3 +242,10 @@ Calinski-Harabasz: 1127.89
    • Feature names:     DA\models\feature_names_p2.json
    • Final CSV:         DA\final_data\VPop_5_Vibes_Final.csv
 
+vibe
+Sâu lắng / Thấu cảm     2081
+Tươi mới / Yêu đời      1930
+Kịch tính / Da diết     1470
+Bình yên / Chữa lành    1250
+Bùng nổ / Sôi động       933
+Name: count, dtype: int64

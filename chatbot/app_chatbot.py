@@ -3073,7 +3073,20 @@ if st.session_state.get('processing_prompt'):
                             track_previews, popularity_by_id = future_spotify.result()
                         # ==========================================
                     else:
-                        intro_text = str(vector_result.get('error') or '').strip() or "Không tìm thấy bài hát phù hợp."
+                        # Lấy lỗi từ Backend (nếu có)
+                        raw_error = str(vector_result.get('error') or '').strip()
+                        
+                        # Nếu là lỗi kỹ thuật (chứa chữ Lỗi, KeyError, Exception...) thì GIẤU ĐI
+                        if "Lỗi siêu truy vấn" in raw_error or "KeyError" in raw_error or "Exception" in raw_error:
+                            intro_text = (
+                                "Ui xin lỗi bạn nha, trong kho nhạc của mình hiện tại chưa có bài nào "
+                                "khớp 100% với những yêu cầu khắt khe này! 😅. Bạn thử nới lỏng tiêu chí một chút xem sao nhé?"
+                            )
+                        # Nếu là câu thông báo thân thiện đã được định nghĩa sẵn (ví dụ: "Chưa tìm thấy track hot...")
+                        elif raw_error:
+                            intro_text = raw_error
+                        else:
+                            intro_text = "Tiếc quá, mình chưa tìm thấy bài hát nào phù hợp với yêu cầu của bạn. Bạn thử gợi ý khác nhé!"
                         
             # --- LUỒNG 2: PHÂN TÍCH ---
             elif action == "ANALYZE_READY":

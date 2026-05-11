@@ -109,7 +109,7 @@ def _wait_for_streamlit_ready(page) -> None:
     page.wait_for_selector('textarea', timeout=60000)
 
 def run_and_evaluate_test_cases():
-    input_file = r'testcase_final.csv'
+    input_file = r'scripts\test_case_evalution\testcase_final.csv'
     if len(sys.argv) >= 2 and str(sys.argv[1]).strip():
         input_file = str(sys.argv[1]).strip()
     
@@ -120,7 +120,7 @@ def run_and_evaluate_test_cases():
         df[STATUS_COL] = ""
         df.to_csv(input_file, index=False, encoding='utf-8-sig')
 
-    output_file = 'final_thesis_evaluation_report.csv'
+    output_file = r'scripts\test_case_evalution\final_thesis_evaluation_report.csv'
     if len(sys.argv) >= 3 and str(sys.argv[2]).strip():
         output_file = str(sys.argv[2]).strip()
     
