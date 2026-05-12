@@ -6,6 +6,16 @@ __pycache__/
 DA/models/best_model_p4.pkl
 DA/models/best_model_p1.pkl
 
+# Streamlit Cloud deploy files (track these even though *.txt is ignored)
+!requirements.txt
+!runtime.txt
+!packages.txt
+
+# Streamlit config: keep config + example, ignore real secrets
+!.streamlit/config.toml
+!.streamlit/secrets.toml.example
+.streamlit/secrets.toml
+
 # Local secrets (avoid accidental commits)
 .env
 .env.*
