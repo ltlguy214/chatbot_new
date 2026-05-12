@@ -40,7 +40,7 @@ try:
         spotify_pick_image_url,
         spotify_search_artist as spotify_search_artist_api,
     )
-    from chatbot.supabase import (
+    from chatbot.supabase_config import (
         get_supabase_client as _supabase_get_client,
         query_supabase_lyrics as _supabase_query_lyrics,
         query_supabase_vector as _supabase_query_vector,
@@ -69,7 +69,7 @@ except ModuleNotFoundError:
         spotify_pick_image_url,
         spotify_search_artist as spotify_search_artist_api,
     )
-    from supabase import (
+    from supabase_config import (
         get_supabase_client as _supabase_get_client,
         query_supabase_lyrics as _supabase_query_lyrics,
         query_supabase_vector as _supabase_query_vector,
@@ -979,7 +979,10 @@ def get_cached_spotify_token():
 def preload_embedding_model():
     """Nạp sẵn hàm embedding thẳng từ file gốc để tránh lỗi NameError."""
     try:
-        from chatbot.supabase import encode_lyrics_embedding_debug
+        try:
+            from chatbot.supabase_config import encode_lyrics_embedding_debug
+        except Exception:
+            from supabase_config import encode_lyrics_embedding_debug
         # Gọi thử một chuỗi rỗng để model load thẳng vào RAM
         encode_lyrics_embedding_debug("warmup")
     except Exception:
@@ -1228,19 +1231,19 @@ def _normalize_supabase_rows(rows):
 
 
 def _get_supabase_client():
-    """Compatibility wrapper (client cached inside `chatbot.supabase`)."""
+    """Compatibility wrapper (client cached inside `chatbot.supabase_config`)."""
 
     return _supabase_get_client()
 
 
 def query_supabase_lyrics(user_input: str, match_threshold: float = 0.4, match_count: int = 5):
-    """Compatibility wrapper (implementation in `chatbot.supabase`)."""
+    """Compatibility wrapper (implementation in `chatbot.supabase_config`)."""
 
     return _supabase_query_lyrics(user_input, match_threshold=match_threshold, match_count=match_count)
 
 
 def query_supabase_vector(intent_json):
-    """Compatibility wrapper (implementation in `chatbot.supabase`)."""
+    """Compatibility wrapper (implementation in `chatbot.supabase_config`)."""
 
     try:
         return _supabase_query_vector(
@@ -2380,7 +2383,7 @@ if 'global_lyric_text' not in st.session_state:
 def _embed_query_text(text: str) -> list[float] | None:
     """Embedding helper for vector RPCs.
 
-    Uses the same provider as `chatbot.supabase` to keep dimensions consistent.
+    Uses the same provider as `chatbot.supabase_config` to keep dimensions consistent.
     """
     # Attach error info to the function object for downstream UI.
     try:
@@ -2389,7 +2392,10 @@ def _embed_query_text(text: str) -> list[float] | None:
         pass
 
     try:
-        from chatbot.supabase import encode_lyrics_embedding_debug
+        try:
+            from chatbot.supabase_config import encode_lyrics_embedding_debug
+        except Exception:
+            from supabase_config import encode_lyrics_embedding_debug
 
         vec, err = encode_lyrics_embedding_debug(str(text or '').strip())
         try:
@@ -2982,6 +2988,10 @@ if st.session_state.get('processing_prompt'):
                             suffix = os.path.splitext(str(st.session_state.global_audio_name or ''))[-1].lower() or '.wav'
                             temp_audio = save_uploaded_file(audio_obj, suffix=suffix)
                             params_to_use = dict(params or {})
+                            
+                            # [THÊM MỚI] Bơm câu nói nguyên bản vào params để làm đạn dự phòng
+                            params_to_use['raw_query'] = p_prompt
+
                             params_to_use['audio_path'] = temp_audio
                         
                         fast_embed_fn = None if action in ["SEARCH_TRACK", "SEARCH_AUDIO"] else _embed_query_text

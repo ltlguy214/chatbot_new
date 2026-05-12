@@ -46,12 +46,12 @@ def _safe_str(obj: Any) -> str:
 
 def _import_supabase_module():
     try:
-        from chatbot import supabase as supa  # type: ignore
+        from chatbot import supabase_config as supa  # type: ignore
 
         return supa
     except Exception:
         # Allow running from within the chatbot folder as CWD.
-        import supabase as supa  # type: ignore
+        import supabase_config as supa  # type: ignore
 
         return supa
 

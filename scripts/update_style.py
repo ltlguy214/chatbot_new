@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from chatbot.env import load_env
 load_env()
 
-from chatbot.supabase import get_supabase_client
+from chatbot.supabase_config import get_supabase_client
 
 # 2. Đọc dữ liệu từ file CSV
 csv_path = os.path.join("DA", "final_data", "VPop_5_Vibes_Final.csv")

@@ -7,13 +7,22 @@ from functools import lru_cache
 from importlib import import_module
 from typing import Any, Callable
 
+try:
+    import streamlit as st
 
-from sentence_transformers import SentenceTransformer
-import streamlit as st
+    _cache_resource = st.cache_resource
+except Exception:  # pragma: no cover
+    st = None
 
-@st.cache_resource
+    def _cache_resource(func):
+        return lru_cache(maxsize=1)(func)
+
+
+@_cache_resource
 def get_embedding_model():
-    # Load 1 lần và dùng mãi mãi trong suốt session
+    # Lazy import vì `sentence-transformers`/`torch` có thể load rất chậm.
+    from sentence_transformers import SentenceTransformer
+
     return SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 def encode_lyrics_embedding_debug(text: str) -> tuple[list[float] | None, str | None]:
@@ -32,7 +41,7 @@ def encode_lyrics_embedding_debug(text: str) -> tuple[list[float] | None, str | 
 def _import_third_party_supabase_create_client():
     """Import `supabase.create_client` from the pip package safely.
 
-    This repo contains `chatbot/supabase.py`. In environments where the working
+    This repo contains `chatbot/supabase_config.py`. In environments where the working
     directory (or script directory) is `chatbot/`, `import supabase` would
     resolve to this local file and shadow the third-party package.
     """
