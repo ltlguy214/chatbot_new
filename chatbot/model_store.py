@@ -52,11 +52,11 @@ class ModelStorageConfig:
 
 def _import_get_supabase_client():
     try:
-        from chatbot.supabase import get_supabase_client  # type: ignore
+        from chatbot.supabase_config import get_supabase_client  # type: ignore
 
         return get_supabase_client
     except Exception:
-        from supabase import get_supabase_client  # type: ignore
+        from supabase_config import get_supabase_client  # type: ignore
 
         return get_supabase_client
 

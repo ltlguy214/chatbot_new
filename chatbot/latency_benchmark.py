@@ -9,7 +9,7 @@ from typing import Any, Callable, Iterable
 
 from chatbot.action_handler import handle_action
 from chatbot.intent import ALLOWED_ACTIONS, parse_intent_llm
-from chatbot.supabase import LyricsEmbeddingProvider, SupabaseClientFactory
+from chatbot.supabase_config import LyricsEmbeddingProvider, SupabaseClientFactory
 
 
 def _ms(seconds: float) -> float:

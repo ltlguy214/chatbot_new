@@ -179,6 +179,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     import re
     import unicodedata
     user_input = re.sub(r'["\'“”‘’]', '', user_input)
+    user_input = re.sub(r'^(helo|hello|hi|chào|chao|ê|e|bot|ad|admin)\b\s*', '', user_input, flags=re.IGNORECASE).strip()
     user_input = re.sub(r'(?i)\b(\d+|mười|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|chục|trăm)\s*k\b', r'\1 ngàn', user_input)
     user_input = re.sub(r'(?i)\b(nhac|bai|ca|loi|hat|list|quay|bungno|chill|buon|vui|remix)\b(?=[a-z])', r'\1 ', user_input)
     user_input = re.sub(r'(?i)(?<=[a-z])(nhac|bai|ca|loi|hat|quay|party|remix|hit|hot)\b', r' \1', user_input)
@@ -290,9 +291,10 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
 
             # C. NGHỆ SĨ NẰM ĐẦU CÂU
             if a_norm.startswith(db_a_norm + " "):
-                if len(db_a_norm) > prefix_score:
-                    prefix_score = len(db_a_norm)
-                    prefix_match = db_a
+                if len(db_a_nospace) > 3 or len(a_words) <= 4 or is_strong_intent:
+                    if len(db_a_norm) > prefix_score:
+                        prefix_score = len(db_a_norm)
+                        prefix_match = db_a
                     
             # D. NGHỆ DANH BỊ KẸP GIỮA
             elif f" {a_norm} " in f" {db_a_norm} ":
@@ -364,7 +366,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     if re.search(r'\b(?:bài\s+nào|bài\s+gì|nhạc\s+gì|bài\s+chi|nhạc\s+nào)\b', lower_prompt):
         quick_match_name = None
     else:
-        quick_match_name = re.match(r'^(?:(?:tìm|tim|mở|mo|mơ|bật|bat|nghe|phát|phat|gợi ý|goi y)(?:\s+(?:cho|giúp|giup|mình|minh|tôi|toi|em|anh|chị|chi|các|cac|vài|vai|một|mot|những|nhung))*\s+|(?:cho(?:\s+(?:tôi|toi|mình|minh|em|anh))?\s+nghe)\s+)?(?:bài hát|bai hat|bài|bai|ca khúc|ca khuc|bản nhạc|ban nhac|đoạn nhạc|doan nhac|nhạc|nhac|playlist)\s+(.+)', lower_prompt)
+        quick_match_name = re.search(r'(?:(?:tìm|tim|mở|mo|mơ|bật|bat|nghe|phát|phat|gợi ý|goi y)(?:\s+(?:cho|giúp|giup|mình|minh|tôi|toi|em|anh|chị|chi|các|cac|vài|vai|mấy|may|một|mot|những|nhung))*\s+|(?:cho(?:\s+(?:tôi|toi|mình|minh|em|anh))?\s+nghe)\s+)?(?:bài hát|bai hat|bài|bai|ca khúc|ca khuc|bản nhạc|ban nhac|đoạn nhạc|doan nhac|nhạc|nhac|playlist)\s+(.+)', lower_prompt)
     
     # [NÂNG CẤP] Bắt mọi biến thể tìm lời: "có bài có câu mà", "tìm bài có câu hát là", "có đoạn lyric như"...
     quick_match_lyric = re.search(r'(?:tìm\s+|tim\s+|cho\s+hỏi\s+)?(?:có\s+|co\s+)?(?:bài\s+|bai\s+)?(?:có\s+|co\s+)?(?:lời|loi|câu|cau|đoạn|doan|chữ|chu|lyrics?)\s+(?:(?:bài\s+hát|bai hat|hát|hat|nhạc|nhac)\s+)?(?:là\s+|như\s+|mà\s+|hát\s+là\s+)?(.+)', lower_prompt)    
@@ -391,7 +393,10 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     is_negated_seed = bool(re.search(r'\b(không|chẳng|chả|đừng)\s+(giống|tựa|kiểu|như|style|tương tự)\b', lower_prompt))
     match_seed = None
     if not is_negated_seed:
-        match_seed = re.search(r'\b(?:giống|tựa|style|kiểu|tương tự)+(?:\s+(?:như|giống|tựa|với))*\s+(?:bài hát|bài|track|ca khúc)?\s*(.+)', lower_prompt)
+        # Tách riêng 'kiểu', buộc phải đi kèm 'bài/ca khúc' để không ăn nhầm vào tính từ (kiểu dằn vặt, kiểu buồn...)
+        match_seed = re.search(r'\b(?:giống|tựa|style|tương tự)+(?:\s+(?:như|giống|tựa|với))*\s+(?:bài hát|bài|track|ca khúc)?\s*(.+)', lower_prompt)
+        if not match_seed:
+            match_seed = re.search(r'\b(?:kiểu)\s+(?:như\s+)?(?:bài hát|bài|track|ca khúc)\s+(.+)', lower_prompt)
     
     
     match_cua = re.search(
@@ -785,6 +790,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     # Định dạng lại Params trả về
     final_params = _empty_params()
     final_params.update(intent_data.get("params", {}))
+    final_params["raw_query"] = user_input
     intent_data["params"] = final_params
 
     return intent_data
