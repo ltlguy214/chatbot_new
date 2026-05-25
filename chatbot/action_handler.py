@@ -229,11 +229,7 @@ def rank_and_normalize_tracks(raw_rows: list[dict], limit: int = 5, boosts: dict
         elif action_mode == 'mood':
             base_score = (0.5 * sim) + (0.2 * pop) + (0.3 * hit) if is_vector else (0.6 * pop) + (0.4 * hit)
         elif is_vector:
-            if boosts.get('is_deep_semantic'):
-                base_score = sim
-            else:
-                # Luồng từ khóa thông thường (Level 4 gốc) giữ nguyên tỉ lệ
-                base_score = (0.6 * sim) + (0.25 * pop) + (0.15 * hit)
+            base_score = (0.6 * sim) + (0.25 * pop) + (0.15 * hit)
         else:
             base_score = (0.7 * pop) + (0.3 * hit)
 
@@ -904,7 +900,16 @@ def handle_action(
         execution_path.append("Level 2: Lyric Match Fallback")
         print(f"[SEARCH_TRACK -> LYRIC] Bắt đầu tìm kiếm thuần chuỗi: '{lyric_query}'")
 
-        clean_query = _normalize_text(lyric_query)
+        def deep_clean_lyric(t):
+            t = re.sub(r'[\n\r\,\.\?\!\-]', ' ', t).lower()
+            return re.sub(r'\s+', ' ', t).strip()
+
+        clean_query = deep_clean_lyric(lyric_query)
+        
+        # 3. Chốt lại cờ kiểm tra có dấu (Fix luôn lỗi rớt biến lúc nãy)
+        raw_lower = lyric_query.lower()
+        is_unaccented = (raw_lower == _normalize_text(raw_lower))
+
         pool = []
 
         try:
@@ -1569,35 +1574,6 @@ def handle_action(
                     source_label = 'discover-engine:relaxed-sql'
                     if artist:
                         boosts['artist'] = artist.replace(' ', '%') 
-
-            # LỚP 4: VECTOR FALLBACK SIÊU CẤP
-            if not rows and (mood or genre or params.get("raw_query")):
-                execution_path.append("Level 4: Semantic Vector Space")
-                
-                # Chiến thuật: Ưu tiên dùng câu gốc (raw_query) nếu mood/genre bị rỗng
-                # Nếu có mood/genre thì gộp lại để tăng độ chính xác
-                raw_q = params.get("raw_query", "").strip()
-                keywords_part = f"{mood} {genre} {artist}".strip()
-                
-                if not keywords_part:
-                    combo_text = raw_q
-                else:
-                    # Gộp cả 2 để AI hiểu cả từ khóa lẫn ngữ cảnh câu văn
-                    combo_text = f"{raw_q} ({keywords_part})".strip()
-
-                print(f"[Fallback] Kích hoạt Vector Search cho: '{combo_text}'")
-                query_embedding = _safe_embed(embed_fn, combo_text)
-                if query_embedding:
-                    thr = float(match_threshold) if match_threshold is not None else 0.35
-                    res_vec = supabase.rpc(
-                        "match_vpop_tracks", 
-                        {"query_embedding": query_embedding, "match_threshold": thr, "match_count": int(match_count) * 4}
-                    ).execute()
-                    merge_rows(rows, getattr(res_vec, 'data', None) or [])
-                    if rows:
-                        source_label = 'discover-engine:vector-fallback'
-                        if not mood and not genre:
-                            boosts['is_deep_semantic'] = True
 
             # CHỐT CHẶN CUỐI
             if not rows:

@@ -1,5 +1,0 @@
-timestamp,query,action,intent_ms,backend_ms,result_ids,result_scores
-2026-05-12 15:40:39,"Tìm nhạc của Đen Vâu mà phải thật sôi động, quẩy tung nóc.",DISCOVER_MUSIC,69.06,3498.33,2nR51wakN5K3AJENqGaNg9|57lYw21pS9FprSeJimskIC|3ESeHjnPRxAg4mW3KsFyXi|6rhPfrew3JeBBVL4iVMOAt|703QXwWn5KdNaoviarYHAO,67.94|66.42|64.6|62.43|59.89
-2026-05-12 15:40:59,Nhạc Rap mà buồn thê lương dằn vặt não nề.,DISCOVER_MUSIC,62.17,1494.11,3J3nv18iIrOhca1ZWNeuyW|7dlgEjrK3lHbP786dshKDV|226ljdOTLM2clGpm4mZvAm|0s7RyyUlQfd8mnnboHe18n|4inMQ83GNpQ2OHDredH5hW,71.02|69.29|69.25|69.23|69.21
-2026-05-12 15:41:18,Gợi ý nhạc Ballad nhưng nghe phải thấy sung và bùng nổ năng lượng.,DISCOVER_MUSIC,112.81,1273.33,2SYOvc6eA5sMQ1Nnxo9w8q|1tteKpc4fNBOmx9kjORyeH,61.79|61.73
-2026-05-12 16:02:29,helo bot mo cho toi bai noi nay co anh,SEARCH_TRACK,2837.9,3205.06,5rSAUmbOg4giDrM29vUyHe,63.97

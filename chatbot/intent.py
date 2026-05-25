@@ -72,9 +72,14 @@ def _looks_like_quota_error(err: Exception) -> bool:
 def resolve_coreference(user_input: str, history_context: list, has_file: bool = False) -> str:
     import re
     lower_input = user_input.lower().strip()
+
     if has_file:
         return user_input
+    
     if re.search(r'\b(là bài gì|bài gì|nhạc gì|tên gì|nhận diện|shazam|của ai|ai hát)\b', lower_input):
+        return user_input
+    
+    if re.search(r'\b(của|cua|do)\s+', lower_input):
         return user_input
     
     pronouns_list = [
@@ -87,12 +92,28 @@ def resolve_coreference(user_input: str, history_context: list, has_file: bool =
     
     # --- SỬA TẠI ĐÂY: Dùng Regex \b để bắt chính xác nguyên từ ---
     # pattern này sẽ đảm bảo 'bả' không khớp với 'bản', 'chả' không khớp với 'chẳng'
+    
     pattern = r'\b(' + '|'.join(re.escape(p) for p in pronouns_list) + r')\b'
+    match = re.search(pattern, lower_input)
+
+    if not match:
+        return user_input
     
     if not re.search(pattern, lower_input):
         return user_input
     # -----------------------------------------------------------
-
+    # 3. [CẢI TIẾN 2 - TRỊ DỨT ĐIỂM "BÀI NÀY CHILL PHẾT"]: 
+    # Phân biệt chữ "bài này" là đại từ (Mở bài này đi) hay là một phần tên bài (Bài này chill phết)
+    matched_pronoun = match.group(1)
+    if matched_pronoun in ['bài này', 'bai nay']:
+        # Cắt lấy phần đuôi sau chữ "bài này"
+        tail = lower_input[match.end():].strip()
+        # Xóa các từ kết thúc câu thông thường
+        tail_clean = re.sub(r'\b(nhé|nha|đi|nữa|cho tôi|cho mình|giúp|với|luôn|chứ)\b', '', tail).strip()
+        # Nếu phần đuôi vẫn còn chữ mang ý nghĩa (như "chill phết"), thì đó LÀ TÊN BÀI HÁT -> Không dịch!
+        if tail_clean and len(tail_clean) > 2:
+            return user_input
+    
     # Nếu có đại từ thực sự, lục lại lịch sử RAM
     for msg in reversed(history_context):
         if msg.get('role') == 'assistant' and msg.get('track_previews'):
@@ -205,7 +226,12 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     active_criteria = []
     is_strong_artist = False 
     intent_data = {"action": "GENERAL_CHAT", "params": _empty_params(), "thought": "", "method": "Rule"}
-
+    user_input_lower = user_input.lower()
+    is_attribute_query = any(kw in user_input_lower for kw in ATTRIBUTE_KEYWORDS)
+    if is_attribute_query:
+        intent_data["action"] = "DISCOVER_MUSIC"
+        intent_data["params"] = {"attributes": user_input}
+        return intent_data
     # HÀM _verify_artist CHÍNH XÁC NHƯ BẢN CŨ CỦA BẠN
     def _verify_artist(a_name: str, is_strong_intent: bool = False) -> str:
         if not a_name or not known_artists: return ""
@@ -240,7 +266,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
             'em', 'anh', 'tôi', 'toi', 'mình', 'minh', 'bạn', 'ban', 'nó', 'no', 'họ', 'ho',
             'hiện tại', 'hien tai', 'giống', 'tựa', 'kiểu', 'tương tự', 'như', 'giong', 'tua', 'kieu', 'tuong tu',
             'ngày hôm qua', 'ngay hom qua', 'quá khứ', 'qua khu', 'tương lai', 'tuong lai'
-            'bot', 'ad', 'admin', 'chatbot', 'ai', 'vmusic'
+            'bot', 'ad', 'admin', 'chatbot', 'ai', 'vmusic', 'tuần', 'tuan', 'tuần này'
         }
         no_accent_forbidden = {normalize_text_nfd_strip_accents(w) for w in forbidden_words}
         forbidden_words.update(no_accent_forbidden)
@@ -572,7 +598,7 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
 
         if num_match:
             val = int(num_match.group(1))
-            has_music_kw = bool(re.search(r'\b(bpm|tempo)\b', raw_text, re.IGNORECASE))
+            has_music_kw = bool(re.search(r'\b(bpm|BPM|tempo|TEMPO)\b', raw_text, re.IGNORECASE))
             
             if val >= 40 or has_music_kw:
                 attr_str += f" {val}"
@@ -790,7 +816,6 @@ def analyze_user_intent(user_input: str, history_context: list, has_file: bool =
     # Định dạng lại Params trả về
     final_params = _empty_params()
     final_params.update(intent_data.get("params", {}))
-    final_params["raw_query"] = user_input
     intent_data["params"] = final_params
 
     return intent_data

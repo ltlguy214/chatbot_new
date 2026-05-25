@@ -27,7 +27,7 @@ from sklearn.base import clone
 
 # --- Ensure repo root is on sys.path (so `import DA...` works when run by file path) ---
 from pathlib import Path
-
+from sklearn.metrics import roc_curve
 _THIS_FILE = Path(__file__).resolve()
 _DA_DIR = next((p for p in _THIS_FILE.parents if p.name == "DA"), None)
 if _DA_DIR is not None:
@@ -102,10 +102,7 @@ from sklearn.model_selection import cross_val_score
 
 warnings.filterwarnings('ignore')
 
-# Optuna scoring (objective metric)
-# Default: 'f1' (the user's primary KPI)
-# Option:  'average_precision' (PR-AUC) for ranking-focused optimization
-OPTUNA_SCORING = os.getenv('OPTUNA_SCORING', 'f1').strip()
+OPTUNA_SCORING = os.getenv('OPTUNA_SCORING', 'average_precision').strip()
 if OPTUNA_SCORING not in {'average_precision', 'f1'}:
     print(f"⚠️ OPTUNA_SCORING='{OPTUNA_SCORING}' không hợp lệ → fallback 'average_precision'")
     OPTUNA_SCORING = 'average_precision'
@@ -345,7 +342,7 @@ def run_full_analysis_task1():
     # Fast path: reuse the last successfully saved model to avoid re-running all baselines/Optuna.
     # Default ON. Set `P0_REUSE_MODEL=0` to force retraining.
     try:
-        reuse_model = os.getenv('P0_REUSE_MODEL', '1') == '1'
+        reuse_model = os.getenv('P0_REUSE_MODEL', '1') == '0'
     except Exception:
         reuse_model = True
     cached_model_path = Path('DA') / 'models' / 'best_model_p0.pkl'
@@ -643,7 +640,8 @@ def run_full_analysis_task1():
                 scoring=OPTUNA_SCORING,
                 n_jobs=-1,
             )
-            cv_pr_auc = float(np.mean(cv_scores))
+            # NOTE: This follows OPTUNA_SCORING (either average_precision or f1)
+            cv_score = float(np.mean(cv_scores))
 
             pipeline.fit(X_train, y_train)
             y_pred = pipeline.predict(X_test)
@@ -664,7 +662,7 @@ def run_full_analysis_task1():
 
             baseline_results.append({
                 'Model': name,
-                'CV_PR_AUC': cv_pr_auc,
+                'CV_Score': cv_score,
                 'Test_PR_AUC': test_pr_auc,
                 'Test_Accuracy': test_acc,
                 'Hit_Precision': hit_prec,
@@ -675,7 +673,7 @@ def run_full_analysis_task1():
                 'Recall': rec_w,
             })
             baseline_pipelines[name] = pipeline  # Lưu pipeline
-            print(f"{name:<35} | {cv_pr_auc:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
+            print(f"{name:<35} | {cv_score:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
         except Exception as e:
             print(f"❌ Lỗi {name}: {e}")
 
@@ -684,9 +682,9 @@ def run_full_analysis_task1():
     # - Weighted soft voting by CV metric on TRAIN
     # - Stacking uses TimeSeriesSplit to prevent future leakage
     # -----------------------------
-    def _weights_from_pr_auc(pr_auc_triplet):
-        pr_auc_triplet = [float(x) for x in pr_auc_triplet]
-        order = list(np.argsort(-np.array(pr_auc_triplet)))  # desc
+    def _weights_from_cv_score(score_triplet):
+        score_triplet = [float(x) for x in score_triplet]
+        order = list(np.argsort(-np.array(score_triplet)))  # desc
         weights = [0, 0, 0]
         for w, idx in zip([3, 2, 1], order):
             weights[int(idx)] = w
@@ -694,10 +692,10 @@ def run_full_analysis_task1():
 
     expert_names = ['XGBoost', 'SVM', 'Logistic Regression']
     expert_cv = [
-        next((r['CV_PR_AUC'] for r in baseline_results if r['Model'] == nm), 0.0)
+        next((r['CV_Score'] for r in baseline_results if r['Model'] == nm), 0.0)
         for nm in expert_names
     ]
-    voting_weights = _weights_from_pr_auc(expert_cv)
+    voting_weights = _weights_from_cv_score(expert_cv)
     print(f"\n🗳️  Voting weights theo CV {_metric_label_for_optuna()} (XGB, SVM, LR) = {expert_cv} → weights={voting_weights}")
 
     xgb_base = baseline_models['XGBoost']
@@ -734,7 +732,7 @@ def run_full_analysis_task1():
                 scoring=OPTUNA_SCORING,
                 n_jobs=-1,
             )
-            cv_pr_auc = float(np.mean(cv_scores))
+            cv_score = float(np.mean(cv_scores))
 
             pipeline.fit(X_train, y_train)
             y_pred = pipeline.predict(X_test)
@@ -751,7 +749,7 @@ def run_full_analysis_task1():
 
             baseline_results.append({
                 'Model': name,
-                'CV_PR_AUC': cv_pr_auc,
+                'CV_Score': cv_score,
                 'Test_PR_AUC': test_pr_auc,
                 'Test_Accuracy': test_acc,
                 'Hit_Precision': hit_prec,
@@ -762,7 +760,7 @@ def run_full_analysis_task1():
                 'Recall': rec_w,
             })
             baseline_pipelines[name] = pipeline
-            print(f"{name:<35} | {cv_pr_auc:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
+            print(f"{name:<35} | {cv_score:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
         except Exception as e:
             print(f"❌ Lỗi {name}: {e}")
     
@@ -770,32 +768,48 @@ def run_full_analysis_task1():
     if not baseline_results:
         raise RuntimeError("❌ Không có baseline model nào chạy thành công. Kiểm tra lại dữ liệu/feature/thiết lập model.")
 
-    # Leakage-safe model selection: choose by CV PR-AUC (TRAIN only).
+    # Leakage-safe model selection: choose by CV score on TRAIN only.
+    # The exact metric is controlled by OPTUNA_SCORING (PR-AUC or F1).
     # TEST metrics are reported for transparency, but must not drive selection.
-    baseline_df = pd.DataFrame(baseline_results).sort_values(by='CV_PR_AUC', ascending=False)
+    baseline_df = pd.DataFrame(baseline_results).sort_values(by='CV_Score', ascending=False)
     
-    # Lấy best model theo CV PR-AUC để dùng cho CM/Optuna
+    # Lấy best model theo CV score để dùng cho CM/Optuna
     best_baseline_name = baseline_df.iloc[0]['Model']
-    best_baseline_cv_pr_auc = float(baseline_df.iloc[0]['CV_PR_AUC'])
+    best_baseline_cv_score = float(baseline_df.iloc[0]['CV_Score'])
     best_baseline_acc = float(baseline_df.iloc[0]['Test_Accuracy'])
     best_baseline_hit_f1 = float(baseline_df.iloc[0]['Hit_F1'])
+
+    def _safe_repr(obj, max_len: int = 900) -> str:
+        try:
+            s = repr(obj)
+        except Exception:
+            s = str(obj)
+        if s is None:
+            return ''
+        s = str(s)
+        return s if len(s) <= max_len else (s[:max_len] + ' ...')
     
     fig, ax = plt.subplots(figsize=(16, 10))
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(baseline_df)))
-    bars = ax.barh(baseline_df['Model'], baseline_df['Hit_F1'], color=colors, edgecolor='white', linewidth=1.5)
+    bars = ax.barh(baseline_df['Model'], baseline_df['CV_Score'], color=colors, edgecolor='white', linewidth=1.5)
     
-    # Thêm giá trị accuracy vào cuối mỗi bar
+    # Thêm giá trị CV metric vào cuối mỗi bar
     for i, (idx, row) in enumerate(baseline_df.iterrows()):
-        ax.text(row['Hit_F1'] + 0.005, i, f"{row['Hit_F1']:.4f}",
+        ax.text(row['CV_Score'] + 0.005, i, f"{row['CV_Score']:.4f}",
                 va='center', fontsize=11, fontweight='bold', color='black')
     
-    ax.set_xlabel('Hit F1-score (Test, threshold=0.5)', fontsize=13, fontweight='bold')
+    ax.set_xlabel(f"CV {_metric_label_for_optuna()} (Train, TimeSeriesSplit)", fontsize=13, fontweight='bold')
     ax.set_ylabel('Model', fontsize=13, fontweight='bold')
-    ax.set_title('So sánh hiệu năng dự đoán HIT (BASELINE) — Tiêu chí: Hit F1-score', fontsize=16, fontweight='bold', pad=20)
+    ax.set_title(
+        f"So sánh hiệu năng dự đoán HIT (BASELINE) — Tiêu chí chọn best: CV {_metric_label_for_optuna()} (TRAIN)",
+        fontsize=16,
+        fontweight='bold',
+        pad=20,
+    )
     
     ax.invert_yaxis()
 
-    ax.set_xlim(0.0, max(baseline_df['Hit_F1']) + 0.10)
+    ax.set_xlim(0.0, min(1.0, max(baseline_df['CV_Score']) + 0.10))
     ax.grid(axis='x', alpha=0.3, linestyle='--')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -823,7 +837,7 @@ def run_full_analysis_task1():
     plt.ylabel('Thực tế', fontsize=12, fontweight='bold')
     plt.title(
         f'Confusion Matrix - {best_baseline_name}\n'
-        f'(Test Acc: {best_baseline_acc:.4f}, Test Hit_F1: {best_baseline_hit_f1:.4f})',
+        f'(Selected by CV {_metric_label_for_optuna()}: {best_baseline_cv_score:.4f} | Test Acc: {best_baseline_acc:.4f} | Test Hit_F1: {best_baseline_hit_f1:.4f})',
         fontsize=14,
         fontweight='bold',
     )
@@ -839,13 +853,25 @@ def run_full_analysis_task1():
     print("="*80)
     
     best_baseline_model = baseline_df.iloc[0]['Model']
-    best_baseline_cv_pr_auc = float(baseline_df.iloc[0]['CV_PR_AUC'])
+    best_baseline_cv_score = float(baseline_df.iloc[0]['CV_Score'])
     best_baseline_acc = float(baseline_df.iloc[0]['Test_Accuracy'])
     best_baseline_hit_f1 = float(baseline_df.iloc[0]['Hit_F1'])
     print(
-        f"\n✨ BEST BASELINE MODEL (by CV PR-AUC): {best_baseline_model} "
-        f"(CV PR-AUC: {best_baseline_cv_pr_auc:.4f} | Test Hit_F1(report): {best_baseline_hit_f1:.4f} | Test Acc(report): {best_baseline_acc:.4f})"
+        f"\n✨ BEST BASELINE MODEL (by CV {_metric_label_for_optuna()}): {best_baseline_model} "
+        f"(CV {_metric_label_for_optuna()}: {best_baseline_cv_score:.4f} | Test Hit_F1(report): {best_baseline_hit_f1:.4f} | Test Acc(report): {best_baseline_acc:.4f})"
     )
+
+    # Print the selected model config/params (helps verify why it is chosen)
+    try:
+        _best_pipe = baseline_pipelines.get(best_baseline_model)
+        if _best_pipe is not None and hasattr(_best_pipe, 'named_steps') and 'clf' in _best_pipe.named_steps:
+            print("\n🔧 Tham số/cấu hình model được chọn (baseline, clf repr):")
+            print(_safe_repr(_best_pipe.named_steps['clf']))
+        elif isinstance(best_baseline_model, str) and best_baseline_model in baseline_models:
+            print("\n🔧 Tham số/cấu hình model được chọn (baseline_models repr):")
+            print(_safe_repr(baseline_models[best_baseline_model]))
+    except Exception as e:
+        print(f"⚠️  Không thể in params best baseline model: {e}")
     
     # Xác định models cần optimize
     models_to_optimize = []
@@ -962,9 +988,9 @@ def run_full_analysis_task1():
                 # VẼ OPTUNA HISTORY
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho Extra Trees...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='Extra Trees', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='Extra Trees',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/extra_trees_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/extra_trees_history.png")
@@ -1000,9 +1026,9 @@ def run_full_analysis_task1():
                 # VẼ OPTUNA HISTORY
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho AdaBoost...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='AdaBoost', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='AdaBoost',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/AdaBoost_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/AdaBoost_history.png")
@@ -1039,9 +1065,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho SVM...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='SVM', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='SVM',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/SVM_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/SVM_history.png")
@@ -1079,9 +1105,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho Random Forest...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='Random Forest', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='Random Forest',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/Random_Forest_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/Random_Forest_history.png")
@@ -1117,9 +1143,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho Gradient Boosting...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='Gradient Boosting', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='Gradient Boosting',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/Gradient_Boosting_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/Gradient_Boosting_history.png")
@@ -1164,9 +1190,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho XGBoost...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='XGBoost', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='XGBoost',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/XGBoost_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/XGBoost_history.png")
@@ -1207,9 +1233,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho LightGBM...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='LightGBM', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='LightGBM',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/LightGBM_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/LightGBM_history.png")
@@ -1251,9 +1277,9 @@ def run_full_analysis_task1():
                 
                 print(f"📊 Đang vẽ biểu đồ tối ưu hóa tùy chỉnh cho MLP (Neural Net)...")
                 plot_custom_optuna_history(
-                    study=study, 
-                    model_name='MLP (Neural Net)', 
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    study=study,
+                    model_name='MLP (Neural Net)',
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/MLP_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/MLP_history.png")
@@ -1290,7 +1316,7 @@ def run_full_analysis_task1():
                 plot_custom_optuna_history(
                     study=study,
                     model_name='Logistic Regression',
-                    baseline_acc=best_baseline_cv_pr_auc,
+                    baseline_score=best_baseline_cv_score,
                     save_path='DA/tasks/Hit/optuna_history_image/Logistic_Regression_history.png'
                 )
                 print(f"✅ Đã lưu biểu đồ tại: DA/tasks/Hit/optuna_history_image/Logistic_Regression_history.png")
@@ -1363,9 +1389,10 @@ def run_full_analysis_task1():
         lr_opt = optimized_models.get('Logistic Regression')
 
         if xgb_opt is not None and svm_opt is not None and lr_opt is not None:
-            # Compute PR-AUC weights on TRAIN for each expert (to weight soft voting)
+            # Compute CV weights on TRAIN for each expert (to weight soft voting)
+            # Must follow OPTUNA_SCORING to stay consistent with best-model selection.
             expert_models = [('xgb', xgb_opt), ('svm', svm_opt), ('lr', lr_opt)]
-            expert_pr_auc = []
+            expert_cv_score = []
             for nm, mdl in expert_models:
                 pipe_tmp = _build_pipe_p0(mdl)
                 scores_tmp = cross_val_score(
@@ -1373,13 +1400,16 @@ def run_full_analysis_task1():
                     X_train,
                     y_train,
                     cv=tscv_inner,
-                    scoring='average_precision',
+                    scoring=OPTUNA_SCORING,
                     n_jobs=-1,
                 )
-                expert_pr_auc.append(float(np.mean(scores_tmp)))
+                expert_cv_score.append(float(np.mean(scores_tmp)))
 
-            voting_weights_opt = _weights_from_pr_auc(expert_pr_auc)
-            print(f"🗳️  Optimized Voting weights theo CV PR-AUC = {expert_pr_auc} → weights={voting_weights_opt}")
+            voting_weights_opt = _weights_from_cv_score(expert_cv_score)
+            print(
+                f"🗳️  Optimized Voting weights theo CV {_metric_label_for_optuna()} = {expert_cv_score} "
+                f"→ weights={voting_weights_opt}"
+            )
 
             voting_opt = VotingClassifier(
                 estimators=expert_models,
@@ -1419,7 +1449,7 @@ def run_full_analysis_task1():
             pipeline = _build_pipe_p0(model)
 
             cv_scores = cross_val_score(pipeline, X_train, y_train, cv=tscv_inner, scoring=OPTUNA_SCORING, n_jobs=-1)
-            cv_pr_auc = float(np.mean(cv_scores))
+            cv_score = float(np.mean(cv_scores))
 
             pipeline.fit(X_train, y_train)
             y_pred = pipeline.predict(X_test)
@@ -1437,7 +1467,7 @@ def run_full_analysis_task1():
 
             results_list.append({
                 'Model': name,
-                'CV_PR_AUC': cv_pr_auc,
+                'CV_Score': cv_score,
                 'Test_PR_AUC': test_pr_auc,
                 'Test_Accuracy': test_acc,
                 'Hit_Precision': hit_prec,
@@ -1450,20 +1480,20 @@ def run_full_analysis_task1():
             fitted_pipelines[name] = pipeline
             predictions_dict[name] = y_pred
             
-            print(f"{name:<40} | {cv_pr_auc:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
+            print(f"{name:<40} | {cv_score:.4f}   | {test_pr_auc:.4f}   | {test_acc:.4f}   | {hit_prec:.4f} | {hit_rec:.4f} | {hit_f1:.4f}")
         except Exception as e:
             print(f"❌ Lỗi {name}: {e}")
 
     optimized_results_list = results_list.copy()
-    # Leakage-safe: choose the best optimized model by CV PR-AUC (TRAIN only)
-    optimized_df = pd.DataFrame(optimized_results_list).sort_values(by='CV_PR_AUC', ascending=False)
+    # Leakage-safe: choose the best optimized model by CV score on TRAIN only
+    optimized_df = pd.DataFrame(optimized_results_list).sort_values(by='CV_Score', ascending=False)
     final_best_model_name = str(optimized_df.iloc[0]['Model'])
     best_optimized_test_acc = float(optimized_df.iloc[0]['Test_Accuracy'])
     best_optimized_hit_f1 = float(optimized_df.iloc[0]['Hit_F1'])
-    best_optimized_cv_pr_auc = float(optimized_df.iloc[0]['CV_PR_AUC'])
+    best_optimized_cv_score = float(optimized_df.iloc[0]['CV_Score'])
     print(
-        f"\n🏆 BEST OPTIMIZED MODEL (by CV PR-AUC): {final_best_model_name} "
-        f"(CV PR-AUC: {best_optimized_cv_pr_auc:.4f} | Test Hit_F1(report): {best_optimized_hit_f1:.4f} | Test Acc(report): {best_optimized_test_acc:.4f})"
+        f"\n🏆 BEST OPTIMIZED MODEL (by CV {_metric_label_for_optuna()}): {final_best_model_name} "
+        f"(CV {_metric_label_for_optuna()}: {best_optimized_cv_score:.4f} | Test Hit_F1(report): {best_optimized_hit_f1:.4f} | Test Acc(report): {best_optimized_test_acc:.4f})"
     )
     
     # =============================================================================
@@ -1473,7 +1503,7 @@ def run_full_analysis_task1():
     print("⚖️ BƯỚC 4.3: KIỂM TRA VÀ ROLLBACK NẾU CẦN")
     print("="*80)
     
-    # Leakage-safe rollback criterion: compare CV PR-AUC (TRAIN only).
+    # Leakage-safe rollback criterion: compare CV score (TRAIN only).
     # Threshold tuning + Test F1 are reported for transparency.
     best_optimized_name = str(optimized_df.iloc[0]['Model'])
 
@@ -1503,7 +1533,7 @@ def run_full_analysis_task1():
         tag='optimized',
     )
 
-    print(f"\n📊 So sánh Performance (threshold-aware, mục tiêu: Max Hit F1):")
+    print(f"\n📊 So sánh Performance (threshold-aware, mục tiêu: Youden's J):")
     print(
         f"   • Baseline:  {best_baseline_name} | thr={thr_base:.4f} | F1={f1_base_thr:.4f} | P={p_base_thr:.4f} | R={r_base_thr:.4f} | Acc={acc_base_thr:.4f}"
     )
@@ -1512,10 +1542,10 @@ def run_full_analysis_task1():
     )
     print(f"   • Chênh lệch F1: {f1_opt_thr - f1_base_thr:+.4f}")
 
-    if best_optimized_cv_pr_auc < best_baseline_cv_pr_auc:
+    if best_optimized_cv_score < best_baseline_cv_score:
         print(
-            f"\n⚠️ PHÁT HIỆN: Optimized CV PR-AUC ({best_optimized_cv_pr_auc:.4f}) < "
-            f"Baseline CV PR-AUC ({best_baseline_cv_pr_auc:.4f})"
+            f"\n⚠️ PHÁT HIỆN: Optimized CV {_metric_label_for_optuna()} ({best_optimized_cv_score:.4f}) < "
+            f"Baseline CV {_metric_label_for_optuna()} ({best_baseline_cv_score:.4f})"
         )
         print("✅ QUYẾT ĐỊNH: ROLLBACK về Baseline model")
         print(f"   → Sử dụng: {best_baseline_name} (thr={thr_base:.4f})\n")
@@ -1532,8 +1562,8 @@ def run_full_analysis_task1():
         y_pred_final_for_reporting = y_base_thr_pred
     else:
         print(
-            f"\n✅ Giữ Optimized theo CV: Baseline CV PR-AUC={best_baseline_cv_pr_auc:.4f} "
-            f"→ Optimized CV PR-AUC={best_optimized_cv_pr_auc:.4f} (+{best_optimized_cv_pr_auc - best_baseline_cv_pr_auc:+.4f})"
+            f"\n✅ Giữ Optimized theo CV: Baseline CV {_metric_label_for_optuna()}={best_baseline_cv_score:.4f} "
+            f"→ Optimized CV {_metric_label_for_optuna()}={best_optimized_cv_score:.4f} (+{best_optimized_cv_score - best_baseline_cv_score:+.4f})"
         )
         print(f"✅ QUYẾT ĐỊNH: Giữ lại Optimized model (thr={thr_opt:.4f})\n")
 
@@ -1552,7 +1582,7 @@ def run_full_analysis_task1():
     # Lưu ý về hiệu năng sau Optuna
     print("\n⚠️  LƯU Ý VỀ OPTUNA OPTIMIZATION:")
     print(f"   - Optuna tối ưu dựa trên CV ({OPTUNA_SCORING}) trên TRAIN set")
-    print("   - Quyết định rollback dựa trên CV PR-AUC (TRAIN); Test F1_max chỉ để báo cáo")
+    print(f"   - Quyết định rollback dựa trên CV {_metric_label_for_optuna()} (TRAIN); Test F1_max chỉ để báo cáo")
     print("   - Nếu optimized < baseline: tham số mặc định + threshold có thể generalize tốt hơn\n")
     # best_model_name đã được quyết định ở bước rollback ở trên
     
@@ -1562,48 +1592,54 @@ def run_full_analysis_task1():
     print("\n" + "="*80)
     print("📊 BƯỚC 5: VẼ BIỂU ĐỒ SO SÁNH")
     print("="*80)
-    
-    # So sánh baseline vs optimized theo Hit_F1 (class 1)
-    optimized_df = pd.DataFrame(optimized_results_list).sort_values(by='Hit_F1', ascending=False)
-    baseline_df = pd.DataFrame(baseline_results).sort_values(by='Hit_F1', ascending=False)
+
+    # NOTE: Best-model selection is based on CV_Score (TRAIN only, leakage-safe).
+    # The following "main" comparison charts are therefore based on CV_Score.
+    optimized_df_cv = pd.DataFrame(optimized_results_list).sort_values(by='CV_Score', ascending=False)
+    baseline_df_cv = pd.DataFrame(baseline_results).sort_values(by='CV_Score', ascending=False)
+
+    # Optional: keep a separate report chart for Test Hit_F1 (does NOT drive selection)
+    baseline_df_test_f1 = pd.DataFrame(baseline_results).sort_values(by='Hit_F1', ascending=False)
     
     fig, ax = plt.subplots(figsize=(16, 10))
-    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(baseline_df)))
-    bars = ax.barh(baseline_df['Model'], baseline_df['Hit_F1'], color=colors, edgecolor='white', linewidth=1.5)
+    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(baseline_df_test_f1)))
+    bars = ax.barh(baseline_df_test_f1['Model'], baseline_df_test_f1['Hit_F1'], color=colors, edgecolor='white', linewidth=1.5)
     
-    # Thêm giá trị accuracy vào cuối mỗi bar
-    for i, (idx, row) in enumerate(baseline_df.iterrows()):
-        ax.text(row['Hit_F1'] + 0.005, i, f"{row['Hit_F1']:.4f}", 
+    for i, (idx, row) in enumerate(baseline_df_test_f1.iterrows()):
+        ax.text(row['Hit_F1'] + 0.005, i, f"{row['Hit_F1']:.4f}",
                 va='center', fontsize=11, fontweight='bold', color='black')
     
     ax.set_xlabel('Hit F1-score (Test, threshold=0.5)', fontsize=13, fontweight='bold')
     ax.set_ylabel('Model', fontsize=13, fontweight='bold')
-    ax.set_title('So sánh hiệu năng các mô hình dự đoán HIT (BASELINE)', fontsize=16, fontweight='bold', pad=20)
-    
+    ax.set_title('So sánh hiệu năng HIT (BASELINE) — Report: Test Hit F1', fontsize=16, fontweight='bold', pad=20)
     ax.invert_yaxis()
-
-    ax.set_xlim(0.0, max(baseline_df['Hit_F1']) + 0.10)
+    ax.set_xlim(0.0, max(baseline_df_test_f1['Hit_F1']) + 0.10)
     ax.grid(axis='x', alpha=0.3, linestyle='--')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     
     plt.tight_layout()
     os.makedirs('DA/tasks/Hit', exist_ok=True)
-    plt.savefig('DA/tasks/Hit/p0_baseline_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('DA/tasks/Hit/p0_baseline_comparison_test_hitf1.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("\n✅ Đã lưu biểu đồ baseline tại: DA/tasks/Hit/p0_baseline_comparison.png")
+    print("\n✅ Đã lưu biểu đồ baseline (Test Hit F1) tại: DA/tasks/Hit/p0_baseline_comparison_test_hitf1.png")
 
-    # Optimized comparison chart
+    # Optimized comparison chart (selection metric)
     fig, ax = plt.subplots(figsize=(16, 10))
-    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(optimized_df)))
-    bars = ax.barh(optimized_df['Model'], optimized_df['Hit_F1'], color=colors, edgecolor='white', linewidth=1.5)
-    for i, (idx, row) in enumerate(optimized_df.iterrows()):
-        ax.text(row['Hit_F1'] + 0.005, i, f"{row['Hit_F1']:.4f}", va='center', fontsize=11, fontweight='bold', color='black')
-    ax.set_xlabel('Hit F1-score (Test, threshold=0.5)', fontsize=13, fontweight='bold')
+    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(optimized_df_cv)))
+    bars = ax.barh(optimized_df_cv['Model'], optimized_df_cv['CV_Score'], color=colors, edgecolor='white', linewidth=1.5)
+    for i, (idx, row) in enumerate(optimized_df_cv.iterrows()):
+        ax.text(row['CV_Score'] + 0.005, i, f"{row['CV_Score']:.4f}", va='center', fontsize=11, fontweight='bold', color='black')
+    ax.set_xlabel(f"CV {_metric_label_for_optuna()} (Train, TimeSeriesSplit)", fontsize=13, fontweight='bold')
     ax.set_ylabel('Model', fontsize=13, fontweight='bold')
-    ax.set_title('So sánh hiệu năng các mô hình dự đoán HIT (OPTIMIZED)', fontsize=16, fontweight='bold', pad=20)
+    ax.set_title(
+        f"So sánh hiệu năng các mô hình (OPTIMIZED) — Tiêu chí chọn best: CV {_metric_label_for_optuna()} (TRAIN)",
+        fontsize=16,
+        fontweight='bold',
+        pad=20,
+    )
     ax.invert_yaxis()
-    ax.set_xlim(0.0, max(optimized_df['Hit_F1']) + 0.10)
+    ax.set_xlim(0.0, min(1.0, max(optimized_df_cv['CV_Score']) + 0.10))
     ax.grid(axis='x', alpha=0.3, linestyle='--')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -1613,13 +1649,13 @@ def run_full_analysis_task1():
     print("✅ Đã lưu biểu đồ optimized tại: DA/tasks/Hit/p0_optimized_comparison.png")
 
     
-    # Tạo biểu đồ so sánh trực tiếp (chỉ với models có trong cả 2)
-    common_models = set(baseline_df['Model']) & set(optimized_df['Model'])
+    # Tạo biểu đồ so sánh trực tiếp (selection metric, chỉ với models có trong cả 2)
+    common_models = set(baseline_df_cv['Model']) & set(optimized_df_cv['Model'])
     comparison_data = []
     
     for model in common_models:
-        baseline_score = baseline_df[baseline_df['Model'] == model]['Hit_F1'].values[0] if len(baseline_df[baseline_df['Model'] == model]) > 0 else 0
-        optimized_score = optimized_df[optimized_df['Model'] == model]['Hit_F1'].values[0] if len(optimized_df[optimized_df['Model'] == model]) > 0 else 0
+        baseline_score = baseline_df_cv[baseline_df_cv['Model'] == model]['CV_Score'].values[0] if len(baseline_df_cv[baseline_df_cv['Model'] == model]) > 0 else 0
+        optimized_score = optimized_df_cv[optimized_df_cv['Model'] == model]['CV_Score'].values[0] if len(optimized_df_cv[optimized_df_cv['Model'] == model]) > 0 else 0
         comparison_data.append({'Model': model, 'Baseline': baseline_score, 'Optimized': optimized_score, 'Improvement': optimized_score - baseline_score})
     
     comparison_df = pd.DataFrame(comparison_data).sort_values(by='Improvement', ascending=False)
@@ -1649,9 +1685,10 @@ def run_full_analysis_task1():
     
     ax.set_yticks(x)
     ax.set_yticklabels(comparison_df['Model'], fontsize=11)
-    ax.set_xlabel('Hit F1-score (Test, threshold=0.5)', fontsize=13, fontweight='bold')
+    ax.set_xlabel(f"CV {_metric_label_for_optuna()} (Train, TimeSeriesSplit)", fontsize=13, fontweight='bold')
     ax.set_ylabel('Model', fontsize=13, fontweight='bold')
-    ax.set_title('So sánh Baseline vs Optimized - Impact của Optuna Tuning', 
+    ax.set_title(
+                 f"So sánh Baseline vs Optimized — Impact của Optuna (metric chọn best: CV {_metric_label_for_optuna()})",
                  fontsize=16, fontweight='bold', pad=20)
     ax.legend(loc='lower right', fontsize=11, frameon=True, shadow=True)
     ax.set_xlim(0.0, float(comparison_df[['Baseline', 'Optimized']].max().max()) + 0.10)
@@ -1763,7 +1800,7 @@ def run_full_analysis_task1():
             )
         
         # C. VẼ FEATURE IMPORTANCE CHO CÁC MÔ HÌNH TREE-BASED (CHỈ BEST MODEL)
-        elif any(keyword in best_model_name for keyword in ['Random Forest', 'Extra Trees', 'XGBoost', 'LightGBM', 'Gradient']):
+        elif any(keyword in best_model_name for keyword in ['Random Forest', 'Extra Trees', 'XGBoost', 'LightGBM', 'Gradient']) and 'Ensemble' not in best_model_name:
             print(f"\n🌳 Đang vẽ Feature Importance cho {best_model_name}...")
             try:
                 # Xử lý CalibratedClassifierCV: Lấy trung bình từ các fold
@@ -1923,7 +1960,8 @@ def run_full_analysis_task1():
     print(f"   • Best model:         {best_model_path}")
     print(f"   • Optuna params:      DA/tasks/Hit/optuna_history_json/*.json")
     print(f"   • Model comparison:   DA/final_data/p0_model_comparison_results.csv")
-    print(f"   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison.png")
+    print(f"   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison.png (CV {_metric_label_for_optuna()} selection)")
+    print(f"   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison_test_hitf1.png (Test Hit F1 report)")
     print(f"   • Optimized chart:    DA/tasks/Hit/p0_optimized_comparison.png")
     print(f"   • Baseline vs Opt:    DA/tasks/Hit/p0_baseline_vs_optimized.png")
     print(f"   • Confusion Matrix:   DA/tasks/Hit/p0_cm_optimized.png")
@@ -1934,23 +1972,9 @@ def run_full_analysis_task1():
     print("✅ HOÀN TẤT PHÂN TÍCH!")
     print("="*80 + "\n")
 
-
 def optimize_and_evaluate_threshold(model, X_train, y_train, X_test, y_test, cv_splitter, *, tag: str = 'final'):
-    """Leakage-safe threshold tuning (avoid optimism bias).
-
-    Step 1 (TRAIN only):
-      - Get out-of-fold probabilities on X_train using cross_val_predict.
-      - Find threshold that maximizes Hit F1 on the TRAIN OOF predictions.
-
-    Step 2 (BLIND TEST):
-      - Apply the chosen threshold to P(Hit) on X_test.
-      - Report metrics computed ONLY on the test set.
-
-    Returns:
-        (y_pred_final, final_threshold, final_hit_f1, final_hit_p, final_hit_r, final_acc)
-    """
     print("\n" + "=" * 80)
-    print(f"⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Hit F1, tag={tag})")
+    print(f"⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Youden's J, tag={tag})") # <-- Đã sửa text
     print("=" * 80)
 
     if not hasattr(model, 'predict_proba'):
@@ -1962,15 +1986,12 @@ def optimize_and_evaluate_threshold(model, X_train, y_train, X_test, y_test, cv_
     print(f"⏳ Đang tính toán xác suất OOF trên tập Train (tag={tag})...")
     oof_probs_full = np.full(shape=(len(X_train),), fill_value=np.nan, dtype=float)
     
-    # Chạy vòng lặp thủ công để né lỗi cross_val_predict
     for tr_idx, va_idx in cv_splitter.split(X_train, y_train):
         model_fold = clone(model)
         model_fold.fit(X_train.iloc[tr_idx], y_train.iloc[tr_idx])
-        # Lấy xác suất của lớp Hit (cột 1)
         probs = model_fold.predict_proba(X_train.iloc[va_idx])[:, 1]
         oof_probs_full[va_idx] = probs
 
-    # Loại bỏ các giá trị NaN (những bài cũ quá không nằm trong tập test của fold nào)
     valid_mask = np.isfinite(oof_probs_full)
     oof_probs = oof_probs_full[valid_mask]
     y_train_eff = pd.Series(y_train).iloc[np.where(valid_mask)[0]].to_numpy()
@@ -1981,26 +2002,27 @@ def optimize_and_evaluate_threshold(model, X_train, y_train, X_test, y_test, cv_
         hit_f1 = f1_score(y_true, y_pred, pos_label=1, zero_division=0)
         return hit_prec, hit_rec, hit_f1
 
-    # Threshold selection from TRAIN OOF probabilities
-    precision, recall, thresholds = precision_recall_curve(y_train_eff, oof_probs, pos_label=1)
+    # -------------------------
+    # TÌM NGƯỠNG TỐI ƯU BẰNG YOUDEN'S J (ROC CURVE) - CÂN BẰNG HIT VÀ NON-HIT
+    # -------------------------
+    fpr, tpr, thresholds = roc_curve(y_train_eff, oof_probs, pos_label=1)
+    
     if thresholds is None or len(thresholds) == 0:
-        print("⚠️ precision_recall_curve không trả thresholds trên TRAIN → fallback threshold=0.5")
+        print("⚠️ roc_curve không trả thresholds trên TRAIN → fallback threshold=0.5")
         final_threshold = 0.5
     else:
-        precision_t = precision[:-1]
-        recall_t = recall[:-1]
-        denom = (precision_t + recall_t)
-        f1_vals = np.where(denom > 0, 2 * precision_t * recall_t / denom, 0.0)
-        best_local = int(np.argmax(f1_vals))
-        final_threshold = float(thresholds[int(best_local)])
+        # Tính J Statistic cho từng ngưỡng: J = Sensitivity (TPR) + Specificity (1 - FPR) - 1
+        j_scores = tpr - fpr
+        best_local = int(np.argmax(j_scores))
+        final_threshold = float(thresholds[best_local])
+        
+    reason = "Tối đa hóa Youden's J Statistic (Cân bằng tốt nhất giữa TPR và FPR)" # <-- Đã sửa text
 
     # -------------------------
     # Step 2: Apply threshold to BLIND TEST
     # -------------------------
     y_test_probs = model.predict_proba(X_test)[:, 1]
     y_pred_final = (y_test_probs >= float(final_threshold)).astype(int)
-
-    reason = "Chọn ngưỡng theo TRAIN OOF (maximize Hit F1), áp dụng nguyên ngưỡng cho TEST"
 
     final_hit_p, final_hit_r, final_hit_f1 = _hit_metrics(y_test, y_pred_final)
     final_acc = float(accuracy_score(y_test, y_pred_final))
@@ -2035,8 +2057,7 @@ def optimize_and_evaluate_threshold(model, X_train, y_train, X_test, y_test, cv_
 
     return y_pred_final, float(final_threshold), float(final_hit_f1), float(final_hit_p), float(final_hit_r), float(final_acc)
 
-
-def plot_custom_optuna_history(study, model_name, baseline_acc, save_path):
+def plot_custom_optuna_history(study, model_name, baseline_score, save_path):
     import matplotlib.pyplot as plt
     import os
     
@@ -2070,15 +2091,15 @@ def plot_custom_optuna_history(study, model_name, baseline_acc, save_path):
              where='post', color='red', linewidth=2, label=f"{_metric_label_for_optuna()} tốt nhất")
     
     # 3. Vẽ đường Baseline (màu xanh lá đứt đoạn)
-    plt.axhline(y=baseline_acc, color='forestgreen', linestyle='--', 
-                linewidth=1.5, label=f'Baseline ({baseline_acc:.4f})')
+    plt.axhline(y=baseline_score, color='forestgreen', linestyle='--', 
+                linewidth=1.5, label=f'Baseline ({baseline_score:.4f})')
     
     # Định dạng trục và tiêu đề
-    plt.title(f'Lịch sử tối ưu hóa {model_name} (mục tiêu: {_metric_label_for_optuna()})\nBaseline: {baseline_acc:.4f} → Best: {study.best_value:.4f}', 
+    plt.title(f'Lịch sử tối ưu hóa {model_name} (mục tiêu: {_metric_label_for_optuna()})\nBaseline: {baseline_score:.4f} → Best: {study.best_value:.4f}', 
               fontsize=14, fontweight='bold', pad=15)
     plt.xlabel('Số lượt thử (Trial)', fontsize=12)
     plt.ylabel(_metric_label_for_optuna(), fontsize=12)
-    plt.ylim(max(0.0, min(trial_values.min(), baseline_acc) - 0.02), 1.0)
+    plt.ylim(max(0.0, min(trial_values.min(), baseline_score) - 0.02), 1.0)
     plt.grid(True, linestyle='--', alpha=0.4)
     plt.legend(loc='upper right', frameon=True)
     plt.tight_layout()

@@ -227,7 +227,56 @@ def safe_remove(file_path):
             os.remove(file_path)
     except Exception:
         pass
+def build_producer_advice_prompt(hit_probability, shap_values, technical_meta):
+    try:
+        shap_json = json.dumps(shap_values, ensure_ascii=False)
+    except Exception:
+        shap_json = str(shap_values)
 
+    # Lấy các thông số kỹ thuật ra để AI đọc
+    tempo = technical_meta.get('tempo', 'N/A')
+    energy = technical_meta.get('energy', 'N/A')
+    duration = technical_meta.get('duration', 'N/A')
+    lexical = technical_meta.get('lexical', 'N/A')
+    style = technical_meta.get('style', 'N/A')
+    emotion = technical_meta.get('emotion', 'N/A')
+    genres = technical_meta.get('genres', 'N/A')
+
+    return (
+        f"""Bạn là một Music Producer chuyên nghiệp và là trợ lý âm nhạc V-Pop.
+        Nhiệm vụ: Đọc dữ liệu định lượng (SHAP_JSON) và đưa ra nhận xét chuyên môn bằng ngôn ngữ phòng thu tự nhiên, gần gũi. Xưng 'mình' và gọi người dùng là 'bạn'.
+
+        ⚠️ QUY TẮC SỐNG CÒN (BẮT BUỘC TUÂN THỦ):
+        1. TUYỆT ĐỐI KHÔNG dùng dấu nháy đơn, nháy kép hay nháy ngược để bọc từ ngữ.
+        2. CẤM BÊ NGUYÊN TÊN BIẾN VÀ CON SỐ VÀO CÂU TRẢ LỜI. Bạn phải dịch các biến kỹ thuật sang khái niệm âm nhạc và KHÔNG in ra bất kỳ con số thập phân nào.
+        - Gợi ý dịch: MFCC / Spectral -> Màu sắc âm thanh, độ tách bạch dải tần; Chroma -> Cấu trúc hòa âm; Onset rate -> Mật độ nốt nhạc, sự dồn dập của nhịp điệu; final_sentiment_negative -> Cảm xúc u buồn/tiêu cực.
+        3. TÙY BIẾN THÁI ĐỘ THEO XÁC SUẤT HIT ({hit_probability}):
+        - Nếu xác suất >= 60%: Khen ngợi bản phối đã rất có nét, nền tảng vững vàng. Nhấn mạnh rằng các gợi ý bên dưới chỉ nhằm đánh bóng để bài hát bùng nổ thành siêu hit.
+        - Nếu xác suất < 60%: Động viên người viết. Nhận xét thẳng thắn rằng bài có tiềm năng nhưng cần tinh chỉnh mạnh tay hơn về cấu trúc, giai điệu hoặc bản phối để lội ngược dòng.
+
+        BẮT BUỘC TRÌNH BÀY THEO CẤU TRÚC SAU (Tuyệt đối tuân thủ format này):
+
+        Chào bạn, mình là trợ lý âm nhạc V-Pop và cũng là một Music Producer đây! Mình đã nghe và phân tích bản demo của bạn. Các thông số nền tảng hiện tại là: Tempo {tempo} BPM, Năng lượng {energy}, Phong cách {style}, Cảm xúc {emotion}, Thể loại {genres}, Thời lượng {duration} giây, Độ đa dạng từ vựng {lexical}.
+
+        [Viết 2-3 câu nhận xét tổng quan, kết nối phong cách, cảm xúc và thông báo xác suất hit là {hit_probability}. Bắt buộc tuân thủ quy tắc số 3].
+
+        Đi sâu vào bản phối, đây là những gì mình thấy:
+        🔥 Điểm sáng đang làm bài hát bắt tai hơn (Lấy dữ liệu từ mảng p0_top_positive):
+        - [Tên yếu tố 1 đã dịch sang tiếng Việt]: [Giải thích tác dụng bằng ngôn ngữ âm nhạc, tuyệt đối không chèn số]
+        - [Tên yếu tố 2 đã dịch sang tiếng Việt]: [Giải thích tương tự]
+
+        🚧 Điểm nghẽn cần tinh chỉnh (Lấy dữ liệu từ mảng p0_top_negative. Nếu mảng này rỗng, hãy khen rằng: "Các thông số nền tảng của bản phối đang hoạt động rất tốt, không có yếu tố nào kéo lùi bài hát"):
+        - [Tên yếu tố 3 đã dịch sang tiếng Việt]: [Giải thích nó đang làm mờ nhạt bản phối/ca từ ra sao]
+        - [Tên yếu tố 4 đã dịch sang tiếng Việt]: [Giải thích tương tự]
+
+        🎧 Để tối ưu hóa bản demo này, mình có 3 gợi ý thực chiến cho bạn:
+        1. Về ca từ: [Gợi ý]
+        2. Về hòa âm/giai điệu: [Gợi ý]
+        3. Về Mix & Mastering: [Gợi ý]
+
+        DỮ LIỆU SHAP ĐỂ PHÂN TÍCH: {shap_json}
+        """
+    )
 try:
     # Prefer the maintained backend inside the `chatbot/` package.
     try:
@@ -251,48 +300,7 @@ try:
             f'và user_input={user_input}. Dữ liệu: {top_5_songs_metadata}'
         )
 
-    def build_producer_advice_prompt(hit_probability, shap_values, technical_meta):
-        try:
-            shap_json = json.dumps(shap_values, ensure_ascii=False)
-        except Exception:
-            shap_json = str(shap_values)
-
-        # Lấy các thông số kỹ thuật ra để AI đọc
-        tempo = technical_meta.get('tempo', 'N/A')
-        energy = technical_meta.get('energy', 'N/A')
-        duration = technical_meta.get('duration', 'N/A')
-        lexical = technical_meta.get('lexical', 'N/A')
-        style = technical_meta.get('style', 'N/A')
-        emotion = technical_meta.get('emotion', 'N/A')
-        genres = technical_meta.get('genres', 'N/A')
-
-        return (
-            "Bạn là trợ lý âm nhạc V-Pop và cũng là một Music Producer chuyên nghiệp. "
-            "Nhiệm vụ của bạn là đưa ra nhận xét chuyên môn dựa trên dữ liệu định lượng (SHAP_JSON) nhưng phải diễn đạt bằng ngôn ngữ âm nhạc tự nhiên, GIỐNG HỆT CẤU TRÚC MẪU DƯỚI ĐÂY.\n\n"
-            
-            "⚠️ QUY TẮC CỐT LÕI (CỰC KỲ QUAN TRỌNG):\n"
-            "1. TUYỆT ĐỐI KHÔNG dùng dấu nháy đơn ('), dấu nháy kép (\") hay dấu nháy ngược (`) để bọc bất kỳ từ ngữ nào. Ví dụ: viết là kéo xuống, không viết là 'kéo xuống'.\n"
-            "2. TUYỆT ĐỐI KHÔNG liệt kê tên biến kỹ thuật nguyên bản (mfcc, chroma...). BẮT BUỘC dịch chúng sang tiếng Việt mượt mà (Độ tương phản phổ, Sự đa dạng âm sắc...).\n"
-            "3. KHÔNG đưa các con số phần trăm lẻ tẻ từ SHAP_JSON vào bài viết.\n"
-            "4. Văn phong: Chuyên nghiệp, truyền cảm hứng, như một người đàn anh trong phòng thu.\n\n"
-
-            "BẮT BUỘC TRẢ LỜI THEO ĐÚNG CẤU TRÚC SAU:\n"
-            f"Chào bạn, mình là trợ lý âm nhạc V-Pop và cũng là một Music Producer đây! Mình đã phân tích bản demo của bạn và đây là các thông số định lượng mình thu thập được: Tempo {technical_meta.get('tempo', 'N/A')} BPM, RMS Energy {technical_meta.get('energy', 'N/A')}, Phong cách {technical_meta.get('style', 'N/A')}, Cảm xúc {technical_meta.get('emotion', 'N/A')}, Thể loại {technical_meta.get('genres', 'N/A')}, Thời lượng {technical_meta.get('duration', 'N/A')} giây, Độ đa dạng từ vựng {technical_meta.get('lexical', 'N/A')}.\n"
-            "[1 câu nhận xét tổng quan kết nối phong cách và cảm xúc].\n"
-            f"Dựa trên phân tích, khả năng bản demo trở thành hit là {hit_probability}.\n"
-            "Để giúp bản demo bùng nổ hơn nữa, đây là các yếu tố đang tác động đến tiềm năng hit của bài hát:\n"
-            "Các yếu tố đang đẩy lên tiềm năng hit:\n"
-            "- [Tên yếu tố 1 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác dụng]\n"
-            "- [Tên yếu tố 2 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác dụng]\n"
-            "Các yếu tố đang kéo xuống tiềm năng hit:\n"
-            "- [Tên yếu tố 3 dịch sang tiếng Việt]: [Giải thích ngắn gọn tác hại]\n"
-            "Để tối ưu hóa bản demo, bạn có thể tham khảo 3 gợi ý sau:\n"
-            "1. Lời bài hát: [Gợi ý cải thiện]\n"
-            "2. Phối khí/Mix: [Gợi ý cải thiện]\n"
-            "3. Thiết kế âm thanh/Mix: [Gợi ý cải thiện]\n\n"
-            
-            f"DỮ LIỆU ĐẦU VÀO ĐỂ PHÂN TÍCH: {shap_json}"
-        )
+    
 except Exception:
     # Fallback lightweight analyzers so app never breaks.
     class DummyAnalyzer:
@@ -323,36 +331,6 @@ except Exception:
         return (
             'Hay viet mot doan goi y than thien dua tren top_5_songs_metadata '
             f'va user_input={user_input}. Du lieu: {top_5_songs_metadata}'
-        )
-
-    def build_producer_advice_prompt(hit_probability, shap_values, technical_meta):
-        try:
-            shap_json = json.dumps(shap_values, ensure_ascii=False)
-        except Exception:
-            shap_json = str(shap_values)
-        
-        # Lấy thông số kỹ thuật ra biến
-        tempo = technical_meta.get('tempo', 'N/A')
-        energy = technical_meta.get('energy', 'N/A')
-        style = technical_meta.get('style', 'N/A')
-        emotion = technical_meta.get('emotion', 'N/A')
-        genres = technical_meta.get('genres', 'N/A')
-        duration = technical_meta.get('duration', 'N/A')
-        lexical = technical_meta.get('lexical', 'N/A')
-
-        return (
-            "Bạn là Music Producer chuyên V-Pop. Phân tích dựa trên dữ liệu định lượng. "
-            "CHỈ được dùng số liệu có trong SHAP_JSON; không được bịa thêm feature hay phần trăm. "
-            "Nếu thiếu dữ liệu thì nói rõ 'không có dữ liệu'.\n\n"
-            "Hãy bắt đầu bằng một câu chào thân thiện và liệt kê các thông số bạn vừa phân tích được từ bản demo của người dùng "
-            f"(bao gồm: Tempo {tempo} BPM, RMS Energy {energy}, Phong cách {style}, Cảm xúc {emotion}, Thể loại {genres}, Thời lượng {duration} giây, Độ đa dạng từ vựng {lexical}).\n\n"
-            f"Sau đó, nhận xét về khả năng trở thành Hit ({hit_probability}) và dựa vào dữ liệu SHAP dưới đây để đưa ra lời khuyên chuyên sâu.\n\n"
-            f"SHAP_JSON={shap_json}\n\n"
-            "Yêu cầu output:\n"
-            "1) 1-2 câu nhận xét tổng quan về demo.\n"
-            "2) 1-2 câu tóm tắt khả năng hit.\n"
-            "3) Liệt kê tối đa 5 yếu tố 'đẩy lên' (shap_value dương) và tối đa 5 yếu tố 'kéo xuống' (shap_value âm).\n"
-            "4) Đề xuất 3 hành động cải thiện thực tế (mix/arrangement/lyrics) dựa đúng các yếu tố đó.\n"
         )
 
 try:
@@ -1747,13 +1725,12 @@ def _format_llm_advice_output(text):
     """Chuẩn hóa output text của LLM trước khi render markdown."""
     if not text:
         return 'Chưa có lời khuyên từ LLM.'
-    text = text.replace('`', '')
-    
+    text = text.replace('`', '').replace('"', '').replace("'", "")
     return text.strip()
 
 def _format_recent_history_for_llm(*, module: str, limit: int = 5) -> str:
     """
-    [FIX TRÍ NHỚ]: Lấy lịch sử trực tiếp từ RAM (session_state) thay vì gọi DB 
+    Lấy lịch sử trực tiếp từ RAM (session_state) thay vì gọi DB 
     để đảm bảo tốc độ ánh sáng và đồng bộ 100% với giao diện chat hiện tại.
     """
     lines: list[str] = []
@@ -2904,9 +2881,9 @@ if prompt:
     # 1. Tạo chuỗi nội dung để hiển thị
     user_msg_to_save = prompt
     if has_file:
-        user_msg_to_save += f"\n\n*(Có đính kèm file: {st.session_state.global_audio_name})*"
+        user_msg_to_save += f"\n\n*(File đính kèm : {st.session_state.global_audio_name})*"
         if has_lyric:
-            user_msg_to_save += f"\n*(Có đính kèm lyrics: {st.session_state.global_lyric_name})*"
+            user_msg_to_save += f"\n*(Lyrics đính kèm : {st.session_state.global_lyric_name})*"
     
     # [FIX LẶP] Chỉ append 1 lần duy nhất
     st.session_state.main_messages.append({'role': 'user', 'content': user_msg_to_save})
@@ -2989,9 +2966,6 @@ if st.session_state.get('processing_prompt'):
                             temp_audio = save_uploaded_file(audio_obj, suffix=suffix)
                             params_to_use = dict(params or {})
                             
-                            # [THÊM MỚI] Bơm câu nói nguyên bản vào params để làm đạn dự phòng
-                            params_to_use['raw_query'] = p_prompt
-
                             params_to_use['audio_path'] = temp_audio
                         
                         fast_embed_fn = None if action in ["SEARCH_TRACK", "SEARCH_AUDIO"] else _embed_query_text
@@ -3137,12 +3111,17 @@ if st.session_state.get('processing_prompt'):
                 with st.spinner("⏳ Đang suy nghĩ..."):
                     # System Prompt động xử lý cả 4 trường hợp (Greeting, Clarify, Out of Scope, Knowledge)
                     system_prefix = (
-                        "Bạn là VMusic AI, chuyên gia âm nhạc V-Pop. Hãy linh hoạt xử lý câu hỏi sau:\n"
-                        "1. Nếu người dùng chỉ gửi lời chào (chào, hi, alo, ê...): Hãy chào lại thật tự nhiên, ngắn gọn (dưới 15 chữ), xưng 'mình' gọi 'bạn' và hỏi xem họ muốn nghe nhạc gì. TUYỆT ĐỐI KHÔNG lặp đi lặp lại một mẫu câu rập khuôn.\n"
-                        "2. Nếu là kiến thức âm nhạc/nhạc lý: Trả lời chính xác, ưu tiên 4-6 câu.\n"
-                        "3. Nếu là câu hỏi ngoài lề (nấu ăn, toán học...): Từ chối khéo léo và nhắc họ bạn chỉ hỗ trợ âm nhạc.\n"
-                        "4. Nếu câu hỏi mập mờ, vô nghĩa: Hỏi lại xem họ muốn tìm nhạc hay phân tích bài hát.\n"
-                        "LƯU Ý: TUYỆT ĐỐI không dùng các cụm từ: 'xin lỗi', 'không tìm thấy', 'ngoài phạm vi', 'đang gặp sự cố'."
+                        "Bạn là VMusic AI, chuyên gia âm nhạc V-Pop. Nhiệm vụ của bạn là giao tiếp tự nhiên và luôn HƯỚNG NGƯỜI DÙNG ĐẾN CHỨC NĂNG TÌM NHẠC hoặc PHÂN TÍCH FILE. Hãy xử lý linh hoạt theo các tình huống sau:\n\n"
+                        "--- CÁC TÌNH HUỐNG GIAO TIẾP ---\n"
+                        "1. LỜI CHÀO: Nếu người dùng chỉ gửi lời chào (chào, hi, alo, ê...), hãy chào lại thật tự nhiên (dưới 15 chữ), xưng 'mình' - gọi 'bạn'. Chủ động hỏi họ muốn tìm bài hát nào hoặc nhắc họ tải file âm thanh lên để phân tích. TUYỆT ĐỐI KHÔNG rập khuôn.\n"
+                        "2. KIẾN THỨC NHẠC LÝ CHUNG: Nếu hỏi lý thuyết âm nhạc (tempo, hợp âm, thể loại...), trả lời chính xác, ưu tiên 4-6 câu.\n"
+                        "3. CÂU HỎI MẬP MỜ/VÔ NGHĨA: Chủ động hỏi lại xem họ đang muốn tìm bài hát gì hay cần phân tích file nhạc nào để bạn hỗ trợ.\n"
+                        "4. LẠC ĐỀ: Nếu hỏi ngoài lề (Toán, nấu ăn, code...), từ chối khéo léo: 'Mình là trợ lý V-Pop nên chỉ hỗ trợ về âm nhạc thôi nhé!'.\n\n"
+                        "--- ⚠️ LUẬT SINH TỒN (BẮT BUỘC TUÂN THỦ) ---\n"
+                        "- KHÔNG LÀM BÁCH KHOA TOÀN THƯ: Nếu người dùng yêu cầu phân tích lý thuyết, thông tin, ý nghĩa của MỘT BÀI HÁT/CA SĨ CỤ THỂ mà chưa up file, BẮT BUỘC TỪ CHỐI khéo léo và điều hướng họ (VD: 'Hệ thống của mình hiện chỉ hỗ trợ tìm kiếm nhạc và phân tích file âm thanh bạn tải lên. Mình không có sẵn thông tin lý thuyết về bài hát này, bạn có muốn mình tìm track này cho bạn nghe thử không?'). Không tự bịa thông tin.\n"
+                        "- CẤM ẢO GIÁC HÀNH ĐỘNG: Tuyệt đối KHÔNG tự nói các câu như 'Ca khúc X đang được phát', 'Mình đang mở bài X'. Bạn là chatbot, không có chức năng tự phát nhạc.\n"
+                        "- TỪ NGỮ CẤM: Tuyệt đối không dùng các từ: 'xin lỗi', 'không tìm thấy', 'ngoài phạm vi', 'đang gặp sự cố'."
+
                     )
                     ans = call_gemini_engine(f"Câu hỏi: {user_q}", module='home', system_prefix=system_prefix)
                     intro_text = str(ans or '').strip()

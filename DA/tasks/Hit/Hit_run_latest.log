@@ -1,6 +1,6 @@
 📝 Log file: DA\tasks\Hit\Hit_run_latest.log
-🕒 Started: 2026-04-08T20:06:45 | Script: analysis_Hit_Prediction.py
-ℹ️  OPTUNA_SCORING='f1' | Selection/Rollback: CV-on-TRAIN only (TEST is report-only)
+🕒 Started: 2026-05-13T17:06:47 | Script: analysis_Hit_Prediction.py
+ℹ️  OPTUNA_SCORING='average_precision' | Selection/Rollback: CV-on-TRAIN only (TEST is report-only)
 ⏳ Đang tải dữ liệu từ final_data\data_prepared_for_ML.csv...
 ✅ Đã tải thành công: 7665 dòng dữ liệu.
 
@@ -64,21 +64,21 @@
 📊 BƯỚC 1: CHẠY BASELINE - SO SÁNH BAN ĐẦU
 ================================================================================
 
-MODEL                               | CV_F1    | TEST_AP  | TEST_ACC | HIT_P   | HIT_R   | HIT_F1 
+MODEL                               | CV_PR-AUC | TEST_AP  | TEST_ACC | HIT_P   | HIT_R   | HIT_F1 
 ---------------------------------------------------------------------------------------------------------
-Extra Trees                         | 0.4964   | 0.4449   | 0.5701   | 0.4051 | 0.5761 | 0.4757
-AdaBoost                            | 0.4817   | 0.4485   | 0.5799   | 0.4181 | 0.6146 | 0.4977
-Random Forest                       | 0.4905   | 0.4490   | 0.5740   | 0.4082 | 0.5742 | 0.4772
-Gradient Boosting                   | 0.4840   | 0.4240   | 0.5636   | 0.4021 | 0.5934 | 0.4794
-MLP (Neural Net)                    | 0.4809   | 0.3882   | 0.5512   | 0.3844 | 0.5414 | 0.4496
-XGBoost                             | 0.4903   | 0.4307   | 0.5669   | 0.4032 | 0.5819 | 0.4763
-SVM                                 | 0.4895   | 0.4477   | 0.5636   | 0.4013 | 0.5877 | 0.4769
-Logistic Regression                 | 0.4986   | 0.4350   | 0.5708   | 0.4101 | 0.6108 | 0.4907
-LightGBM                            | 0.4883   | 0.4244   | 0.5629   | 0.3984 | 0.5703 | 0.4691
+Extra Trees                         | 0.4259   | 0.4449   | 0.5701   | 0.4051 | 0.5761 | 0.4757
+AdaBoost                            | 0.4214   | 0.4485   | 0.5799   | 0.4181 | 0.6146 | 0.4977
+Random Forest                       | 0.4282   | 0.4490   | 0.5740   | 0.4082 | 0.5742 | 0.4772
+Gradient Boosting                   | 0.4248   | 0.4240   | 0.5636   | 0.4021 | 0.5934 | 0.4794
+MLP (Neural Net)                    | 0.4204   | 0.3882   | 0.5512   | 0.3844 | 0.5414 | 0.4496
+XGBoost                             | 0.4289   | 0.4307   | 0.5669   | 0.4032 | 0.5819 | 0.4763
+SVM                                 | 0.4298   | 0.4477   | 0.5636   | 0.4013 | 0.5877 | 0.4769
+Logistic Regression                 | 0.4354   | 0.4350   | 0.5708   | 0.4101 | 0.6108 | 0.4907
+LightGBM                            | 0.4317   | 0.4244   | 0.5629   | 0.3984 | 0.5703 | 0.4691
 
-🗳️  Voting weights theo CV F1 (XGB, SVM, LR) = [0.4902523273973201, 0.48949514742534533, 0.4986321562661772] → weights=[2, 1, 3]
-Voting Ensemble (XGB+SVM+LR)        | 0.5042   | 0.4574   | 0.5877   | 0.4244 | 0.6108 | 0.5008
-Stacking Ensemble (XGB+SVM+LR)      | 0.5079   | 0.4593   | 0.5636   | 0.4048 | 0.6146 | 0.4881
+🗳️  Voting weights theo CV PR-AUC (XGB, SVM, LR) = [0.42887225607926416, 0.42975818343347677, 0.4354427620934492] → weights=[1, 2, 3]
+Voting Ensemble (XGB+SVM+LR)        | 0.4494   | 0.4586   | 0.5793   | 0.4160 | 0.6012 | 0.4917
+Stacking Ensemble (XGB+SVM+LR)      | 0.4453   | 0.4597   | 0.5643   | 0.4053 | 0.6146 | 0.4885
 
 ✅ Đã lưu biểu đồ baseline tại: DA/tasks/Hit/p0_baseline_comparison.png
 ✅ Đã lưu Confusion Matrix tại: DA/tasks/Hit/p0_confusion_matrix_baseline.png
@@ -87,7 +87,23 @@ Stacking Ensemble (XGB+SVM+LR)      | 0.5079   | 0.4593   | 0.5636   | 0.4048 | 
 🏆 XÁC ĐỊNH BEST MODEL TỪ BASELINE
 ================================================================================
 
-✨ BEST BASELINE MODEL (by CV PR-AUC): Stacking Ensemble (XGB+SVM+LR) (CV PR-AUC: 0.5079 | Test Hit_F1(report): 0.4881 | Test Acc(report): 0.5636)
+✨ BEST BASELINE MODEL (by CV PR-AUC): Voting Ensemble (XGB+SVM+LR) (CV PR-AUC: 0.4494 | Test Hit_F1(report): 0.4917 | Test Acc(report): 0.5793)
+
+🔧 Tham số/cấu hình model được chọn (baseline, clf repr):
+VotingClassifier(estimators=[('xgb',
+                              XGBClassifier(base_score=None, booster=None,
+                                            callbacks=None,
+                                            colsample_bylevel=None,
+                                            colsample_bynode=None,
+                                            colsample_bytree=None, device=None,
+                                            early_stopping_rounds=None,
+                                            enable_categorical=False,
+                                            eval_metric='logloss',
+                                            feature_types=None,
+                                            feature_weights=None, gamma=None,
+                                            grow_policy=None,
+                                            importance_type=None,
+                                   ...
 📋 Ensemble model detected → Sẽ tối ưu 3 base experts: XGBoost, SVM, Logistic Regression
 
 ================================================================================
@@ -133,78 +149,77 @@ Stacking Ensemble (XGB+SVM+LR)      | 0.5079   | 0.4593   | 0.5636   | 0.4048 | 
 📊 BƯỚC 4: ĐÁNH GIÁ OPTIMIZED BEST MODEL
 ================================================================================
 
-MODEL                                    | CV_F1    | TEST_AP  | TEST_ACC | HIT_P   | HIT_R   | HIT_F1 
+MODEL                                    | CV_PR-AUC | TEST_AP  | TEST_ACC | HIT_P   | HIT_R   | HIT_F1 
 -------------------------------------------------------------------------------------------------------------------
-XGBoost                                  | 0.4984   | 0.4579   | 0.5708   | 0.4115 | 0.6224 | 0.4954
-SVM                                      | 0.4940   | 0.4567   | 0.5734   | 0.4074 | 0.5723 | 0.4760
-Logistic Regression                      | 0.4997   | 0.4350   | 0.5714   | 0.4109 | 0.6127 | 0.4919
-Voting Ensemble (XGB+SVM+LR)             | 0.5063   | 0.4593   | 0.5903   | 0.4282 | 0.6262 | 0.5086
-Stacking Ensemble (XGB+SVM+LR)           | 0.5063   | 0.4586   | 0.5701   | 0.4132 | 0.6416 | 0.5026
+XGBoost                                  | 0.4483   | 0.4579   | 0.5708   | 0.4115 | 0.6224 | 0.4954
+SVM                                      | 0.4256   | 0.4567   | 0.5734   | 0.4074 | 0.5723 | 0.4760
+Logistic Regression                      | 0.4348   | 0.4350   | 0.5714   | 0.4109 | 0.6127 | 0.4919
+Voting Ensemble (XGB+SVM+LR)             | 0.4537   | 0.4593   | 0.5903   | 0.4282 | 0.6262 | 0.5086
+Stacking Ensemble (XGB+SVM+LR)           | 0.4549   | 0.4586   | 0.5701   | 0.4132 | 0.6416 | 0.5026
 
-🏆 BEST OPTIMIZED MODEL (by CV PR-AUC): Stacking Ensemble (XGB+SVM+LR) (CV PR-AUC: 0.5063 | Test Hit_F1(report): 0.5026 | Test Acc(report): 0.5701)
+🏆 BEST OPTIMIZED MODEL (by CV PR-AUC): Stacking Ensemble (XGB+SVM+LR) (CV PR-AUC: 0.4549 | Test Hit_F1(report): 0.5026 | Test Acc(report): 0.5701)
 
 ================================================================================
 ⚖️ BƯỚC 4.3: KIỂM TRA VÀ ROLLBACK NẾU CẦN
 ================================================================================
 
 ================================================================================
-⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Hit F1, tag=baseline)
+⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Youden's J, tag=baseline)
 ================================================================================
 ⏳ Đang tính toán xác suất OOF trên tập Train (tag=baseline)...
 
-🎯 Threshold (tuned on TRAIN OOF): 0.4481
-🧠 Lý do chọn ngưỡng: Chọn ngưỡng theo TRAIN OOF (maximize Hit F1), áp dụng nguyên ngưỡng cho TEST
+🎯 Threshold (tuned on TRAIN OOF): 0.5325
+🧠 Lý do chọn ngưỡng: Tối đa hóa Youden's J Statistic (Cân bằng tốt nhất giữa TPR và FPR)
 
 📋 Classification report (theo threshold đã chọn):
               precision    recall  f1-score   support
 
-     Non-Hit       0.75      0.37      0.50      1014
-         Hit       0.38      0.75      0.50       519
+     Non-Hit       0.74      0.67      0.70      1014
+         Hit       0.45      0.54      0.49       519
 
-    accuracy                           0.50      1533
-   macro avg       0.56      0.56      0.50      1533
-weighted avg       0.62      0.50      0.50      1533
+    accuracy                           0.62      1533
+   macro avg       0.60      0.60      0.60      1533
+weighted avg       0.64      0.62      0.63      1533
 
 ✅ Đã lưu CM tại: DA/tasks/Hit/p0_cm_threshold_baseline.png
 ================================================================================
 
 
 ================================================================================
-⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Hit F1, tag=optimized)
+⚖️ TUNE THRESHOLD (OOF-train → apply-on-test, maximize Youden's J, tag=optimized)
 ================================================================================
 ⏳ Đang tính toán xác suất OOF trên tập Train (tag=optimized)...
 
-🎯 Threshold (tuned on TRAIN OOF): 0.4418
-🧠 Lý do chọn ngưỡng: Chọn ngưỡng theo TRAIN OOF (maximize Hit F1), áp dụng nguyên ngưỡng cho TEST
+🎯 Threshold (tuned on TRAIN OOF): 0.5120
+🧠 Lý do chọn ngưỡng: Tối đa hóa Youden's J Statistic (Cân bằng tốt nhất giữa TPR và FPR)
 
 📋 Classification report (theo threshold đã chọn):
               precision    recall  f1-score   support
 
-     Non-Hit       0.78      0.33      0.46      1014
-         Hit       0.38      0.82      0.52       519
+     Non-Hit       0.74      0.58      0.65      1014
+         Hit       0.42      0.61      0.50       519
 
-    accuracy                           0.49      1533
-   macro avg       0.58      0.57      0.49      1533
-weighted avg       0.64      0.49      0.48      1533
+    accuracy                           0.59      1533
+   macro avg       0.58      0.59      0.58      1533
+weighted avg       0.63      0.59      0.60      1533
 
 ✅ Đã lưu CM tại: DA/tasks/Hit/p0_cm_threshold_optimized.png
 ================================================================================
 
 
-📊 So sánh Performance (threshold-aware, mục tiêu: Max Hit F1):
-   • Baseline:  Stacking Ensemble (XGB+SVM+LR) | thr=0.4481 | F1=0.5045 | P=0.3797 | R=0.7514 | Acc=0.5003
-   • Optimized: Stacking Ensemble (XGB+SVM+LR) | thr=0.4418 | F1=0.5222 | P=0.3837 | R=0.8170 | Acc=0.4938
-   • Chênh lệch F1: +0.0176
+📊 So sánh Performance (threshold-aware, mục tiêu: Youden's J):
+   • Baseline:  Voting Ensemble (XGB+SVM+LR) | thr=0.5325 | F1=0.4947 | P=0.4541 | R=0.5434 | Acc=0.6243
+   • Optimized: Stacking Ensemble (XGB+SVM+LR) | thr=0.5120 | F1=0.4996 | P=0.4245 | R=0.6069 | Acc=0.5884
+   • Chênh lệch F1: +0.0049
 
-⚠️ PHÁT HIỆN: Optimized CV PR-AUC (0.5063) < Baseline CV PR-AUC (0.5079)
-✅ QUYẾT ĐỊNH: ROLLBACK về Baseline model
-   → Sử dụng: Stacking Ensemble (XGB+SVM+LR) (thr=0.4481)
+✅ Giữ Optimized theo CV: Baseline CV PR-AUC=0.4494 → Optimized CV PR-AUC=0.4549 (++0.0054)
+✅ QUYẾT ĐỊNH: Giữ lại Optimized model (thr=0.5120)
 
 ================================================================================
 
 
 ⚠️  LƯU Ý VỀ OPTUNA OPTIMIZATION:
-   - Optuna tối ưu dựa trên CV (f1) trên TRAIN set
+   - Optuna tối ưu dựa trên CV (average_precision) trên TRAIN set
    - Quyết định rollback dựa trên CV PR-AUC (TRAIN); Test F1_max chỉ để báo cáo
    - Nếu optimized < baseline: tham số mặc định + threshold có thể generalize tốt hơn
 
@@ -213,7 +228,7 @@ weighted avg       0.64      0.49      0.48      1533
 📊 BƯỚC 5: VẼ BIỂU ĐỒ SO SÁNH
 ================================================================================
 
-✅ Đã lưu biểu đồ baseline tại: DA/tasks/Hit/p0_baseline_comparison.png
+✅ Đã lưu biểu đồ baseline (Test Hit F1) tại: DA/tasks/Hit/p0_baseline_comparison_test_hitf1.png
 ✅ Đã lưu biểu đồ optimized tại: DA/tasks/Hit/p0_optimized_comparison.png
 ✅ Đã lưu biểu đồ so sánh tại: DA/tasks/Hit/p0_baseline_vs_optimized.png
 
@@ -222,17 +237,17 @@ weighted avg       0.64      0.49      0.48      1533
 ================================================================================
 ✅ Đã lưu Confusion Matrix tại: DA/tasks/Hit/p0_confusion_matrix.png
 
-📋 Báo cáo phân loại (Threshold tuned, thr=0.4481):
+📋 Báo cáo phân loại (Threshold tuned, thr=0.5120):
               precision    recall  f1-score   support
 
-     Non-Hit       0.75      0.37      0.50      1014
-         Hit       0.38      0.75      0.50       519
+     Non-Hit       0.74      0.58      0.65      1014
+         Hit       0.42      0.61      0.50       519
 
-    accuracy                           0.50      1533
-   macro avg       0.56      0.56      0.50      1533
-weighted avg       0.62      0.50      0.50      1533
+    accuracy                           0.59      1533
+   macro avg       0.58      0.59      0.58      1533
+weighted avg       0.63      0.59      0.60      1533
 
-🎯 MAIN (Hit=1) → F1=0.5045 | Precision=0.3797 | Recall=0.7514
+🎯 MAIN (Hit=1) → F1=0.4996 | Precision=0.4245 | Recall=0.6069
 ✅ Đã lưu PR-Curve tại: DA/tasks/Hit/p0_precision_recall_curve.png
 
 🔍 Tổng số features (num + OHE): 102
@@ -249,10 +264,10 @@ weighted avg       0.62      0.50      0.50      1533
 ✅ Đã lưu best model tại: DA/models/best_model_p0.pkl
 📋 Thông tin đã lưu:
    • Model Name: Stacking Ensemble (XGB+SVM+LR)
-   • Accuracy: 0.5003
-   • Optimal Threshold: 0.4481
-   • Threshold Improved: No (Rollback)
-   • Pipeline size: 2521 characters
+   • Accuracy: 0.5884
+   • Optimal Threshold: 0.5120
+   • Threshold Improved: Yes
+   • Pipeline size: 2427 characters
 ✅ Đã lưu kết quả so sánh tại: DA/final_data/p0_model_comparison_results.csv
 
 📊 CẤU HÌNH PIPELINE:
@@ -264,7 +279,8 @@ weighted avg       0.62      0.50      0.50      1533
    • Best model:         DA/models/best_model_p0.pkl
    • Optuna params:      DA/tasks/Hit/optuna_history_json/*.json
    • Model comparison:   DA/final_data/p0_model_comparison_results.csv
-   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison.png
+   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison.png (CV PR-AUC selection)
+   • Baseline chart:     DA/tasks/Hit/p0_baseline_comparison_test_hitf1.png (Test Hit F1 report)
    • Optimized chart:    DA/tasks/Hit/p0_optimized_comparison.png
    • Baseline vs Opt:    DA/tasks/Hit/p0_baseline_vs_optimized.png
    • Confusion Matrix:   DA/tasks/Hit/p0_cm_optimized.png

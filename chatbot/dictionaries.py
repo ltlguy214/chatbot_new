@@ -90,7 +90,7 @@ ATTRIBUTE_KEYWORDS = [
     "manh", "cang", "nhe",
     "uy luc", "cuc manh",
     # numeric
-    "bpm", "tempo"
+    "bpm", "tempo", "BPM", "TEMPO"
 ]
 TEENCODE_MAP = {
     "nhacquayparty": "nhạc quẩy party",

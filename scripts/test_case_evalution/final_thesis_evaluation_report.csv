@@ -285,7 +285,7 @@ TC283,Thời tiết Hà Nội hôm nay thế nào?,Out-of-Scope,GENERAL_CHAT,GEN
 TC284,Hướng dẫn mình cách nấu phở bò định chuẩn,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,58.2,4510.54,4587.37,DONE
 TC285,Kể cho mình một câu chuyện ma kinh dị,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,150.76,5408.81,5565.94,DONE
 TC286,Code giúp mình một con bot Telegram bằng Python,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,61.49,5094.38,5160.63,DONE
-TC287,Mẹo để ngủ ngon vào ban đêm là gì?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,7uUuftbcr94tzGOCJSM25u,No ID Needed,PASS,52.69,7003.41,7071.11,DONE
+TC287,Mẹo để ngủ ngon vào ban đêm là gì?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,52.69,7003.41,7071.11,DONE
 TC288,Shop nào bán quần áo đẹp ở Sài Gòn?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,68.2,4826.48,4904.19,DONE
 TC289,Thủ đô của nước Úc là thành phố nào?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,192.6,4422.07,4622.46,DONE
 TC290,Cách nuôi chó Poodle cho người mới bắt đầu,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,89.23,4692.92,4789.87,DONE
@@ -295,7 +295,7 @@ TC293,Cách trang điểm đi tiệc nhẹ nhàng tự nhiên,Out-of-Scope,GENER
 TC294,Tại sao con người lại cần phải làm việc?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,106.51,4358.44,4476.12,DONE
 TC295,Lịch âm hôm nay là ngày bao nhiêu?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,71.86,5244.89,5318.6,DONE
 TC296,Bạn có biết chơi cờ vua không? Đánh với mình một ván,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,61.39,4161.54,4232.53,DONE
-TC297,Tư vấn cho mình mua loa bluetooth Marshall tầm 5 triệu nghe nhạc Pop,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,1ApIGNgp1azc0qB61x4GzG,No ID Needed,PASS,60.91,7627.3,7691.04,DONE
+TC297,Tư vấn cho mình mua loa bluetooth Marshall tầm 5 triệu nghe nhạc Pop,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,60.91,7627.3,7691.04,DONE
 TC298,Micro thu âm condenser nào tốt nhất để hát cover tại nhà?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,94.56,6792.59,6900.85,DONE
 TC299,Cách khắc phục lỗi tai nghe AirPods bị rè một bên khi nghe nhạc,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,245.56,7687.82,7936.6,DONE
 TC300,Phần mềm nào chỉnh sửa video có ghép nhạc nền miễn phí trên điện thoại?,Out-of-Scope,GENERAL_CHAT,GENERAL_CHAT,,,,No ID Needed,PASS,148.39,5950.61,6101.19,DONE
@@ -369,3 +369,21 @@ TC367,Góp ý bài hát này cho mình với,Variation & Paraphrasing,ANALYZE_RE
 TC368,phân tích tiềm năng và hát này đi,Variation & Paraphrasing,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,48.69,57583.65,57634.05,DONE
 TC369,phan tich tiem nang bai hat,Noise & Robustness,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,55.87,50516.08,50573.96,DONE
 TC370,gop y bai hat nay cho minh voi,Noise & Robustness,ANALYZE_READY,ANALYZE_READY,,Level 0: Execute Analytics,,Success,PASS,44.01,54697.7,54697.7,DONE
+TC371,tjm mjk bài nko bủn bủn suỵt tiing xíu đi bot,Noise & Robustness,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""nko bủn bủn suỵt tiing xíu đi bot""",Level 2: Title Search -> Fallback Fuzzy -> Lyric Search,ANY,None,FAIL,50.41,3246.86,3299.37,DONE
+TC372,"Tìm nhạc nào không buồn không sầu, cũng đừng vui quá, kiểu nhẹ nhàng thôi.",Edge Cases,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=""buồn, vui, bình yên""",Level 1: Unified Discover Engine,ANY,3uT8QfoX0BE8ZJa4h98LDW,FAIL,76.37,2060.18,2139.18,DONE
+TC373,"Lòng đang bão giông, cần một nốt trầm để làm dịu lại.",Edge Cases,DISCOVER_MUSIC,GENERAL_CHAT,None,LLM General Chat,ANY,None,FAIL,56.50,10548.12,10605.95,DONE
+TC374,Bài gì mà sếp Tùng hát chung với Snoop Dogg ấy nhỉ?,Variation & Paraphrasing,SEARCH_TRACK,GENERAL_CHAT,None,LLM General Chat,ANY,None,FAIL,5344.72,4982.11,10328.79,DONE
+TC375,Bài gì mà đầu bài có tiếng mưa rơi lách tách với tiếng piano rùng rợn ấy,Edge Cases,SEARCH_TRACK,GENERAL_CHAT,None,LLM General Chat,ANY,None,FAIL,6328.20,7993.68,14324.56,DONE
+TC376,"Bật bài Đom Đóm... À thôi, mở bài của Sếp Tùng đi.",Edge Cases,SEARCH_TRACK,SEARCH_TRACK,"song_title=""đom đóm... à thôi, mở bài""; artist=""Tùng TeA""",Level 2: Title/Artist Match,ANY,4knRFQiLJMMUlP7psJk4kg,FAIL,208.64,5877.82,6088.02,DONE
+TC377,bài nào slay và flexing hơn đi.,Noise & Robustness,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""bài nào slay và flexing hơn đi.""",Level 2: Title Search -> Fallback Fuzzy -> Lyric Search,ANY,None,FAIL,40.77,10304.01,10346.02,DONE
+TC378,Nhạc dảk dảk bủh bủh lmao,Noise & Robustness,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""dảk dảk bủh bủh lmao""",Level 2: Title Search -> Fallback Fuzzy -> Lyric Search,ANY,None,FAIL,94.67,4131.07,4227.54,DONE
+TC379,Cho anh xin thêm một chút bình yên,Edge Cases,SEARCH_TRACK,DISCOVER_MUSIC,"mood=""bình yên""",Level 1: Unified Discover Engine,ANY,3uT8QfoX0BE8ZJa4h98LDW,FAIL,45.72,2455.82,2503.48,DONE
+TC380,Tìm nhạc Đen Vâu nhưng không có Vũ hát cùng,Edge Cases,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""đen vâu nhưng không có vũ hát cùng""",Level 2: Title Search,ANY,4s6SiPzNH8TeycZGY8RHWh,FAIL,64.94,2498.99,2565.68,DONE
+TC381,Bật nhạc thời ông bà anh,Variation & Paraphrasing,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""thời ông bà anh""",Level 2: Title Search,ANY,7ybehMgtSbiWEmJMoPimgf,FAIL,103.69,10571.27,10676.60,DONE
+TC382,Hay là mình cứ bất chấp hết yêu nhau đi,Variation & Paraphrasing,SEARCH_TRACK,SEARCH_TRACK,"song_title=""hay là mình cứ bất chấp hết yêu nhau""",Level 2: Title Search,ANY,5sh8NLB5FULZqYZoLl1wac,FAIL,41.05,1984.20,2026.95,DONE
+TC383,Mở EDM buồn nát cõi lòng để khóc trong club,Edge Cases,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=""bùng nổ, buồn""",Level 1: Unified Discover Engine,ANY,1ApIGNgp1azc0qB61x4GzG,FAIL,43.99,2497.55,2542.73,DONE
+TC384,Phân tích bài Hãy trao cho anh xong rồi mở bài đó lên,Edge Cases,ANALYZE_READY,SEARCH_TRACK,"song_title=""hãy trao cho anh xong rồi mở bài đó lên""",Level 2: Title Search,ANY,5x5Vx0Musv3LSUKzjY73mA,FAIL,49.10,1875.08,1929.30,DONE
+TC378,"Tìm nhạc Đen Vâu nhưng không có Vũ hát cùng",Edge Cases,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""đen vâu nhưng không có vũ hát cùng""",Level 2: Title Search,ANY,4s6SiPzNH8TeycZGY8RHWh,FAIL,64.94,2498.99,2565.68,DONE
+TC381,"Hay là mình cứ bất chấp hết yêu nhau đi",Variation & Paraphrasing,SEARCH_TRACK,SEARCH_TRACK,"song_title=""hay là mình cứ bất chấp hết yêu nhau""",Level 2: Title Search,ANY,5sh8NLB5FULZqYZoLl1wac,FAIL,41.05,1984.20,2026.95,DONE
+TC382,"Nhạc dảk dảk bủh bủh lmao",Noise & Robustness,DISCOVER_MUSIC,SEARCH_TRACK,"song_title=""dảk dảk bủh bủh lmao""",Level 2: Title Search -> Fallback Fuzzy -> Lyric Search,ANY,None,FAIL,94.67,4131.07,4227.54,DONE
+TC383,"Mở EDM buồn nát cõi lòng để khóc trong club",Edge Cases,DISCOVER_MUSIC,DISCOVER_MUSIC,"mood=""bùng nổ, buồn""",Level 1: Unified Discover Engine,ANY,1ApIGNgp1azc0qB61x4GzG,FAIL,43.99,2497.55,2542.73,DONE

@@ -141,6 +141,30 @@ class _Tee:
                 pass
         return False
 
+
+# Popularity is naturally bounded (0..100). When using log1p target transform,
+# some folds can extrapolate in log-space and explode after expm1, making CV_MAE
+# appear extremely large while holdout looks normal. Clip both training targets
+# and inverse predictions to keep evaluation on a stable, realistic scale.
+P1_TARGET_CLIP_MIN = float(os.getenv('P1_TARGET_CLIP_MIN', '0'))
+P1_TARGET_CLIP_MAX = float(os.getenv('P1_TARGET_CLIP_MAX', '100'))
+_P1_TARGET_CLIP_MAX_SAFE = float(P1_TARGET_CLIP_MAX if P1_TARGET_CLIP_MAX > P1_TARGET_CLIP_MIN else P1_TARGET_CLIP_MIN)
+_P1_LOG1P_MAX = float(np.log1p(max(_P1_TARGET_CLIP_MAX_SAFE, 1e-9)))
+
+
+def _p1_target_forward_log1p(y):
+    y_arr = np.asarray(y, dtype=float)
+    y_arr = np.clip(y_arr, P1_TARGET_CLIP_MIN, _P1_TARGET_CLIP_MAX_SAFE)
+    return np.log1p(y_arr)
+
+
+def _p1_target_inverse_log1p(z):
+    z_arr = np.asarray(z, dtype=float)
+    # Clip the log-space predictions to avoid expm1 overflow / unrealistic values.
+    z_arr = np.clip(z_arr, -20.0, _P1_LOG1P_MAX)
+    y_arr = np.expm1(z_arr)
+    return np.clip(y_arr, P1_TARGET_CLIP_MIN, _P1_TARGET_CLIP_MAX_SAFE)
+
 def _wrap_skewed_target_regressor(regressor):
     mode = os.getenv('P1_TARGET_TRANSFORM', 'log1p').strip().lower()
     if mode in {'', '0', 'off', 'none', 'false'}:
@@ -148,8 +172,8 @@ def _wrap_skewed_target_regressor(regressor):
     if mode in {'log1p', 'log'}:
         return TransformedTargetRegressor(
             regressor=regressor,
-            func=np.log1p,
-            inverse_func=np.expm1,
+            func=_p1_target_forward_log1p,
+            inverse_func=_p1_target_inverse_log1p,
         )
     raise ValueError(f"Invalid P1_TARGET_TRANSFORM='{mode}'. Use: none|log1p")
 
@@ -712,6 +736,7 @@ def prepare_data(df: pd.DataFrame):
     candidate_numeric = [
         c for c in df.columns
         if c not in cols_ignore and pd.api.types.is_numeric_dtype(df[c])
+        and not str(c).startswith('genre_')
     ]
 
     binary_feats: list[str] = []
@@ -889,7 +914,8 @@ def run_full_analysis_task_p1():
             if outlier_enabled
             else " | outlier_filter=none"
         )
-        + f" | target_transform={os.getenv('P1_TARGET_TRANSFORM', 'log1p')}",
+        + f" | target_transform={os.getenv('P1_TARGET_TRANSFORM', 'log1p')}"
+        + f" | target_clip=[{P1_TARGET_CLIP_MIN:.0f},{P1_TARGET_CLIP_MAX:.0f}]",
         flush=True,
     )
 
