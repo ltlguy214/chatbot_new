@@ -1,3 +1,23 @@
+# 🎵 VMusicAI – AI-powered V-Pop Analysis & Recommendation System
+
+> Graduation Project – University of Information Technology (UIT – VNU-HCM)
+
+An end-to-end AI/Data Science platform for analyzing, predicting and recommending Vietnamese V-Pop songs using Machine Learning, Natural Language Processing and Large Language Models.
+
+<p align="center">
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange)
+![Apache Spark](https://img.shields.io/badge/Big%20Data-Apache%20Spark-red)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
+![Supabase](https://img.shields.io/badge/Supabase-green)
+![PhoBERT](https://img.shields.io/badge/NLP-PhoBERT-success)
+![Gemini API](https://img.shields.io/badge/LLM-Gemini_API-purple)
+![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
+
+</p>
+
+
 # Hit Songs DA – Chatbot (Streamlit)
 
 ## Yêu cầu
