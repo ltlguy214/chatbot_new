@@ -1,2 +1,0 @@
-﻿Model,AlgoKey,k,UsedOptunaParams,Baseline_CH,Baseline_Silhouette,Final_CH,Final_Silhouette,Final_DaviesBouldin,BestParams
-K-Means,kmeans,5,1,3793.4226917471074,0.2697950741482012,3791.5876195534374,0.27168156116147874,1.071963413012792,"{""n_init"": 10, ""max_iter"": 574, ""tol"": 0.0008691089486124963, ""init"": ""random""}"

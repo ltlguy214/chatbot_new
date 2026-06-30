@@ -1,3 +1,117 @@
+# 🎵 VMusicAI – AI-powered V-Pop Analysis & Recommendation System
+
+> Graduation Project – University of Information Technology (UIT – VNU-HCM)
+
+An end-to-end AI/Data Science platform for analyzing, predicting and recommending Vietnamese V-Pop songs using Machine Learning, Natural Language Processing and Large Language Models.
+
+<p align="center">
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange)
+![Apache Spark](https://img.shields.io/badge/Big%20Data-Apache%20Spark-red)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
+![Supabase](https://img.shields.io/badge/Supabase-green)
+![PhoBERT](https://img.shields.io/badge/NLP-PhoBERT-success)
+![Gemini API](https://img.shields.io/badge/LLM-Gemini_API-purple)
+![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
+
+</p>
+# 📷 Demo
+
+<p align="center">
+
+<img src="images/home.png" width="900">
+
+</p>
+
+### Main Features
+
+- 🎧 Song recommendation
+- 📈 Hit song prediction
+- 😊 Emotion analysis
+- 🎼 Genre classification
+- 🤖 AI Chatbot
+- 🔎 Semantic search
+- 📊 Interactive dashboards
+
+# 📖 Project Overview
+
+VMusicAI is an end-to-end AI/Data Science platform developed as a graduation project at the University of Information Technology (UIT – VNU-HCM).
+
+The project aims to assist users in analyzing and discovering Vietnamese V-Pop songs by combining Machine Learning, Natural Language Processing (NLP), Explainable AI and Large Language Models.
+
+Unlike traditional music recommendation systems, VMusicAI provides intelligent explanations, semantic search and conversational interactions through an AI chatbot.
+
+The system covers the complete AI workflow, including:
+
+- Data Collection
+- Data Cleaning
+- Exploratory Data Analysis (EDA)
+- Feature Engineering
+- Machine Learning
+- NLP
+- Explainable AI
+- Deployment
+# 🚀 Key Features
+
+## 🎯 Machine Learning
+
+- Hit Song Classification
+- Popularity Prediction
+- Music Style Clustering
+- Emotion Classification
+- Genre Classification
+
+---
+
+## 🤖 AI Chatbot
+
+- Gemini API
+- PhoBERT Intent Classification
+- Context-aware conversations
+- Prompt Engineering
+
+---
+
+## 🔍 Semantic Search
+
+- PostgreSQL
+- pgvector
+- Vector Embedding
+- Similarity Search
+
+---
+
+## 📊 Explainable AI
+
+- SHAP
+- Feature Importance
+- Model Interpretation
+
+---
+
+## ⚡ Hyperparameter Optimization
+
+- Optuna
+- Automatic parameter tuning
+
+# 📂 Dataset
+
+The project collected and processed Vietnamese V-Pop songs from multiple public music sources.
+
+| Item | Value |
+|-------|--------|
+| Songs | 7,665 |
+| Features | 17+ |
+| Genres | Multiple |
+| Artists | Hundreds |
+| Lyrics | Vietnamese |
+| Test Scenarios | 388 |
+
+
+
+
+
 # Hit Songs DA – Chatbot (Streamlit)
 
 ## Yêu cầu

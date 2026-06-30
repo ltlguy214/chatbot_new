@@ -248,8 +248,11 @@ def build_producer_advice_prompt(hit_probability, shap_values, technical_meta):
 
         ⚠️ QUY TẮC SỐNG CÒN (BẮT BUỘC TUÂN THỦ):
         1. TUYỆT ĐỐI KHÔNG dùng dấu nháy đơn, nháy kép hay nháy ngược để bọc từ ngữ.
-        2. CẤM BÊ NGUYÊN TÊN BIẾN VÀ CON SỐ VÀO CÂU TRẢ LỜI. Bạn phải dịch các biến kỹ thuật sang khái niệm âm nhạc và KHÔNG in ra bất kỳ con số thập phân nào.
-        - Gợi ý dịch: MFCC / Spectral -> Màu sắc âm thanh, độ tách bạch dải tần; Chroma -> Cấu trúc hòa âm; Onset rate -> Mật độ nốt nhạc, sự dồn dập của nhịp điệu; final_sentiment_negative -> Cảm xúc u buồn/tiêu cực.
+        2. CẤM BÊ NGUYÊN TÊN BIẾN KỸ THUẬT VÀO CÂU TRẢ LỜI.
+        - Không được in các tên biến như rms_energy, mfcc, spectral_centroid, chroma_stft, p0_top_positive.
+        - ĐƯỢC PHÉP hiển thị các thông số nền tảng đã được cung cấp sẵn như Tempo, Năng lượng, Thời lượng, Độ đa dạng từ vựng và Xác suất hit.
+        - Xác suất hit BẮT BUỘC phải giữ dạng số phần trăm, ví dụ: 74.6%. Tuyệt đối không viết thành chữ như bảy mươi tư chấm sáu phần trăm.
+        - Các thông số kỹ thuật khác chỉ dùng để diễn giải ý nghĩa âm nhạc, không bê nguyên tên biến.
         3. TÙY BIẾN THÁI ĐỘ THEO XÁC SUẤT HIT ({hit_probability}):
         - Nếu xác suất >= 60%: Khen ngợi bản phối đã rất có nét, nền tảng vững vàng. Nhấn mạnh rằng các gợi ý bên dưới chỉ nhằm đánh bóng để bài hát bùng nổ thành siêu hit.
         - Nếu xác suất < 60%: Động viên người viết. Nhận xét thẳng thắn rằng bài có tiềm năng nhưng cần tinh chỉnh mạnh tay hơn về cấu trúc, giai điệu hoặc bản phối để lội ngược dòng.
@@ -2141,15 +2144,32 @@ def generate_arrangement_advice_llm(result_bundle):
     shap_payload = result_bundle.get('shap_values')
     shap_values = _compact_shap_for_prompt(shap_payload)
     
-    # Gói thông số kỹ thuật để các biến "sáng" lên và AI có dữ liệu
+    raw = result_bundle.get('raw_features') or {}
+
+    def pick_float(d, keys, default=None):
+        for k in keys:
+            v = d.get(k)
+            if v is None or v == "":
+                continue
+            try:
+                return float(v)
+            except Exception:
+                continue
+        return default
+
+    tempo_val = pick_float(raw, ['tempo_bpm', 'tempo', 'bpm'])
+    energy_val = pick_float(raw, ['rms_energy', 'energy', 'rms', 'rms_mean', 'audio_energy'])
+    duration_val = pick_float(raw, ['duration_sec', 'duration', 'length_sec'])
+    lexical_val = pick_float(raw, ['lexical_diversity', 'lyric_lexical_diversity'])
+
     technical_meta = {
-        'tempo': f"{float(result_bundle['raw_features'].get('tempo_bpm', 0)):.1f}",
-        'energy': f"{float(result_bundle['raw_features'].get('rms_energy', 0)):.4f}",
-        'duration': f"{float(result_bundle['raw_features'].get('duration_sec', 0)):.1f}",
-        'lexical': f"{float(result_bundle['raw_features'].get('lexical_diversity', 0)):.3f}",
-        'style': result_bundle['p2'].get('cluster_name', 'Unknown'),
-        'emotion': result_bundle['p3'].get('emotion_label', 'Unknown'),
-        'genres': ', '.join(result_bundle['p4']['genres'])
+        'tempo': f"{tempo_val:.1f}" if tempo_val is not None else "không đo được",
+        'energy': f"{energy_val:.4f}" if energy_val is not None else "không đo được",
+        'duration': f"{duration_val:.1f}" if duration_val is not None else "không đo được",
+        'lexical': f"{lexical_val:.3f}" if lexical_val is not None else "không có dữ liệu lời",
+        'style': result_bundle.get('p2', {}).get('cluster_name', 'Unknown'),
+        'emotion': result_bundle.get('p3', {}).get('emotion_label', 'Unknown'),
+        'genres': ', '.join(result_bundle.get('p4', {}).get('genres', []) or [])
     }
 
     # Gọi hàm prompt với đúng 3 tham số
@@ -3081,7 +3101,7 @@ if st.session_state.get('processing_prompt'):
                     audio_obj = io.BytesIO(st.session_state.global_audio_bytes)
                     audio_obj.name = st.session_state.global_audio_name
                     try:
-                        with st.spinner('🔍 Đang đánh giá file nhạc của bạn...'):
+                        with st.spinner('🔍 Mình đang đánh giá file nhạc của bạn đây, chờ một chút nhé!'):
                             temp_audio = save_uploaded_file(audio_obj, suffix='.wav')
                             from chatbot.analyze_ready_action import run_analyze_ready
                             supabase_client = _get_supabase_client()
