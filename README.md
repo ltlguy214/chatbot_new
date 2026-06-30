@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🎵 VMusicAI – AI-powered V-Pop Analysis & Recommendation System
 
 > Graduation Project – University of Information Technology (UIT – VNU-HCM)
@@ -510,7 +509,3 @@ This project is released under the MIT License.
 This project was developed as a Graduation Project at the University of Information Technology (UIT – VNU-HCM).
 
 Special thanks to my supervisors, teammates and the open-source community whose tools and libraries contributed to this project.
-=======
-# VMusicAI
-AI-powered V-Pop Analysis &amp; Recommendation System using Machine Learning, NLP and Large Language Models.
->>>>>>> 6cf98546c4fe06e8c3af8135ac8caf7beedc00f9
