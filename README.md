@@ -20,7 +20,7 @@ The system integrates predictive analytics, semantic search, and an AI chatbot t
 
 ### Recommendation Funtion
 
-![Recommendation Funtion](images\recommendation.png)
+![Recommendation Funtion](images/recommendation.png)
 
 ---
 
