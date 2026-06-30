@@ -7,6 +7,9 @@ __pycache__/
 .model_cache/
 DA/models/best_model_p4.pkl
 DA/models/best_model_p1.pkl
+DA/models/popularity_model.pkl
+chatbot/Test_app/CSV/lyrics_rows.csv
+data/lyrics_ready_for_supabase.csv
 
 # Streamlit Cloud deploy files (track these even though *.txt is ignored)
 !requirements.txt
