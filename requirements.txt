@@ -1,2 +1,0 @@
-# Streamlit Cloud installs dependencies from repo-root requirements.txt
--r chatbot/requirements.txt

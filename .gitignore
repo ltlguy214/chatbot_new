@@ -1,20 +1,17 @@
 .venv312/
 __pycache__/
 *.exe
-*.txt
-*.csv
-*.pkl
+
+# Generated artifacts and large local data
 .model_cache/
 DA/models/best_model_p4.pkl
 DA/models/best_model_p1.pkl
 DA/models/popularity_model.pkl
 chatbot/Test_app/CSV/lyrics_rows.csv
 data/lyrics_ready_for_supabase.csv
+scripts/test_case_evalution/*.csv
 
-# Streamlit Cloud deploy files (track these even though *.txt is ignored)
-!requirements.txt
-!runtime.txt
-!packages.txt
+!requirements-venv312.lock.txt
 
 # Streamlit config: keep config + example, ignore real secrets
 !.streamlit/config.toml
@@ -24,6 +21,3 @@ data/lyrics_ready_for_supabase.csv
 # Local secrets (avoid accidental commits)
 .env
 .env.*
-
-# Allow tracked lockfiles (even though *.txt is ignored)
-!requirements-venv312.lock.txt

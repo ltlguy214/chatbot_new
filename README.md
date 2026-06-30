@@ -2,239 +2,133 @@
 
 > Graduation Project – University of Information Technology (UIT – VNU-HCM)
 
-An end-to-end AI/Data Science platform that analyzes Vietnamese V-Pop songs using Machine Learning, Natural Language Processing (PhoBERT), Explainable AI and Large Language Models (Gemini).
+An end-to-end AI/Data Science platform for analyzing Vietnamese V-Pop songs using Machine Learning, Natural Language Processing (PhoBERT), Explainable AI (SHAP) and Large Language Models (Gemini).
 
-The system supports music analysis, hit song prediction, semantic search and AI-powered conversational assistance through an interactive Streamlit application.
-
-<p align="center">
-
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange)
-![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
-![Supabase](https://img.shields.io/badge/Supabase-green)
-![PhoBERT](https://img.shields.io/badge/NLP-PhoBERT-success)
-![Gemini API](https://img.shields.io/badge/LLM-Gemini_API-purple)
-![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
-
-
-# 📷 Demonstration
-
-## Home Page
----
-<p align="center">
-
-<img src="images/home.png" width="900">
-
-</p>
-
-## Recommendation
-
-<p align="center">
-
-<img src="images/recommendation.png" width="900">
-
-</p>
-
-## Song Analysis
-
-<p align="center">
-
-<img src="images/song_analysis.png" width="900">
-
-</p>
+The system integrates predictive analytics, semantic search, and an AI chatbot to support music analysis, hit song prediction, and intelligent user interaction.
 
 ---
-# 🎯 Objectives
 
-The objectives of VMusicAI are to:
+## 📷 Demo
 
-- Analyze Vietnamese V-Pop songs using Machine Learning techniques.
-- Predict hit potential and popularity trends.
-- Provide intelligent song analysis through Natural Language Processing.
-- Support semantic retrieval using vector databases.
-- Deliver an AI-powered conversational assistant for music exploration.
+### Home Page
 
-# 📖 Project Overview
+![Home](images/home.png)
 
-VMusicAI is an end-to-end AI/Data Science platform developed as a graduation project at the University of Information Technology (UIT – VNU-HCM).
+### Song Analysis
 
-The project aims to analyze Vietnamese V-Pop songs through multiple Machine Learning tasks while providing intelligent recommendations and conversational support using Natural Language Processing and Large Language Models.
+![Analysis](images/song_analysis.png)
 
-Unlike conventional music recommendation systems, VMusicAI combines predictive analytics, explainable AI, semantic search and an AI chatbot into a unified platform, allowing users to better understand song characteristics and prediction results.
+### Recommendation Funtion
 
-The system covers the complete AI workflow, including:
+![Recommendation Funtion](images\recommendation.png)
 
-- Data Collection
-- Data Cleaning
-- Exploratory Data Analysis (EDA)
-- Feature Engineering
-- Machine Learning
-- NLP
-- Explainable AI
-- Deployment
+---
 
-# 📊 Project Highlights
+# 📖 Overview
 
-- ✅ End-to-end AI/Data Science workflow
-- 🎵 Processed 7,665 Vietnamese V-Pop songs
-- 🤖 Integrated Machine Learning, NLP and LLM into a unified platform
-- 🧠 PhoBERT for Vietnamese intent classification
-- 💬 Gemini-powered AI chatbot with contextual conversations
-- 🔍 Semantic search using PostgreSQL + pgvector
-- 📊 Explainable AI with SHAP
-- ⚙ Automated hyperparameter optimization using Optuna
-- 🌐 Interactive Streamlit web application
-- 🎓 Graduation Project at the University of Information Technology (UIT – VNU-HCM)
+VMusicAI was developed as an undergraduate graduation project at the University of Information Technology (UIT – VNU-HCM).
+
+The project provides an end-to-end AI/Data Science workflow for Vietnamese V-Pop music analysis, from data collection and preprocessing to model deployment. It combines Machine Learning, Natural Language Processing, Explainable AI, Vector Search and Large Language Models into a single interactive application.
+
+---
+
+# 🌟 Project Highlights
+
+- 🎵 Processed **7,665** Vietnamese V-Pop songs.
+- 🤖 Built an AI-powered chatbot using **Gemini API**.
+- 🧠 Applied **PhoBERT** for Vietnamese intent classification.
+- 📊 Implemented **five Machine Learning tasks** for music analysis.
+- 🔍 Developed semantic search using **PostgreSQL + pgvector**.
+- 📈 Integrated **SHAP** for model interpretability.
+- ⚙ Optimized model performance using **Optuna**.
+- 🌐 Deployed the application with **Streamlit**.
+
+---
 
 # 🚀 Key Features
 
-- 🎯 Hit Song Prediction
-- 📈 Popularity Prediction
-- 🎼 Genre Classification
-- 😊 Emotion Classification
-- 📊 Music Style Clustering
-- 🤖 AI Chatbot powered by Gemini
-- 🔍 Semantic Search using pgvector
-- 🧠 PhoBERT Intent Classification
-- 📊 Explainable AI with SHAP
-- ⚙ Hyperparameter Optimization using Optuna
+| Module | Description |
+|---------|-------------|
+| 🎯 Hit Song Prediction | Predict the hit potential of Vietnamese songs |
+| 📈 Popularity Prediction | Estimate song popularity using regression models |
+| 🎼 Genre Classification | Classify songs into music genres |
+| 😊 Emotion Classification | Predict emotional characteristics of songs |
+| 📊 Music Style Clustering | Group songs with similar characteristics |
+| 🤖 AI Chatbot | Conversational assistant powered by Gemini |
+| 🔍 Semantic Search | Retrieve relevant songs using pgvector |
+| 📊 Explainable AI | Interpret predictions with SHAP |
+
+---
 
 # 📂 Dataset
 
-The project was developed using a curated Vietnamese V-Pop dataset containing metadata, audio-related features and song information collected from public music platforms.
+The dataset was collected from multiple public music platforms and contains Vietnamese V-Pop songs with metadata, lyrics and audio-related features.
 
-| Dataset | Size |
-|----------|------|
+| Dataset | Value |
+|----------|------:|
 | Songs | 7,665 |
-| Genres | Multiple |
 | Artists | 1,668 |
-| Lyrics | Vietnamese |
-| Numerical Features | 75 | 
+| Numerical Features | 75 |
 | Binary Features | 24 |
-| OHE Features | 3 |
+| One-hot Encoded Features | 3 |
 | Evaluation Scenarios | 388 |
-| Date | 2010/01/01 - 2026/03/18 |
 
-The dataset was preprocessed through data cleaning, feature engineering and exploratory data analysis before training Machine Learning models.
+The dataset was cleaned, transformed and engineered before training Machine Learning models.
+
 ---
 
 # 🏗️ System Architecture
 
-                           VMusicAI Architecture
+The system consists of four major modules:
 
-┌───────────────────────────────────────────────────────────────────────┐
-│                           Data Sources                                │
-│  • Spotify API                                                        │
-│  • Genius Lyrics                                                      │
-│  • V-Pop Metadata                                                     │
-└───────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│                     Data Collection & Preprocessing                   │
-│  • Data Cleaning                                                      │
-│  • Missing Value Handling                                             │
-│  • Feature Engineering                                                │
-│  • Exploratory Data Analysis                                          │
-└───────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│                     Machine Learning Module                           │
-│  Classification                                                       │
-│  Regression                                                           │
-│  Clustering                                                           │
-│  Model Evaluation                                                     │
-│  SHAP                                                                 │
-│  Optuna                                                               │
-└───────────────────────────────────────────────────────────────────────┘
-                 │                           │
-                 ▼                           ▼
-┌─────────────────────────────┐   ┌─────────────────────────────┐
-│       NLP Module            │   │      Recommendation         │
-│ PhoBERT                     │   │ Semantic Search             │
-│ Intent Classification       │   │ pgvector                    │
-│                             │   │ Similarity Ranking          │
-└─────────────────────────────┘   └─────────────────────────────┘
-                 │                           │
-                 └───────────────┬───────────┘
-                                 ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│                       Gemini AI Chatbot                               │
-│ Context-aware Conversation                                            │
-│ Prompt Engineering                                                    │
-│ Recommendation Explanation                                            │
-└───────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│                   Streamlit Web Application                           │
-└───────────────────────────────────────────────────────────────────────┘
-
-The architecture consists of four major modules:
-
-- Data Processing
+- Data Collection & Preprocessing
 - Machine Learning
-- NLP & LLM
-- Web Application
----
+- NLP & Large Language Models
+- Streamlit Web Application
 
+Data sources include:
+
+- Spotify API
+- Genius Lyrics API
+- Vietnamese V-Pop metadata
+
+The processed data are used for feature engineering, Machine Learning, semantic search and chatbot reasoning before being deployed through a Streamlit interface.
+
+---
 
 # 🔄 Machine Learning Pipeline
 
-The project follows a complete end-to-end Machine Learning workflow.
+The project follows a complete end-to-end Machine Learning workflow:
 
-```text
-Data Collection
-      │
-      ▼
-Data Cleaning
-      │
-      ▼
-Exploratory Data Analysis (EDA)
-      │
-      ▼
-Feature Engineering
-      │
-      ▼
-Model Training
-      │
-      ▼
-Hyperparameter Optimization
-      │
-      ▼
-Model Evaluation
-      │
-      ▼
-Explainability (SHAP)
-      │
-      ▼
-Deployment (Streamlit)
-```
+1. Data Collection
+2. Data Cleaning
+3. Exploratory Data Analysis (EDA)
+4. Feature Engineering
+5. Model Training
+6. Hyperparameter Optimization
+7. Model Evaluation
+8. Explainability with SHAP
+9. Deployment
 
 ---
 
 # 🤖 Machine Learning Tasks
 
-VMusicAI consists of five Machine Learning tasks for supporting V-Pop music analysis.
-
 | Task | Description |
 |------|-------------|
-| 🎯 Hit Song Classification | Predict whether a song has hit potential |
-| 📈 Popularity Prediction | Estimate song popularity using regression models |
-| 🎼 Music Style Clustering | Group songs based on audio and metadata similarity |
-| 😊 Emotion Classification | Identify emotional characteristics of songs |
-| 🎤 Genre Classification | Predict music genres from extracted features |
+| Hit Song Classification | Predict whether a song has hit potential |
+| Popularity Prediction | Predict popularity scores |
+| Genre Classification | Predict music genres |
+| Emotion Classification | Predict song emotions |
+| Music Style Clustering | Discover similar music styles |
 
 ---
 
 # 🧠 NLP & Large Language Models
 
-The NLP module enables intelligent conversations and semantic understanding.
-
 ### PhoBERT
 
-- Vietnamese Intent Classification
+- Vietnamese intent classification
 - User query understanding
 - Context-aware intent detection
 
@@ -245,92 +139,58 @@ The NLP module enables intelligent conversations and semantic understanding.
 - Recommendation reasoning
 - Natural language interaction
 
-### Vector Search
+### Semantic Search
 
-- PostgreSQL + pgvector
+- PostgreSQL
+- Supabase
+- pgvector
 - Embedding similarity search
-- Semantic retrieval
-- Context enhancement for chatbot
 
 ---
 
 # 📊 Explainable AI
 
-To improve model transparency and interpretability, SHAP (SHapley Additive exPlanations) is integrated into the prediction workflow.
+SHAP is integrated to improve model transparency by providing:
 
-Features include:
-
-- Global Feature Importance
-- Local Prediction Explanation
+- Global feature importance
+- Local prediction explanation
 - SHAP Summary Plot
-- Individual Prediction Interpretation
-
-This enables users to understand why a prediction is generated rather than receiving only the final output.
+- Individual prediction interpretation
 
 ---
 
-# ⚙️ Hyperparameter Optimization
+# ⚙ Hyperparameter Optimization
 
-The project utilizes **Optuna** to automatically search for optimal hyperparameters.
-
-Optimization objectives include:
-
-- Improving model accuracy
-- Reducing overfitting
-- Selecting optimal parameter combinations
-- Increasing model robustness
+Optuna is used to automatically optimize model hyperparameters, improving model performance while reducing manual tuning effort.
 
 ---
 
 # 📈 Experimental Results
 
 | Module | Metric | Result |
-|----------|----------|---------|
-| Intent Classification | Accuracy | 96.90% |
-| Intent Classification | Macro F1-score | 97.32% |
-| Chatbot Evaluation | HitRate@1 | 92.25% |
-| Chatbot Evaluation | Mean Reciprocal Rank | 92.25% |
-| End-to-End Testing | Test Scenarios | 388 |
+|---------|---------|------:|
+| Intent Classification | Accuracy | **96.90%** |
+| Intent Classification | Macro F1-score | **97.32%** |
+| Chatbot Evaluation | HitRate@1 | **92.25%** |
+| Chatbot Evaluation | Mean Reciprocal Rank | **92.25%** |
+| End-to-End Testing | Test Scenarios | **388** |
 
 ---
 
 # 💻 Technology Stack
 
-### Programming
-
-- Python
-
-### Data Science
-
-- Pandas
-- NumPy
-- Scikit-learn
-
-### Natural Language Processing
-
-- PhoBERT
-- Gemini API
-
-### Explainable AI
-
-- SHAP
-- Optuna
-
-### Database
-
-- PostgreSQL
-- Supabase
-- pgvector
-
-### Visualization
-
-- Matplotlib
-- Streamlit
-
-### Version Control
-
-- Git
-- GitHub
+| Category | Technologies |
+|-----------|--------------|
+| Programming | Python |
+| Data Analysis | Pandas, NumPy |
+| Machine Learning | Scikit-learn |
+| NLP | PhoBERT |
+| LLM | Gemini API |
+| Explainable AI | SHAP |
+| Hyperparameter Optimization | Optuna |
+| Database | PostgreSQL, Supabase, pgvector |
+| Visualization | Matplotlib, Streamlit |
+| Version Control | Git, GitHub |
 
 ---
 
@@ -340,150 +200,90 @@ Optimization objectives include:
 VMusicAI
 │
 ├── chatbot/
-├── data/
-├── models/
-├── scripts/
+│   ├── app_chatbot.py
+│   ├── action_handler.py
+│   ├── analysis_backend.py
+│   ├── intent.py
+│   ├── nlp.py
+│   ├── spotify.py
+│   ├── supabase_config.py
+│   ├── topic.py
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── .gitignore
+├── DA/
+│   ├── tasks/
+│   │   ├── Genres/
+│   │   ├── Hit/
+│   │   ├── Popularity/
+│   │   ├── Sentiment/
+│   │   └── Style/
+│   └── utils/
 ├── dev/
+│   ├── run_chatbot.ps1
+│   └── setup_venv312.ps1
+├── scripts/
+│   └── test_case_evalution/
 ├── images/
-├── docs/
+├── models/
+├── .streamlit/
+├── .gitignore
+├── requirements-venv312.lock.txt
 ├── README.md
-├── requirements.txt
 └── LICENSE
 ```
+
+---
+
 # 🚀 Getting Started
 
 ## Prerequisites
 
-Before running the project, ensure your environment meets the following requirements:
-
 - Python 3.12+
 - PostgreSQL
-- Supabase Account
+- Supabase
 - Gemini API Key
-- Git
-- Streamlit
-
----
 
 ## Installation
-
-Clone the repository
 
 ```bash
 git clone https://github.com/ltlguy214/VMusicAI.git
 
 cd VMusicAI
+
+python -m venv .venv312
+
+# Windows
+.venv312\Scripts\activate
+
+pip install -r chatbot/requirements.txt
 ```
-
-Create a virtual environment
-
-```bash
-python -m venv .venv
-```
-
-Activate the virtual environment
-
-Windows
-
-```bash
-.venv\Scripts\activate
-```
-
-Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
----
 
 ## Environment Variables
 
-Create a `.env` file inside the chatbot directory.
-
 ```env
 SUPABASE_URL=YOUR_SUPABASE_URL
-
 SUPABASE_KEY=YOUR_SUPABASE_KEY
-
-GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
-
-MODELS_PREFER_STORAGE=true
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
----
-
-## Run the Application
-
-Launch Streamlit
+## Run
 
 ```bash
 streamlit run chatbot/app_chatbot.py
 ```
 
-The application will be available at
+---
 
-```
-http://localhost:8501
-```
+# 🚀 Future Work
+
+- Expand the Vietnamese V-Pop dataset.
+- Improve recommendation quality.
+- Optimize chatbot reasoning.
+- Add personalized recommendations.
 
 ---
 
-## Machine Learning
-
-✔ Hit Song Classification
-✔ Popularity Prediction
-✔ Genre Classification
-✔ Emotion Classification
-✔ Music Style Clustering
-
----
-
-## NLP
-
-PhoBERT Intent Classification
-
-Accuracy: 96.90%
-Macro F1-score: 97.32%
-
----
-
-## Chatbot Evaluation
-
-388 testing scenarios
-
-HitRate@1: 92.25%
-MRR: 92.25%
----
-
-## Explainability
-
-The prediction process can be interpreted using SHAP.
-
-Supported visualizations include
-
-- Feature Importance
-- SHAP Summary Plot
-- Waterfall Plot
-- Force Plot
-
-This improves model transparency and supports trustworthy AI.
-
-# 🚀 Future Improvements
-
-- Enhance recommendation quality using hybrid recommendation techniques.
-- Expand the Vietnamese music dataset.
-- Improve chatbot reasoning with Retrieval-Augmented Generation (RAG).
-- Optimize deployment for cloud environments.
-- Add user personalization and feedback learning.
-
----
 # 👩‍💻 Author
 
 **Lê Trần Thu Huyền**
@@ -494,18 +294,10 @@ University of Information Technology (UIT – VNU-HCM)
 
 📧 huyen21042003@gmail.com
 
-🔗 GitHub: https://github.com/Ltth2104
+🔗 GitHub: https://github.com/ltlguy214
 
 ---
 
 # 📄 License
 
-This project is released under the MIT License.
-
----
-
-# ⭐ Acknowledgements
-
-This project was developed as a Graduation Project at the University of Information Technology (UIT – VNU-HCM).
-
-Special thanks to my supervisors, teammates and the open-source community whose tools and libraries contributed to this project.
+This project is licensed under the MIT License.
